@@ -1,0 +1,26 @@
+diff --git a/dist/Client.js b/dist/Client.js
+index f04f25ccc040d7796e09a25f0cc84273da60fe16..6beb8951f9eaa74851e1c55ef88a4f80699badec 100644
+--- a/dist/Client.js
++++ b/dist/Client.js
+@@ -27,6 +27,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MINIMUM_SUPPORTED_AP_VERSION = exports.Client = void 0;
+ const events_1 = require("events");
+ const isomorphic_ws_1 = __importDefault(require("isomorphic-ws"));
++require('react-native-get-random-values')
+ const uuid_1 = require("uuid");
+ const CommandPacketType_1 = require("./consts/CommandPacketType");
+ const ConnectionStatus_1 = require("./consts/ConnectionStatus");
+diff --git a/package.json b/package.json
+index 62f373d63bc3a02d67de2226eb973f2f3d59a4ff..93f60dfcd5718d8d2c6a74b71b03b6501d0bd6a2 100644
+--- a/package.json
++++ b/package.json
+@@ -43,7 +43,8 @@
+         "ts-loader": "^9.4.4",
+         "uuid": "^9.0.0",
+         "webpack": "^5.88.1",
+-        "ws": "^8.13.0"
++        "ws": "^8.13.0",
++        "react-native-get-random-values": "~1.8.0"
+     },
+     "devDependencies": {
+         "@trivago/prettier-plugin-sort-imports": "^4.1.1",
