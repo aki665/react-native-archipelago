@@ -41,7 +41,7 @@ export default function App() {
       client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
         console.log("message", message);
         console.log("packet", packet);
-        setMessages([...messages, packet.data[0].text]);
+        setMessages((prevState) => [...prevState, packet.data[0].text]);
         // Add any additional logic here.
       });
       await client.connect(connectionInfo);
@@ -90,7 +90,13 @@ export default function App() {
           <Button title="connect to Archipelago" onPress={connectToAP} />
         </>
       )}
-      {connection !== "Disconnected" && <Text>{messages}</Text>}
+      {connection !== "Disconnected" && (
+        <>
+          {messages.map((message) => {
+            return <Text key={message}>{message}</Text>;
+          })}
+        </>
+      )}
     </SafeAreaView>
   );
 }
