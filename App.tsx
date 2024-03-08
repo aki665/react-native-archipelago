@@ -15,6 +15,8 @@ import {
   View,
 } from "react-native";
 
+import Chat from "./screens/chat";
+
 export default function App() {
   const client = new Client();
   const [apInfo, setApInfo] = useState({
@@ -91,11 +93,7 @@ export default function App() {
         </>
       )}
       {connection !== "Disconnected" && (
-        <>
-          {messages.map((message) => {
-            return <Text key={message}>{message}</Text>;
-          })}
-        </>
+        <Chat messages={messages} client={client} />
       )}
     </SafeAreaView>
   );
