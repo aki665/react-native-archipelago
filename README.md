@@ -1,6 +1,6 @@
 # archipela-go
 
-Currently this is extremely barebone. What this can currenlty do is connect to an archipelago server and display the last message sent there.
+Currently this is extremely barebones. Currently, this is just a glorified text client.
 
 ## How to run 
 1. Install [Node.Js](https://nodejs.org/en)
