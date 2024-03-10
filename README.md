@@ -1,6 +1,6 @@
 # archipela-go
 
-Currently this is extremely barebones. Currently, this is just a glorified text client.
+Currently this is extremely barebones and is just a glorified text client.
 
 ## How to run 
 1. Install [Node.Js](https://nodejs.org/en)
