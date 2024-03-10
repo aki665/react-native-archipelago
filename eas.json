@@ -10,6 +10,22 @@
     "preview": {
       "distribution": "internal"
     },
+    "apk": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "apk2": {
+      "android": {
+        "gradleCommand": ":app:assembleRelease"
+      }
+    },
+    "apk3": {
+      "developmentClient": false
+    },
+    "apk4": {
+      "distribution": "internal"
+    },
     "production": {}
   },
   "submit": {
