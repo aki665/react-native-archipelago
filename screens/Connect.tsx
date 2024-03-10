@@ -2,11 +2,11 @@ import {
   Client,
   ConnectionInformation,
   ITEMS_HANDLING_FLAGS,
-  PrintJSONPacket,
 } from "archipelago.js";
 import React, { useState } from "react";
-import { Button, SafeAreaView, Text, TextInput, View } from "react-native";
+import { SafeAreaView, Text, TextInput, View } from "react-native";
 
+import Button from "../components/Button";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
 
@@ -90,7 +90,7 @@ export default function Connect({ navigation }) {
             value={apInfo.password}
           />
         </View>
-        <Button title="connect to Archipelago" onPress={connectToAP} />
+        <Button text="connect to Archipelago" onPress={connectToAP} />
       </View>
     </SafeAreaView>
   );
