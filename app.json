@@ -21,10 +21,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/blue-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.aki665.archipelago"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6febcf2e-38be-40c3-9847-44eecc002f37"
+      }
     }
   }
 }

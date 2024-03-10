@@ -18,10 +18,10 @@ const commonStyles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 4,
     elevation: 3,
-    backgroundColor: "black",
+    backgroundColor: "rgba(51, 51, 51, 1)",
   },
   touchableHighlightButtonText: {
-    fontSize: 16,
+    fontSize: 12,
     lineHeight: 21,
     fontWeight: "bold",
     letterSpacing: 0.25,

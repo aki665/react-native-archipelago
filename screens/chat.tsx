@@ -1,7 +1,6 @@
 import { Client } from "archipelago.js";
 import React, { useRef, useState } from "react";
-import { Text, TextInput, View } from "react-native";
-import { ScrollView, TouchableHighlight } from "react-native-gesture-handler";
+import { ScrollView, Text, TextInput, View } from "react-native";
 
 import Button from "../components/Button";
 import chatStyles from "../styles/ChatStyles";
@@ -41,8 +40,9 @@ export default function Chat({
           }}
           value={chat}
           onSubmitEditing={() => sendMessage()}
+          placeholder="Message"
         />
-        <Button onPress={sendMessage} text="Send" buttonStyle={{ flex: 1 }} />
+        <Button onPress={sendMessage} text="Send" />
         {/*<Button
           title="Send"
           style={chatStyles.chatButton}

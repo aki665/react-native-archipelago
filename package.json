@@ -15,7 +15,7 @@
     "@react-navigation/native": "^6.1.14",
     "@react-navigation/native-stack": "^6.9.22",
     "@shopify/flash-list": "1.6.3",
-    "archipelago.js": "patch:archipelago.js@npm%3A1.1.0#~/.yarn/patches/archipelago.js-npm-1.1.0-7399af65a6.patch",
+    "archipelago.js": "^1.1.0",
     "expo": "~50.0.11",
     "expo-status-bar": "~1.11.1",
     "react": "18.2.0",
@@ -39,5 +39,5 @@
     "react-native-web": "~0.19.6",
     "typescript": "^5.1.3"
   },
-  "packageManager": "yarn@4.1.1"
+    "packageManager": "yarn@4.1.1"
 }

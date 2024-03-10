@@ -3742,7 +3742,7 @@ __metadata:
     "@shopify/flash-list": "npm:1.6.3"
     "@types/react": "npm:~18.2.45"
     "@types/react-dom": "npm:~18.0.10"
-    archipelago.js: "patch:archipelago.js@npm%3A1.1.0#~/.yarn/patches/archipelago.js-npm-1.1.0-7399af65a6.patch"
+    archipelago.js: "npm:^1.1.0"
     eslint: "npm:^8.57.0"
     eslint-config-universe: "npm:^12.0.0"
     expo: "npm:~50.0.11"
@@ -3762,7 +3762,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"archipelago.js@npm:1.1.0":
+"archipelago.js@npm:^1.1.0":
   version: 1.1.0
   resolution: "archipelago.js@npm:1.1.0"
   dependencies:
@@ -3772,19 +3772,6 @@ __metadata:
     webpack: "npm:^5.88.1"
     ws: "npm:^8.13.0"
   checksum: 10c0/4b17431383945d4b957c5a39bc6931d57979c11cba1fbe2c8671053ed60eaeb790d0b44f59c59bdf4dd15f49ebd4ee84a87a5c0f89ec8b2eb499a0cea57053b1
-  languageName: node
-  linkType: hard
-
-"archipelago.js@patch:archipelago.js@npm%3A1.1.0#~/.yarn/patches/archipelago.js-npm-1.1.0-7399af65a6.patch":
-  version: 1.1.0
-  resolution: "archipelago.js@patch:archipelago.js@npm%3A1.1.0#~/.yarn/patches/archipelago.js-npm-1.1.0-7399af65a6.patch::version=1.1.0&hash=5738a3"
-  dependencies:
-    isomorphic-ws: "npm:^5.0.0"
-    ts-loader: "npm:^9.4.4"
-    uuid: "npm:^9.0.0"
-    webpack: "npm:^5.88.1"
-    ws: "npm:^8.13.0"
-  checksum: 10c0/018b7b6fd81f702a2bc93b7b0928b203ddc858616c4a9d282122758d38b9ca5015a5e203f285eb7627b1732f44bced20351108c8fc10cca25721dc5ecca3ae8b
   languageName: node
   linkType: hard
 
