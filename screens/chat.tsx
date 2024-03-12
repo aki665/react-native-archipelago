@@ -16,6 +16,7 @@ const ChatLine = (
   message: {
     type: string;
     text: string;
+    key: number;
     selfPlayer?: boolean;
     itemType?: ItemFlags;
     color?: ValidJSONColorType;
@@ -49,7 +50,7 @@ const ChatLine = (
       break;
   }
   return (
-    <Text style={style} key={msgPart.type}>
+    <Text style={style} key={`${msgPart.type}-${msgPart.text}-${msgPart.key}`}>
       {msgPart.text}
       {restOfMessage.length > 0 && ChatLine(restOfMessage)}
     </Text>
@@ -66,6 +67,7 @@ export default function Chat({
       {
         type: string;
         text: string;
+        key: number;
         selfPlayer?: boolean;
         itemType?: ItemFlags;
         color?: ValidJSONColorType;

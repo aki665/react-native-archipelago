@@ -12,12 +12,6 @@ function Placeholder() {
   return <></>;
 }
 
-/**
- * Handler for ap messaging
- * @param packet Packet recieved from archipelago
- * @param message message string
- */
-
 export default function Connected({
   route,
   navigation,
@@ -29,33 +23,58 @@ export default function Connected({
   const insets = useSafeAreaInsets();
 
   const handleMessages = (packet: PrintJSONPacket) => {
-    const msg = packet.data.map((object) => {
+    const msg = packet.data.map((object, index) => {
+      const key = messages.flat().length + index; //figure something out to make these unique
+      console.log(messages);
       switch (object.type) {
         case "color":
-          return { type: "text", text: object.text, color: object.color };
+          return {
+            type: "text",
+            text: object.text,
+            color: object.color,
+            key,
+          };
         case "player_id":
-          console.log(client.players.get(parseInt(object.text, 10)));
           return {
             type: "player",
             text: client.players.get(parseInt(object.text, 10))?.alias,
             selfPlayer: client.data.slot === parseInt(object.text, 10),
+            key,
           };
         case "item_id":
           return {
             type: "item",
             text: client.items.name(object.player, parseInt(object.text, 10)),
             itemType: object.flags,
+            key,
           };
         case "location_id":
+          console.log("getting location name");
           return {
             type: "location",
             text: client.locations.name(
               object.player,
               parseInt(object.text, 10),
             ),
+            key,
+          };
+        case "text":
+          return { type: "text", text: object.text };
+        case "item_name":
+          return {
+            type: "item",
+            text: object.text,
+            itemType: object.flags,
+            key,
+          };
+        case "location_name":
+          return {
+            type: "location",
+            text: object.text,
+            key,
           };
         default:
-          return { type: "text", text: object.text };
+          return { type: "text", text: object.text, key };
       }
     });
     console.log("revieved message", msg);
@@ -93,7 +112,12 @@ export default function Connected({
             onPress: () => null,
             style: "cancel",
           },
-          { text: "YES", onPress: () => handleDisconnect() },
+          {
+            text: "YES",
+            onPress: () => {
+              handleDisconnect();
+            },
+          },
         ],
       );
       return true;
