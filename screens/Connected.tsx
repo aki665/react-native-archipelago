@@ -29,7 +29,7 @@ export default function Connected({
       switch (object.type) {
         case "color":
           return {
-            type: "text",
+            type: "color",
             text: object.text,
             color: object.color,
             key,
@@ -77,7 +77,7 @@ export default function Connected({
           return { type: "text", text: object.text, key };
       }
     });
-    console.log("revieved message", msg);
+    console.log("handled message", msg);
     setMessages((prevState) => [...prevState, msg]);
   };
 
