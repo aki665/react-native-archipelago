@@ -22,17 +22,42 @@ export default function Connected({
   route,
   navigation,
 }: Readonly<{
-  route: { params: { client: Client; messages: string[] } };
+  route: { params: { client: Client } };
 }>) {
   const { client } = route.params;
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const insets = useSafeAreaInsets();
 
-  const handleMessages = (packet: PrintJSONPacket, message: string) => {
-    const msg = packet.data[0].text;
-    if (packet.type === "ItemSend" || packet.type === "ItemCheat") {
-      //Handle items here
-    }
+  const handleMessages = (packet: PrintJSONPacket) => {
+    const msg = packet.data.map((object) => {
+      switch (object.type) {
+        case "color":
+          return { type: "text", text: object.text, color: object.color };
+        case "player_id":
+          console.log(client.players.get(parseInt(object.text, 10)));
+          return {
+            type: "player",
+            text: client.players.get(parseInt(object.text, 10))?.alias,
+            selfPlayer: client.data.slot === parseInt(object.text, 10),
+          };
+        case "item_id":
+          return {
+            type: "item",
+            text: client.items.name(object.player, parseInt(object.text, 10)),
+            itemType: object.flags,
+          };
+        case "location_id":
+          return {
+            type: "location",
+            text: client.locations.name(
+              object.player,
+              parseInt(object.text, 10),
+            ),
+          };
+        default:
+          return { type: "text", text: object.text };
+      }
+    });
     console.log("revieved message", msg);
     setMessages((prevState) => [...prevState, msg]);
   };
@@ -40,7 +65,7 @@ export default function Connected({
   const handleDisconnect = async () => {
     client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
       console.log("starting message listener...");
-      handleMessages(packet, message);
+      handleMessages(packet);
     });
     client.disconnect();
     setMessages([]);
@@ -55,7 +80,7 @@ export default function Connected({
     });
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
       console.log("starting message listener...");
-      handleMessages(packet, message);
+      handleMessages(packet);
       // Add any additional logic here.
     });
     const backAction = () => {
@@ -83,7 +108,7 @@ export default function Connected({
         SERVER_PACKET_TYPE.PRINT_JSON,
         (packet, message) => {
           console.log("starting message listener...");
-          handleMessages(packet, message);
+          handleMessages(packet);
         },
       );
       backHandler.remove();

@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
 
+import Colors from "./Colors";
+
 const chatStyles = StyleSheet.create({
   chat: {
     flexDirection: "column",
@@ -10,7 +12,7 @@ const chatStyles = StyleSheet.create({
   },
   message: {
     flex: 1,
-    borderWidth: 1,
+    color: Colors.black,
   },
   chatBox: {
     flex: 1,
