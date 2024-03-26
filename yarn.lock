@@ -1756,9 +1756,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/cli@npm:0.17.7":
-  version: 0.17.7
-  resolution: "@expo/cli@npm:0.17.7"
+"@expo/cli@npm:0.17.8":
+  version: 0.17.8
+  resolution: "@expo/cli@npm:0.17.8"
   dependencies:
     "@babel/runtime": "npm:^7.20.0"
     "@expo/code-signing-certificates": "npm:0.0.5"
@@ -1838,7 +1838,7 @@ __metadata:
     ws: "npm:^8.12.1"
   bin:
     expo-internal: build/bin/cli
-  checksum: 10c0/8ea9103a574db1486834f9d1d38272ac173f7bd62f7086458a025507a17395a95e973aa346cb4d1c5f30372c2e98ea2605e55c7c1fba7bc1575fbaab1a47d4f6
+  checksum: 10c0/2f5acb9c7ee31e51c278deba81f0ec99d7fb3d82cda454da3ee60f2eca9725da2562f757e83f2c5eb39620dfbdf88b2fdcefd78b26a38a46591a90dd77fe9da1
   languageName: node
   linkType: hard
 
@@ -3021,6 +3021,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/geojson@npm:^7946.0.13":
+  version: 7946.0.14
+  resolution: "@types/geojson@npm:7946.0.14"
+  checksum: 10c0/54f3997708fa2970c03eeb31f7e4540a0eb6387b15e9f8a60513a1409c23cafec8d618525404573468b59c6fecbfd053724b3327f7fca416729c26271d799f55
+  languageName: node
+  linkType: hard
+
 "@types/hammerjs@npm:^2.0.36":
   version: 2.0.45
   resolution: "@types/hammerjs@npm:2.0.45"
@@ -3730,7 +3737,9 @@ __metadata:
     archipelago.js: "npm:^1.1.0"
     eslint: "npm:^8.57.0"
     eslint-config-universe: "npm:^12.0.0"
-    expo: "npm:~50.0.11"
+    expo: "npm:~50.0.13"
+    expo-location: "npm:~16.5.5"
+    expo-secure-store: "npm:~12.8.1"
     expo-status-bar: "npm:~1.11.1"
     prettier: "npm:^3.2.5"
     react: "npm:18.2.0"
@@ -3738,6 +3747,7 @@ __metadata:
     react-native: "npm:0.73.4"
     react-native-gesture-handler: "npm:~2.14.0"
     react-native-get-random-values: "npm:~1.8.0"
+    react-native-maps: "npm:1.10.0"
     react-native-pager-view: "npm:6.2.3"
     react-native-safe-area-context: "npm:4.8.2"
     react-native-screens: "npm:~3.29.0"
@@ -5799,6 +5809,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-location@npm:~16.5.5":
+  version: 16.5.5
+  resolution: "expo-location@npm:16.5.5"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/18b6fe4c146e2379fe6ed5715dd0f235f62b3bf3fafb4bffa20697203c9dd7ec4312cb7f0a425d44af08717a96ffbcd4c6f297c5ac9c66cf98420749cd62b60b
+  languageName: node
+  linkType: hard
+
 "expo-modules-autolinking@npm:1.10.3":
   version: 1.10.3
   resolution: "expo-modules-autolinking@npm:1.10.3"
@@ -5815,12 +5834,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-modules-core@npm:1.11.10":
-  version: 1.11.10
-  resolution: "expo-modules-core@npm:1.11.10"
+"expo-modules-core@npm:1.11.12":
+  version: 1.11.12
+  resolution: "expo-modules-core@npm:1.11.12"
   dependencies:
     invariant: "npm:^2.2.4"
-  checksum: 10c0/d704680381c0b7d15be61a63f5d1d26bd9c6618fe1a1bca96223b158504dd8a2ce12aa8ff9e5ba7345873b14c28186bfba66a7249290e6c9b5249c4c73e6893c
+  checksum: 10c0/7c2a37f9856a476252b904f3e71b90cb1a555ffd6947428d2d855e4340d46743b59dd4074e4bb89634661f237f47022f10cc64b1508aa8b312c5c1ecdea47599
+  languageName: node
+  linkType: hard
+
+"expo-secure-store@npm:~12.8.1":
+  version: 12.8.1
+  resolution: "expo-secure-store@npm:12.8.1"
+  peerDependencies:
+    expo: "*"
+  checksum: 10c0/eb15637da244cf6cebd3a0e742ecd00d2bf9818716b13dc545d8497e236787b0f044d179dc267d14a9f99e56004738a2647e2b7d3023ca1d0cbc768618e56b66
   languageName: node
   linkType: hard
 
@@ -5831,12 +5859,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo@npm:~50.0.11":
-  version: 50.0.11
-  resolution: "expo@npm:50.0.11"
+"expo@npm:~50.0.13":
+  version: 50.0.13
+  resolution: "expo@npm:50.0.13"
   dependencies:
     "@babel/runtime": "npm:^7.20.0"
-    "@expo/cli": "npm:0.17.7"
+    "@expo/cli": "npm:0.17.8"
     "@expo/config": "npm:8.5.4"
     "@expo/config-plugins": "npm:7.8.4"
     "@expo/metro-config": "npm:0.17.6"
@@ -5847,12 +5875,12 @@ __metadata:
     expo-font: "npm:~11.10.3"
     expo-keep-awake: "npm:~12.8.2"
     expo-modules-autolinking: "npm:1.10.3"
-    expo-modules-core: "npm:1.11.10"
+    expo-modules-core: "npm:1.11.12"
     fbemitter: "npm:^3.0.0"
     whatwg-url-without-unicode: "npm:8.0.0-3"
   bin:
     expo: bin/cli
-  checksum: 10c0/da032566e461baec515d5b18649fd3bb806ea2f3af8dcea8f362669af1bfb18c788e8ae2a3fb48101c72ce64a58d4a997c1a19e65f41b507bb28ad340b39caf3
+  checksum: 10c0/98be82883b2cb1b5dc5ce2528e9253a13576d7c96f4f8e856570627df6d207ca3ea9c3a75393583ff9a52f8d08f8e189ad87fb0ade1c8f52d0d57e6625c84c55
   languageName: node
   linkType: hard
 
@@ -9469,6 +9497,22 @@ __metadata:
   peerDependencies:
     react-native: ">=0.56"
   checksum: 10c0/1a220a1f27afc163db78147d7cb097dfa9b2eab9976465bf1a2f6f10429d773204651b14e03eee7950eb8295596f67fc286f68c3b2fd259d7128f540024f20de
+  languageName: node
+  linkType: hard
+
+"react-native-maps@npm:1.10.0":
+  version: 1.10.0
+  resolution: "react-native-maps@npm:1.10.0"
+  dependencies:
+    "@types/geojson": "npm:^7946.0.13"
+  peerDependencies:
+    react: ">= 17.0.1"
+    react-native: ">= 0.64.3"
+    react-native-web: ">= 0.11"
+  peerDependenciesMeta:
+    react-native-web:
+      optional: true
+  checksum: 10c0/ca6a1b1e0ee643c9eca837ee857f6d4c0046746c963d489a3509418e430ea19b1d772f47d630e45b33da6bdd70ced10d8372635f6a24eafac8dde365b9c87c02
   languageName: node
   linkType: hard
 

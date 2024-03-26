@@ -33,7 +33,7 @@ export default function Connect({ navigation }) {
       const connectionInfo: ConnectionInformation = {
         protocol: "wss",
         tags: ["AP", "TextOnly"],
-        game: "",
+        game: "Archipela-Go!",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
         ...apInfo,
       };

@@ -4,13 +4,10 @@ import React, { useEffect, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import MapScreen from "./MapScreen";
 import Chat from "./chat";
 
 const Tab = createMaterialTopTabNavigator();
-
-function Placeholder() {
-  return <></>;
-}
 
 export default function Connected({
   route,
@@ -102,6 +99,7 @@ export default function Connected({
       handleMessages(packet);
       // Add any additional logic here.
     });
+    console.log(client.data.slotData);
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -144,7 +142,7 @@ export default function Connected({
       <Tab.Screen name="chat">
         {(props) => <Chat {...props} client={client} messages={messages} />}
       </Tab.Screen>
-      <Tab.Screen name="nothing yet" component={Placeholder} />
+      <Tab.Screen name="map" component={MapScreen} />
     </Tab.Navigator>
   );
 }

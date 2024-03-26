@@ -6,6 +6,16 @@
     "orientation": "portrait",
     "icon": "./assets/blue-icon.png",
     "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled":true
+        }
+      ]
+    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
