@@ -1,11 +1,13 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { Client, PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
+import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import MapScreen from "./MapScreen";
 import Chat from "./chat";
+import getLocations from "../utils/getLocations";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -17,6 +19,8 @@ export default function Connected({
 }>) {
   const { client } = route.params;
   const [messages, setMessages] = useState<any[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [coordinates, setCoordinates] = useState<any[]>([]);
   const insets = useSafeAreaInsets();
 
   const handleMessages = (packet: PrintJSONPacket) => {
@@ -100,6 +104,27 @@ export default function Connected({
       // Add any additional logic here.
     });
     console.log(client.data.slotData);
+    const getCoordinatesForLocations = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({});
+      if (client.data?.slotData.trips) {
+        client.data?.slotData?.trips?.forEach(async (trip) => {
+          const coords = await getLocations(
+            location.coords,
+            client.data?.slotData.maximum_distance,
+            client.data?.slotData.minimum_distance,
+            client.data?.slotData.speed_requirement,
+            trip,
+          );
+          setCoordinates((prevState) => [...prevState, { ...coords, trip }]);
+        });
+      }
+    };
+    getCoordinatesForLocations();
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -142,7 +167,11 @@ export default function Connected({
       <Tab.Screen name="chat">
         {(props) => <Chat {...props} client={client} messages={messages} />}
       </Tab.Screen>
-      <Tab.Screen name="map" component={MapScreen} />
+      <Tab.Screen name="map">
+        {(props) => (
+          <MapScreen {...props} client={client} coordinates={coordinates} />
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }

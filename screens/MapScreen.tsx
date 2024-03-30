@@ -1,3 +1,4 @@
+import { Client } from "archipelago.js";
 import * as Location from "expo-location";
 import React, { PropsWithChildren, memo, useEffect, useState } from "react";
 import { Image, View } from "react-native";
@@ -31,7 +32,24 @@ const MemoizedMap = memo(function MemoizedMap(props: PropsWithChildren) {
   );
 });
 
-export default function MapScreen() {
+export default function MapScreen({
+  client,
+  coordinates,
+}: Readonly<{
+  client: Client;
+  coordinates: [
+    {
+      lat: number;
+      lon: number;
+      trip: {
+        amount: number;
+        distance_tier: number;
+        key_needed: number;
+        speed_tier: number;
+      };
+    },
+  ];
+}>) {
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
@@ -46,10 +64,11 @@ export default function MapScreen() {
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      console.log(location);
+      //console.log(location);
       setLocation(location);
     };
     getLocation();
+
     const locationTimeOut = setInterval(getLocation, 10000);
     return () => {
       clearInterval(locationTimeOut);
@@ -58,7 +77,11 @@ export default function MapScreen() {
   return (
     <View style={mapStyles.container}>
       <MemoizedMap>
-        <APMarker latitude={37.78825} longitude={-122.4324} />
+        <>
+          {coordinates.forEach((location) => (
+            <APMarker latitude={location.lat} longitude={location.lon} />
+          ))}
+        </>
       </MemoizedMap>
     </View>
   );
