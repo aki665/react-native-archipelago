@@ -1,11 +1,19 @@
 import { LocationObjectCoords } from "expo-location";
 
 /**
- * Return a google 'nearest road' API url
- * See https://developers.google.com/maps/documentation/roads/nearest for more info
+ * Return a openstreetmaps 'lookup' API url
+ * See https://nominatim.org/release-docs/latest/api/Lookup/ for more info
  */
-const roadApi = (latitude: number, longitude: number) => {
-  return `https://roads.googleapis.com/v1/nearestRoads?points=${latitude}%2C${longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_API_KEY}`;
+const lookupApi = (type: string, id: number) => {
+  return `https://nominatim.openstreetmap.org/lookup?osm_ids=${type}${id}&format=json`;
+};
+
+/**
+ * Return a openstreetmaps reverse geicidubg API url
+ * See https://nominatim.org/release-docs/latest/api/Reverse/ for more info
+ */
+const getOSMTypeAndIdAPI = (latitude: number, longitude: number) => {
+  return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
 };
 
 /**
@@ -34,7 +42,7 @@ async function generateLocation(
   // 1° latitude in meters
   const DEGREE = ((EARTH_RADIUS * 2 * Math.PI) / 360) * 1000;
 
-  // random distance within [min-max] in km in a non-uniform way
+  // random distance within [min-max] in m in a non-uniform way
   const r = (max - min + 1) * Math.random() ** 0.5 + min;
 
   const dy = r * Math.sin(theta);
@@ -43,24 +51,28 @@ async function generateLocation(
   let newLatitude = latitude + dy / DEGREE;
   let newLongitude = longitude + dx / (DEGREE * Math.cos(deg2rad(latitude)));
 
-  console.log(newLatitude, newLongitude);
-  const response = await fetch(roadApi(newLatitude, newLongitude));
+  const OSMInfoResponse = await fetch(
+    getOSMTypeAndIdAPI(newLatitude, newLongitude),
+  );
 
-  const roadSnappedCoords = await response.json();
-  console.log(response.json());
-  newLatitude = roadSnappedCoords.snappedPoints[0].location.latitude;
-  newLongitude = roadSnappedCoords.snappedPoints[0].location.longitude;
+  const OSMInfo = await OSMInfoResponse.json();
+  const lookupResponse = await fetch(
+    lookupApi(OSMInfo.osm_type[0].toUpperCase(), OSMInfo.osm_id),
+  );
+  const lookupInfo = await lookupResponse.json();
+  newLatitude = lookupInfo[0].lat;
+  newLongitude = lookupInfo[0].lon;
   const distance = getDistanceFromLatLonInKm(
     latitude,
     longitude,
     newLatitude,
     newLongitude,
   );
-
+  console.log("generated location that is ", distance, "km away");
   return {
     newLatitude,
     newLongitude,
-    distance: Math.round(distance),
+    distance,
   };
 }
 
@@ -95,27 +107,31 @@ async function getLocationCoordinates(
   longitude: number,
   maximum_distance: number,
   theta: number,
+  distance_tier: number,
   minimum_distance = 0,
+  loop = 0,
 ) {
   let res = await generateLocation(
     latitude,
     longitude,
-    maximum_distance,
+    (maximum_distance / 10) * distance_tier - 5 * loop,
     theta,
     minimum_distance,
   );
   if (
-    res.distance * 1000 < minimum_distance ||
-    res.distance * 1000 > maximum_distance
-  )
-    console.log(res.distance);
-  res = await getLocationCoordinates(
-    latitude,
-    longitude,
-    maximum_distance,
-    theta,
-    minimum_distance,
-  );
+    res.distance * 1000 <= minimum_distance ||
+    res.distance * 1000 >= maximum_distance
+  ) {
+    res = await getLocationCoordinates(
+      latitude,
+      longitude,
+      maximum_distance - 5,
+      theta,
+      minimum_distance,
+      loop + 1,
+    );
+  }
+  console.log(res);
   return res;
 }
 
@@ -141,6 +157,7 @@ export default async function getLocations(
       maximum_distance,
       theta,
       minimum_distance,
+      trip.distance_tier,
     );
     res.push({ lat: coordinates.newLatitude, lon: coordinates.newLongitude });
   }
