@@ -60,15 +60,14 @@ async function generateLocation(
     lookupApi(OSMInfo.osm_type[0].toUpperCase(), OSMInfo.osm_id),
   );
   const lookupInfo = await lookupResponse.json();
-  newLatitude = lookupInfo[0].lat;
-  newLongitude = lookupInfo[0].lon;
+  newLatitude = parseFloat(lookupInfo[0].lat);
+  newLongitude = parseFloat(lookupInfo[0].lon);
   const distance = getDistanceFromLatLonInKm(
     latitude,
     longitude,
     newLatitude,
     newLongitude,
   );
-  console.log("generated location that is ", distance, "km away");
   return {
     newLatitude,
     newLongitude,
@@ -131,7 +130,6 @@ async function getLocationCoordinates(
       loop + 1,
     );
   }
-  console.log(res);
   return res;
 }
 

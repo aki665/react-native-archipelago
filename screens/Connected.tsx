@@ -19,8 +19,6 @@ export default function Connected({
 }>) {
   const { client } = route.params;
   const [messages, setMessages] = useState<any[]>([]);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [coordinates, setCoordinates] = useState<any[]>([]);
   const insets = useSafeAreaInsets();
 
   const handleMessages = (packet: PrintJSONPacket) => {
@@ -104,27 +102,6 @@ export default function Connected({
       // Add any additional logic here.
     });
     console.log(client.data.slotData);
-    const getCoordinatesForLocations = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
-      }
-      const location = await Location.getCurrentPositionAsync({});
-      if (client.data?.slotData.trips) {
-        client.data?.slotData?.trips?.forEach(async (trip) => {
-          const coords = await getLocations(
-            location.coords,
-            client.data?.slotData.maximum_distance,
-            client.data?.slotData.minimum_distance,
-            client.data?.slotData.speed_requirement,
-            trip,
-          );
-          setCoordinates((prevState) => [...prevState, { ...coords, trip }]);
-        });
-      }
-    };
-    getCoordinatesForLocations();
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -168,9 +145,7 @@ export default function Connected({
         {(props) => <Chat {...props} client={client} messages={messages} />}
       </Tab.Screen>
       <Tab.Screen name="map">
-        {(props) => (
-          <MapScreen {...props} client={client} coordinates={coordinates} />
-        )}
+        {(props) => <MapScreen {...props} client={client} />}
       </Tab.Screen>
     </Tab.Navigator>
   );
