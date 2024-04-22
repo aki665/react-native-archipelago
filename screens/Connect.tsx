@@ -4,12 +4,20 @@ import {
   ITEMS_HANDLING_FLAGS,
 } from "archipelago.js";
 import React, { useState } from "react";
-import { ActivityIndicator, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Button from "../components/Button";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
+import { save } from "../utils/storageHandler";
 
 export default function Connect({ navigation }) {
   const client = new Client();
@@ -26,6 +34,15 @@ export default function Connect({ navigation }) {
   });
   const [portString, setPortString] = useState("");
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [sessionName, setSessionName] = useState("");
+
+  const handleSaveConnectionInfo = async () => {
+    await save(apInfo, sessionName);
+    navigation.navigate("connected", {
+      client,
+    });
+  };
 
   const connectToAP = async () => {
     try {
@@ -40,9 +57,11 @@ export default function Connect({ navigation }) {
 
       await client.connect(connectionInfo);
       //client.say("connected to the server from react-native!");
-      navigation.navigate("connected", {
+      /* navigation.navigate("connected", {
         client,
-      });
+      }); */
+      setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${apInfo.port}`);
+      setModalVisible(true);
       setLoading(false);
     } catch (e) {
       console.error(e);
@@ -53,6 +72,46 @@ export default function Connect({ navigation }) {
   return (
     <SafeAreaView style={mainStyles.connectionContainer}>
       <View>
+        <Modal
+          animationType="slide"
+          transparent
+          visible={modalVisible}
+          onRequestClose={() => {
+            client.disconnect();
+            setModalVisible(!modalVisible);
+          }}
+        >
+          <View style={commonStyles.centeredView}>
+            <View style={commonStyles.modalView}>
+              <Text style={commonStyles.modalText}>
+                What do you want to save this connection as?
+              </Text>
+              <TextInput
+                style={commonStyles.textInput}
+                onChangeText={(text) => {
+                  setSessionName(text);
+                }}
+                value={sessionName}
+                editable={!loading}
+                placeholder="Port"
+              />
+              <View style={commonStyles.modalButtonContainer}>
+                <Button
+                  text="Save"
+                  onPress={() => handleSaveConnectionInfo()}
+                />
+                <Button
+                  text="Cancel"
+                  onPress={() => {
+                    client.disconnect();
+                    setModalVisible(!modalVisible);
+                  }}
+                  buttonStyle={{ marginLeft: 40 }}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
         <Text style={commonStyles.inputLabel}>Address</Text>
         <TextInput
           style={commonStyles.textInput}

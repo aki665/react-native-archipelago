@@ -6,7 +6,7 @@ import * as React from "react";
 import "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import Connect from "./screens/Connect";
+import ConnectTabs from "./screens/ConnectTabs";
 import Connected from "./screens/Connected";
 require("react-native-get-random-values");
 
@@ -22,7 +22,7 @@ function App() {
           initialRouteName="connect"
           screenOptions={{ header: EmptyHeader }}
         >
-          <Stack.Screen name="connect" component={Connect} />
+          <Stack.Screen name="connect" component={ConnectTabs} />
           <Stack.Screen name="connected" component={Connected} />
         </Stack.Navigator>
       </NavigationContainer>
