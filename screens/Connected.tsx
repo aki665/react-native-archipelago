@@ -1,4 +1,5 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { Client, PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
 import React, { useEffect, useState } from "react";
 import { Alert, BackHandler } from "react-native";
@@ -17,6 +18,7 @@ export default function Connected({
   navigation,
 }: Readonly<{
   route: { params: { client: Client } };
+  navigation: MaterialTopTabNavigationHelpers;
 }>) {
   const { client } = route.params;
   const [messages, setMessages] = useState<any[]>([]);
@@ -86,6 +88,7 @@ export default function Connected({
       console.log("starting message listener...");
       handleMessages(packet);
     });
+    console.log("disconnecting...");
     client.disconnect();
     setMessages([]);
     navigation.navigate("connect");

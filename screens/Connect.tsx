@@ -1,117 +1,58 @@
+import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import {
   Client,
   ConnectionInformation,
   ITEMS_HANDLING_FLAGS,
 } from "archipelago.js";
 import React, { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Modal, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Button from "../components/Button";
+import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
 import { save } from "../utils/storageHandler";
 
-export default function Connect({ navigation }) {
-  const client = new Client();
-  const [apInfo, setApInfo] = useState<{
-    hostname: string;
-    port: number;
-    name: string;
-    password?: string;
-  }>({
-    hostname: "archipelago.gg",
-    port: 0,
-    name: "",
-    password: undefined,
-  });
-  const [portString, setPortString] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [sessionName, setSessionName] = useState("");
+export type apInfo = {
+  hostname: string;
+  port: number;
+  name: string;
+  password?: string;
+};
 
-  const handleSaveConnectionInfo = async () => {
-    await save(apInfo, sessionName);
-    navigation.navigate("connected", {
-      client,
-    });
-  };
-
-  const connectToAP = async () => {
-    try {
-      setLoading(true);
-      const connectionInfo: ConnectionInformation = {
-        protocol: "wss",
-        tags: ["AP", "TextOnly"],
-        game: "",
-        items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
-        ...apInfo,
-      };
-
-      await client.connect(connectionInfo);
-      //client.say("connected to the server from react-native!");
-      /* navigation.navigate("connected", {
-        client,
-      }); */
-      setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${apInfo.port}`);
-      setModalVisible(true);
-      setLoading(false);
-    } catch (e) {
-      console.error(e);
-      setLoading(false);
-    }
-  };
-
+/**
+ * Renders AP information inputs
+ * @param onPress a method that is run when the included button is pressed
+ * @param buttonText What the button says on it
+ * @param loading State that when it is true, the fields and button are disabled
+ * @param savedInfo default values for the fields
+ */
+export function ApInformation({
+  onPress,
+  buttonText,
+  loading,
+  savedInfo,
+}: Readonly<{
+  onPress: (apInfo: apInfo) => void;
+  buttonText: string;
+  loading: boolean;
+  savedInfo?: apInfo;
+}>) {
+  const [apInfo, setApInfo] = useState<apInfo>(
+    savedInfo || {
+      hostname: "archipelago.gg",
+      port: 0,
+      name: "",
+      password: undefined,
+    },
+  );
+  const [portString, setPortString] = useState(
+    savedInfo?.port.toString() ?? "",
+  );
   return (
-    <SafeAreaView style={mainStyles.connectionContainer}>
+    <>
       <View>
-        <Modal
-          animationType="slide"
-          transparent
-          visible={modalVisible}
-          onRequestClose={() => {
-            client.disconnect();
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={commonStyles.centeredView}>
-            <View style={commonStyles.modalView}>
-              <Text style={commonStyles.modalText}>
-                What do you want to save this connection as?
-              </Text>
-              <TextInput
-                style={commonStyles.textInput}
-                onChangeText={(text) => {
-                  setSessionName(text);
-                }}
-                value={sessionName}
-                editable={!loading}
-                placeholder="Port"
-              />
-              <View style={commonStyles.modalButtonContainer}>
-                <Button
-                  text="Save"
-                  onPress={() => handleSaveConnectionInfo()}
-                />
-                <Button
-                  text="Cancel"
-                  onPress={() => {
-                    client.disconnect();
-                    setModalVisible(!modalVisible);
-                  }}
-                  buttonStyle={{ marginLeft: 40 }}
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
         <Text style={commonStyles.inputLabel}>Address</Text>
         <TextInput
           style={commonStyles.textInput}
@@ -162,14 +103,105 @@ export default function Connect({ navigation }) {
         />
       </View>
       <Button
-        text="connect to Archipelago"
+        text={buttonText}
         textStyle={{ fontSize: 16 }}
-        onPress={connectToAP}
+        onPress={() => {
+          onPress(apInfo);
+        }}
         buttonProps={{ disabled: loading }}
         removeText={loading}
       >
         {loading && <ActivityIndicator size="large" color="white" />}
       </Button>
+    </>
+  );
+}
+
+export default function Connect({
+  navigation,
+}: Readonly<{
+  navigation: MaterialTopTabNavigationHelpers;
+}>) {
+  const client = new Client();
+  const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [sessionName, setSessionName] = useState("");
+  const [infoToSave, setInfoToSave] = useState({});
+
+  const handleSaveConnectionInfo = async () => {
+    await save(infoToSave, sessionName);
+    navigation.navigate("connected", {
+      client,
+    });
+    setModalVisible(false);
+  };
+
+  const connectToAP = async (apInfo: apInfo) => {
+    try {
+      setLoading(true);
+      const connectionInfo: ConnectionInformation = {
+        protocol: "wss",
+        tags: ["AP", "TextOnly"],
+        game: "",
+        items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
+        ...apInfo,
+      };
+
+      await client.connect(connectionInfo);
+      //client.say("connected to the server from react-native!");
+      /* navigation.navigate("connected", {
+        client,
+      }); */
+      setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${apInfo.port}`);
+      setModalVisible(true);
+      setInfoToSave(apInfo);
+      console.log(modalVisible);
+      setLoading(false);
+    } catch (e) {
+      console.error(e);
+      setLoading(false);
+    }
+  };
+
+  const closePopup = () => {
+    client.disconnect();
+    setModalVisible(false);
+  };
+
+  return (
+    <SafeAreaView style={mainStyles.connectionContainer}>
+      <Popup visible={modalVisible} closePopup={closePopup}>
+        <Text style={commonStyles.modalText}>
+          What do you want to save this connection as?
+        </Text>
+        <TextInput
+          style={commonStyles.textInput}
+          onChangeText={(text) => {
+            setSessionName(text);
+          }}
+          value={sessionName}
+          editable={!loading}
+          placeholder="Port"
+        />
+        <View style={commonStyles.modalButtonContainer}>
+          <Button
+            text="Cancel"
+            onPress={() => {
+              closePopup();
+            }}
+          />
+          <Button
+            text="Save"
+            onPress={() => handleSaveConnectionInfo()}
+            buttonStyle={{ marginLeft: 40 }}
+          />
+        </View>
+      </Popup>
+      <ApInformation
+        onPress={connectToAP}
+        buttonText="Connect to Archipelago"
+        loading={loading}
+      />
     </SafeAreaView>
   );
 }

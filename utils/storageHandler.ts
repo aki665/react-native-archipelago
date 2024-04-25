@@ -1,5 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+/**
+ * Save an object into storage. Uses JSON.stringify.
+ * @param value object to save to storage
+ * @param name name of the object. used in loading
+ */
 export async function save(value: object, name: string) {
   try {
     const jsonValue = JSON.stringify(value);
@@ -9,6 +14,11 @@ export async function save(value: object, name: string) {
   }
 }
 
+/**
+ * Retrieve an object from storage.
+ * @param name name of the saved object
+ * @returns the saved object
+ */
 export async function load(name: string) {
   try {
     const jsonValue = await AsyncStorage.getItem(name);
@@ -19,6 +29,9 @@ export async function load(name: string) {
   }
 }
 
+/**
+ * Gets all keys known to your app; for all callers, libraries, etc.
+ */
 export async function getAllNames() {
   try {
     const keys = await AsyncStorage.getAllKeys();
@@ -30,6 +43,11 @@ export async function getAllNames() {
   }
 }
 
+/**
+ * This allows you to batch the fetching of items given an array of key inputs. Your callback will be invoked with an array of corresponding key-value pairs found
+ * @param names list of all names to get from storage
+ * @returns
+ */
 export async function loadAll(names: string[]) {
   let values;
   try {
@@ -42,6 +60,9 @@ export async function loadAll(names: string[]) {
   return values;
 }
 
+/**
+ * Remove specified item from storage
+ */
 export async function remove(name: string) {
   try {
     await AsyncStorage.removeItem(name);

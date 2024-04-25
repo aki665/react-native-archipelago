@@ -3,6 +3,7 @@ import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Connect from "./Connect";
+import Settings from "./Setting";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -21,7 +22,7 @@ export default function ConnectTabs() {
       <Tab.Screen name="Connect">
         {(props) => <Connect {...props} />}
       </Tab.Screen>
-      <Tab.Screen name="Settings" component={Placeholder} />
+      <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
   );
 }
