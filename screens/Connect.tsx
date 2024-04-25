@@ -140,7 +140,7 @@ export default function Connect({
   };
   const handleSaveConnectionInfo = async () => {
     const existingNames = await getAllNames();
-    if (existingNames?.some((value) => value === sessionName)) {
+    if (existingNames?.some((value: string) => value === sessionName)) {
       Alert.alert(
         "A connection is already saved with the specified name",
         "Do you want to replace the existing one with this new one?",
