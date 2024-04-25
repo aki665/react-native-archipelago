@@ -5,14 +5,14 @@ import {
   ITEMS_HANDLING_FLAGS,
 } from "archipelago.js";
 import React, { useState } from "react";
-import { ActivityIndicator, Modal, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Button from "../components/Button";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
-import { save } from "../utils/storageHandler";
+import { getAllNames, save } from "../utils/storageHandler";
 
 export type apInfo = {
   hostname: string;
@@ -128,12 +128,39 @@ export default function Connect({
   const [sessionName, setSessionName] = useState("");
   const [infoToSave, setInfoToSave] = useState({});
 
-  const handleSaveConnectionInfo = async () => {
-    await save(infoToSave, sessionName);
+  const connect = () => {
     navigation.navigate("connected", {
       client,
     });
     setModalVisible(false);
+  };
+  const saveInfoAndConnect = async () => {
+    await save(infoToSave, sessionName);
+    connect();
+  };
+  const handleSaveConnectionInfo = async () => {
+    const existingNames = await getAllNames();
+    if (existingNames?.some((value) => value === sessionName)) {
+      Alert.alert(
+        "A connection is already saved with the specified name",
+        "Do you want to replace the existing one with this new one?",
+        [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel",
+          },
+          {
+            text: "Replace",
+            onPress: () => {
+              saveInfoAndConnect();
+            },
+          },
+        ],
+      );
+    } else {
+      saveInfoAndConnect();
+    }
   };
 
   const connectToAP = async (apInfo: apInfo) => {
@@ -148,10 +175,6 @@ export default function Connect({
       };
 
       await client.connect(connectionInfo);
-      //client.say("connected to the server from react-native!");
-      /* navigation.navigate("connected", {
-        client,
-      }); */
       setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${apInfo.port}`);
       setModalVisible(true);
       setInfoToSave(apInfo);
@@ -191,9 +214,14 @@ export default function Connect({
             }}
           />
           <Button
+            text="Connect without saving"
+            onPress={() => connect()}
+            buttonStyle={{ marginLeft: 20 }}
+          />
+          <Button
             text="Save"
             onPress={() => handleSaveConnectionInfo()}
-            buttonStyle={{ marginLeft: 40 }}
+            buttonStyle={{ marginLeft: 20 }}
           />
         </View>
       </Popup>
