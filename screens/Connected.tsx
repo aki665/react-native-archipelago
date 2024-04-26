@@ -1,14 +1,12 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { Client, PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
-import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import MapScreen from "./MapScreen";
 import Chat from "./chat";
-import getLocations from "../utils/getLocations";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -16,10 +14,13 @@ export default function Connected({
   route,
   navigation,
 }: Readonly<{
-  route: { params: { client: Client } };
+  route: {
+    params: { client: Client; sessionName: string; replacedInfo: boolean };
+  };
   navigation: MaterialTopTabNavigationHelpers;
+  replacedInfo: boolean;
 }>) {
-  const { client } = route.params;
+  const { client, sessionName, replacedInfo } = route.params;
   const [messages, setMessages] = useState<any[]>([]);
   const insets = useSafeAreaInsets();
 
@@ -104,7 +105,6 @@ export default function Connected({
       handleMessages(packet);
       // Add any additional logic here.
     });
-    console.log(client.data.slotData);
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -148,7 +148,14 @@ export default function Connected({
         {(props) => <Chat {...props} client={client} messages={messages} />}
       </Tab.Screen>
       <Tab.Screen name="map">
-        {(props) => <MapScreen {...props} client={client} />}
+        {(props) => (
+          <MapScreen
+            {...props}
+            client={client}
+            sessionName={sessionName}
+            replacedInfo={replacedInfo}
+          />
+        )}
       </Tab.Screen>
     </Tab.Navigator>
   );

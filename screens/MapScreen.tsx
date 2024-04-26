@@ -7,6 +7,7 @@ import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import APMarkers from "./APMarkers";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
+import { load, save } from "../utils/storageHandler";
 
 const MemoizedMap = memo(function MemoizedMap(props: PropsWithChildren) {
   return (
@@ -17,12 +18,10 @@ const MemoizedMap = memo(function MemoizedMap(props: PropsWithChildren) {
 });
 
 export type trip = {
-  coords: [
-    {
-      lat: number;
-      lon: number;
-    },
-  ];
+  coords: {
+    lat: number;
+    lon: number;
+  }[];
   trip: {
     amount: number;
     distance_tier: number;
@@ -33,8 +32,12 @@ export type trip = {
 
 export default function MapScreen({
   client,
+  sessionName,
+  replacedInfo,
 }: Readonly<{
   client: Client;
+  sessionName: string;
+  replacedInfo: boolean;
 }>) {
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
@@ -49,8 +52,13 @@ export default function MapScreen({
       return;
     }
     const location = await Location.getCurrentPositionAsync({});
-    if (client.data?.slotData.trips) {
-      client.data?.slotData?.trips?.forEach(async (trip) => {
+    const loadedTrips = await load(sessionName + "_trips");
+
+    if ((!loadedTrips || replacedInfo) && client.data?.slotData.trips) {
+      console.log("no saved data found. Generating new coordinates...");
+      const tempTrips: any[] | trip[] = [];
+      console.log(client.data?.slotData?.trips?.length);
+      for (const trip of client.data?.slotData?.trips) {
         const coords = await getLocations(
           location.coords,
           client.data?.slotData.maximum_distance,
@@ -58,8 +66,12 @@ export default function MapScreen({
           client.data?.slotData.speed_requirement,
           trip,
         );
-        setTrips((prevState) => [...prevState, { coords, trip }]);
-      });
+        tempTrips.push({ coords, trip });
+      }
+      setTrips(tempTrips);
+      if (sessionName) await save(tempTrips, sessionName + "_trips");
+    } else {
+      setTrips(loadedTrips);
     }
   };
 

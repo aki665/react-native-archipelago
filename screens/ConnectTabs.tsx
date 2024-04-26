@@ -7,10 +7,6 @@ import Settings from "./Setting";
 
 const Tab = createMaterialTopTabNavigator();
 
-const Placeholder = () => {
-  return <></>;
-};
-
 export default function ConnectTabs() {
   const insets = useSafeAreaInsets();
 

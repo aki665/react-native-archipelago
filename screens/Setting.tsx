@@ -95,8 +95,8 @@ export default function Settings({
   const fetchStorage = async () => {
     setLoading(true);
     const infoNames = await getAllNames();
-    console.log(infoNames);
-    setSavedInfo(infoNames);
+    const filteredNames = infoNames?.filter((item) => !item.includes("_trips"));
+    setSavedInfo(filteredNames);
     setLoading(false);
   };
 
@@ -115,8 +115,7 @@ export default function Settings({
       const apInfo: apInfo = await load(storageName);
       const connectionInfo: ConnectionInformation = {
         protocol: "wss",
-        tags: ["AP", "TextOnly"],
-        game: "",
+        game: "Archipela-Go!",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
         ...apInfo,
       };
@@ -125,6 +124,7 @@ export default function Settings({
       //client.say("connected to the server from react-native!");
       navigation.navigate("connected", {
         client,
+        sessionName: storageName,
       });
       setLoading(false);
     } catch (e) {
@@ -139,6 +139,9 @@ export default function Settings({
       await save(apInfo, editingName.newName);
       if (editingName.originalName !== editingName.newName) {
         await remove(editingName.originalName);
+        const trips = await load(editingName.originalName + "_trips");
+        await save(trips, editingName.newName + "_trips");
+        await remove(editingName.originalName + "_trips");
       }
       fetchStorage();
       setModalVisible(false);
@@ -158,6 +161,7 @@ export default function Settings({
         text: "Delete",
         onPress: () => {
           remove(storageName);
+          remove(storageName + "_trips");
           setLoading(true);
           fetchStorage();
           setLoading(false);
@@ -220,20 +224,24 @@ export default function Settings({
         <View
           style={{ height: "80%", width: Dimensions.get("screen").width - 5 }}
         >
-          <FlashList
-            data={savedInfo}
-            estimatedItemSize={savedInfo?.length}
-            renderItem={({ item }) => (
-              <ListItem
-                item={item}
-                connectToAp={connectToAP}
-                editInfo={editInfo}
-                deleteItem={deleteSavedInfo}
-              />
-            )}
-            onRefresh={fetchStorage}
-            refreshing={loading}
-          />
+          {savedInfo?.length ? (
+            <FlashList
+              data={savedInfo}
+              estimatedItemSize={savedInfo?.length}
+              renderItem={({ item }) => (
+                <ListItem
+                  item={item}
+                  connectToAp={connectToAP}
+                  editInfo={editInfo}
+                  deleteItem={deleteSavedInfo}
+                />
+              )}
+              onRefresh={fetchStorage}
+              refreshing={loading}
+            />
+          ) : (
+            <Text>No saved connections</Text>
+          )}
         </View>
       </View>
     </SafeAreaView>

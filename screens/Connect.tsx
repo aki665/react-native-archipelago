@@ -122,28 +122,30 @@ export default function Connect({
 }: Readonly<{
   navigation: MaterialTopTabNavigationHelpers;
 }>) {
-  const client = new Client();
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [sessionName, setSessionName] = useState("");
   const [infoToSave, setInfoToSave] = useState({});
+  const [client, setClient] = useState(new Client());
 
-  const connect = () => {
+  const connect = (replacedInfo = false) => {
     navigation.navigate("connected", {
       client,
+      sessionName,
+      replacedInfo,
     });
     setModalVisible(false);
   };
   const saveInfoAndConnect = async () => {
     await save(infoToSave, sessionName);
-    connect();
+    connect(true);
   };
   const handleSaveConnectionInfo = async () => {
     const existingNames = await getAllNames();
     if (existingNames?.some((value: string) => value === sessionName)) {
       Alert.alert(
         "A connection is already saved with the specified name",
-        "Do you want to replace the existing one with this new one?",
+        "Do you want to replace the existing one with this new one?\nNOTE: Also replaces saved destinations",
         [
           {
             text: "Cancel",
@@ -168,7 +170,7 @@ export default function Connect({
       setLoading(true);
       const connectionInfo: ConnectionInformation = {
         protocol: "wss",
-        tags: ["AP", "TextOnly"],
+        tags: ["AP"],
         game: "Archipela-Go!",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
         ...apInfo,
@@ -204,7 +206,7 @@ export default function Connect({
           }}
           value={sessionName}
           editable={!loading}
-          placeholder="Port"
+          placeholder="Session name"
         />
         <View style={commonStyles.modalButtonContainer}>
           <Button
@@ -215,7 +217,10 @@ export default function Connect({
           />
           <Button
             text="Connect without saving"
-            onPress={() => connect()}
+            onPress={() => {
+              setSessionName("");
+              connect();
+            }}
             buttonStyle={{ marginLeft: 20 }}
           />
           <Button
