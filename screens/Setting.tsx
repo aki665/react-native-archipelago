@@ -220,20 +220,24 @@ export default function Settings({
         <View
           style={{ height: "80%", width: Dimensions.get("screen").width - 5 }}
         >
-          <FlashList
-            data={savedInfo}
-            estimatedItemSize={savedInfo?.length}
-            renderItem={({ item }) => (
-              <ListItem
-                item={item}
-                connectToAp={connectToAP}
-                editInfo={editInfo}
-                deleteItem={deleteSavedInfo}
-              />
-            )}
-            onRefresh={fetchStorage}
-            refreshing={loading}
-          />
+          {savedInfo?.length ? (
+            <FlashList
+              data={savedInfo}
+              estimatedItemSize={savedInfo?.length}
+              renderItem={({ item }) => (
+                <ListItem
+                  item={item}
+                  connectToAp={connectToAP}
+                  editInfo={editInfo}
+                  deleteItem={deleteSavedInfo}
+                />
+              )}
+              onRefresh={fetchStorage}
+              refreshing={loading}
+            />
+          ) : (
+            <Text>No saved connections</Text>
+          )}
         </View>
       </View>
     </SafeAreaView>
