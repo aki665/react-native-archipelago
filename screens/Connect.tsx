@@ -178,7 +178,6 @@ export default function Connect({
       setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${apInfo.port}`);
       setModalVisible(true);
       setInfoToSave(apInfo);
-      console.log(modalVisible);
       setLoading(false);
     } catch (e) {
       console.error(e);
