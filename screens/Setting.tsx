@@ -1,12 +1,8 @@
 import { AntDesign } from "@expo/vector-icons";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { FlashList } from "@shopify/flash-list";
-import {
-  Client,
-  ConnectionInformation,
-  ITEMS_HANDLING_FLAGS,
-} from "archipelago.js";
-import React, { useEffect, useState } from "react";
+import { ConnectionInformation, ITEMS_HANDLING_FLAGS } from "archipelago.js";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -19,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ApInformation, apInfo } from "./Connect";
 import Button from "../components/Button";
+import { ClientContext } from "../components/ClientContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import settingsStyles from "../styles/settingsStyles";
@@ -90,7 +87,7 @@ export default function Settings({
     originalName: "",
     newName: "",
   });
-  const client = new Client();
+  const client = useContext(ClientContext);
 
   const fetchStorage = async () => {
     setLoading(true);
@@ -123,9 +120,7 @@ export default function Settings({
 
       await client.connect(connectionInfo);
       //client.say("connected to the server from react-native!");
-      navigation.navigate("connected", {
-        client,
-      });
+      navigation.navigate("connected");
       setLoading(false);
     } catch (e) {
       console.error(e);

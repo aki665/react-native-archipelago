@@ -1,14 +1,11 @@
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
-import {
-  Client,
-  ConnectionInformation,
-  ITEMS_HANDLING_FLAGS,
-} from "archipelago.js";
-import React, { useState } from "react";
+import { ConnectionInformation, ITEMS_HANDLING_FLAGS } from "archipelago.js";
+import React, { useContext, useState } from "react";
 import { ActivityIndicator, Alert, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import Button from "../components/Button";
+import { ClientContext } from "../components/ClientContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
@@ -122,16 +119,14 @@ export default function Connect({
 }: Readonly<{
   navigation: MaterialTopTabNavigationHelpers;
 }>) {
-  const client = new Client();
+  const client = useContext(ClientContext);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [sessionName, setSessionName] = useState("");
   const [infoToSave, setInfoToSave] = useState({});
 
   const connect = () => {
-    navigation.navigate("connected", {
-      client,
-    });
+    navigation.navigate("connected");
     setModalVisible(false);
   };
   const saveInfoAndConnect = async () => {
