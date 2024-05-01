@@ -1,10 +1,11 @@
 import { Client } from "archipelago.js";
 import * as Location from "expo-location";
-import React from "react";
+import React, { useContext } from "react";
 import { Image } from "react-native";
 import { Marker } from "react-native-maps";
 
 import { trip } from "./MapScreen";
+import { ClientContext } from "../components/ClientContext";
 
 function APMarker({
   trip,
@@ -33,7 +34,6 @@ function APMarker({
 }
 
 export default function APMarkers({
-  client,
   trips,
   location,
 }: Readonly<{
@@ -41,6 +41,8 @@ export default function APMarkers({
   trips: any[] | trip[];
   location: Location.LocationObject | null;
 }>) {
+  const client = useContext(ClientContext);
+
   return (
     <>
       {trips.map((trip: trip) => {

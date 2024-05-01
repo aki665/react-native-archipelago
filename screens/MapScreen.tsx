@@ -1,10 +1,16 @@
-import { Client } from "archipelago.js";
 import * as Location from "expo-location";
-import React, { PropsWithChildren, memo, useEffect, useState } from "react";
+import React, {
+  PropsWithChildren,
+  memo,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { View } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
+import { ClientContext } from "../components/ClientContext";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import { load, save } from "../utils/storageHandler";
@@ -31,14 +37,14 @@ export type trip = {
 };
 
 export default function MapScreen({
-  client,
   sessionName,
   replacedInfo,
 }: Readonly<{
-  client: Client;
   sessionName: string;
   replacedInfo: boolean;
 }>) {
+  const client = useContext(ClientContext);
+
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
