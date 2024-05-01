@@ -1,32 +1,36 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
-import { Client, PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
-import React, { useEffect, useState } from "react";
+import { PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
+import React, { useContext, useEffect, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import MapScreen from "./MapScreen";
-import Chat from "./chat";
+import Chat, { messages } from "./chat";
+import { ClientContext } from "../components/ClientContext";
 
 const Tab = createMaterialTopTabNavigator();
 
 export default function Connected({
-  route,
   navigation,
 }: Readonly<{
   route: {
-    params: { client: Client; sessionName: string; replacedInfo: boolean };
+    params: { sessionName: string; replacedInfo: boolean };
   };
   navigation: MaterialTopTabNavigationHelpers;
   replacedInfo: boolean;
 }>) {
-  const { client, sessionName, replacedInfo } = route.params;
-  const [messages, setMessages] = useState<any[]>([]);
+  const { sessionName, replacedInfo } = route.params;
+  const client = useContext(ClientContext);
+
+  const [messages, setMessages] = useState<messages>([]);
   const insets = useSafeAreaInsets();
 
+  /**
+   * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
+   */
   const handleMessages = (packet: PrintJSONPacket) => {
-    const msg = packet.data.map((object, index) => {
-      const key = messages.flat().length + index; //figure something out to make these unique
+    const msg = packet.data.map((object) => {
       console.log(messages);
       switch (object.type) {
         case "color":
@@ -34,21 +38,18 @@ export default function Connected({
             type: "color",
             text: object.text,
             color: object.color,
-            key,
           };
         case "player_id":
           return {
             type: "player",
             text: client.players.get(parseInt(object.text, 10))?.alias,
             selfPlayer: client.data.slot === parseInt(object.text, 10),
-            key,
           };
         case "item_id":
           return {
             type: "item",
             text: client.items.name(object.player, parseInt(object.text, 10)),
             itemType: object.flags,
-            key,
           };
         case "location_id":
           console.log("getting location name");
@@ -58,7 +59,6 @@ export default function Connected({
               object.player,
               parseInt(object.text, 10),
             ),
-            key,
           };
         case "text":
           return { type: "text", text: object.text };
@@ -67,16 +67,14 @@ export default function Connected({
             type: "item",
             text: object.text,
             itemType: object.flags,
-            key,
           };
         case "location_name":
           return {
             type: "location",
             text: object.text,
-            key,
           };
         default:
-          return { type: "text", text: object.text, key };
+          return { type: "text", text: object.text };
       }
     });
     console.log("handled message", msg);
@@ -94,12 +92,6 @@ export default function Connected({
     navigation.navigate("connect");
   };
   useEffect(() => {
-    client.addListener(SERVER_PACKET_TYPE.CONNECTED, (packet) => {
-      //setConnection(packet.cmd);
-    });
-    client.addListener(SERVER_PACKET_TYPE.CONNECTION_REFUSED, (packet) => {
-      //setConnection(packet.cmd);
-    });
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
       console.log("starting message listener...");
       handleMessages(packet);
@@ -145,7 +137,7 @@ export default function Connected({
   return (
     <Tab.Navigator initialRouteName="chat" style={{ paddingTop: insets.top }}>
       <Tab.Screen name="chat">
-        {(props) => <Chat {...props} client={client} messages={messages} />}
+        {(props) => <Chat {...props} messages={messages} />}
       </Tab.Screen>
       <Tab.Screen name="map">
         {(props) => (

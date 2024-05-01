@@ -1,12 +1,8 @@
 import { AntDesign } from "@expo/vector-icons";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { FlashList } from "@shopify/flash-list";
-import {
-  Client,
-  ConnectionInformation,
-  ITEMS_HANDLING_FLAGS,
-} from "archipelago.js";
-import React, { useEffect, useState } from "react";
+import { ConnectionInformation, ITEMS_HANDLING_FLAGS } from "archipelago.js";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -19,6 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ApInformation, apInfo } from "./Connect";
 import Button from "../components/Button";
+import { ClientContext } from "../components/ClientContext";
+import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import settingsStyles from "../styles/settingsStyles";
@@ -90,23 +88,35 @@ export default function Settings({
     originalName: "",
     newName: "",
   });
-  const client = new Client();
+  const client = useContext(ClientContext);
+  const { setError } = useContext(ErrorContext);
 
   const fetchStorage = async () => {
-    setLoading(true);
-    const infoNames = await getAllNames();
-    const filteredNames = infoNames?.filter((item) => !item.includes("_trips"));
-    setSavedInfo(filteredNames);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const infoNames = await getAllNames();
+      const filteredNames = infoNames?.filter(
+        (item) => !item.includes("_trips"),
+      );
+      setSavedInfo(filteredNames);
+      setLoading(false);
+    } catch (e) {
+      setError(e);
+      console.log(e);
+    }
   };
 
   const editInfo = async (storageName: string) => {
-    setLoading(true);
-    const apInfo: apInfo = await load(storageName);
-    setEditingValues(apInfo);
-    setEditingName({ originalName: storageName, newName: storageName });
-    setLoading(false);
-    setModalVisible(true);
+    try {
+      setLoading(true);
+      const apInfo: apInfo = await load(storageName);
+      setEditingValues(apInfo);
+      setEditingName({ originalName: storageName, newName: storageName });
+      setLoading(false);
+      setModalVisible(true);
+    } catch (e) {
+      setError(e);
+    }
   };
 
   const connectToAP = async (storageName: string) => {
@@ -123,11 +133,11 @@ export default function Settings({
       await client.connect(connectionInfo);
       //client.say("connected to the server from react-native!");
       navigation.navigate("connected", {
-        client,
         sessionName: storageName,
       });
       setLoading(false);
     } catch (e) {
+      setError(e);
       console.error(e);
       setLoading(false);
     }
@@ -147,6 +157,7 @@ export default function Settings({
       setModalVisible(false);
       setLoading(false);
     } catch (e) {
+      setError(e);
       console.log(e);
     }
   };
@@ -160,11 +171,16 @@ export default function Settings({
       {
         text: "Delete",
         onPress: () => {
-          remove(storageName);
-          remove(storageName + "_trips");
-          setLoading(true);
-          fetchStorage();
-          setLoading(false);
+          try {
+            remove(storageName);
+            remove(storageName + "_trips");
+            setLoading(true);
+            fetchStorage();
+            setLoading(false);
+          } catch (e) {
+            console.log(e);
+            setError(e);
+          }
         },
         style: "cancel",
       },
@@ -224,24 +240,21 @@ export default function Settings({
         <View
           style={{ height: "80%", width: Dimensions.get("screen").width - 5 }}
         >
-          {savedInfo?.length ? (
-            <FlashList
-              data={savedInfo}
-              estimatedItemSize={savedInfo?.length}
-              renderItem={({ item }) => (
-                <ListItem
-                  item={item}
-                  connectToAp={connectToAP}
-                  editInfo={editInfo}
-                  deleteItem={deleteSavedInfo}
-                />
-              )}
-              onRefresh={fetchStorage}
-              refreshing={loading}
-            />
-          ) : (
-            <Text>No saved connections</Text>
-          )}
+          <FlashList
+            estimatedItemSize={83}
+            data={savedInfo}
+            ListEmptyComponent={<Text>No saved connections</Text>}
+            renderItem={({ item }) => (
+              <ListItem
+                item={item}
+                connectToAp={connectToAP}
+                editInfo={editInfo}
+                deleteItem={deleteSavedInfo}
+              />
+            )}
+            onRefresh={fetchStorage}
+            refreshing={loading}
+          />
         </View>
       </View>
     </SafeAreaView>
