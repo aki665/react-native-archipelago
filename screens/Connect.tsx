@@ -134,7 +134,6 @@ export default function Connect({
   };
   const saveInfoAndConnect = async () => {
     await save(infoToSave, sessionName);
-    await save({ test: "this is a test info thing" }, sessionName + "_test");
     connect();
   };
   const handleSaveConnectionInfo = async () => {
