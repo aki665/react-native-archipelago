@@ -12,7 +12,7 @@ import errorStyles from "../styles/ErrorStyles";
 
 export const ErrorContext = createContext<{
   error: string;
-  setError: React.Dispatch<React.SetStateAction<string>>;
+  setError: React.Dispatch<React.SetStateAction<unknown>>;
 }>({
   error: "",
   setError: (_error: unknown) => {},
