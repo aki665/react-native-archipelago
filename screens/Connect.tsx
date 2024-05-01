@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
+import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
@@ -120,6 +121,8 @@ export default function Connect({
   navigation: MaterialTopTabNavigationHelpers;
 }>) {
   const client = useContext(ClientContext);
+  const { setError } = useContext(ErrorContext);
+
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [sessionName, setSessionName] = useState("");
@@ -174,7 +177,9 @@ export default function Connect({
       setModalVisible(true);
       setInfoToSave(apInfo);
       setLoading(false);
+      setError("");
     } catch (e) {
+      setError(e);
       console.error(e);
       setLoading(false);
     }

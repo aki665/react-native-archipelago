@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ApInformation, apInfo } from "./Connect";
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
+import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import settingsStyles from "../styles/settingsStyles";
@@ -88,22 +89,32 @@ export default function Settings({
     newName: "",
   });
   const client = useContext(ClientContext);
+  const { setError } = useContext(ErrorContext);
 
   const fetchStorage = async () => {
-    setLoading(true);
-    const infoNames = await getAllNames();
-    console.log(infoNames);
-    setSavedInfo(infoNames);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const infoNames = await getAllNames();
+      console.log(infoNames);
+      setSavedInfo(infoNames);
+      setLoading(false);
+    } catch (e) {
+      setError(e);
+      console.log(e);
+    }
   };
 
   const editInfo = async (storageName: string) => {
-    setLoading(true);
-    const apInfo: apInfo = await load(storageName);
-    setEditingValues(apInfo);
-    setEditingName({ originalName: storageName, newName: storageName });
-    setLoading(false);
-    setModalVisible(true);
+    try {
+      setLoading(true);
+      const apInfo: apInfo = await load(storageName);
+      setEditingValues(apInfo);
+      setEditingName({ originalName: storageName, newName: storageName });
+      setLoading(false);
+      setModalVisible(true);
+    } catch (e) {
+      setError(e);
+    }
   };
 
   const connectToAP = async (storageName: string) => {
@@ -123,6 +134,7 @@ export default function Settings({
       navigation.navigate("connected");
       setLoading(false);
     } catch (e) {
+      setError(e);
       console.error(e);
       setLoading(false);
     }
@@ -139,6 +151,7 @@ export default function Settings({
       setModalVisible(false);
       setLoading(false);
     } catch (e) {
+      setError(e);
       console.log(e);
     }
   };
@@ -152,10 +165,15 @@ export default function Settings({
       {
         text: "Delete",
         onPress: () => {
-          remove(storageName);
-          setLoading(true);
-          fetchStorage();
-          setLoading(false);
+          try {
+            remove(storageName);
+            setLoading(true);
+            fetchStorage();
+            setLoading(false);
+          } catch (e) {
+            console.log(e);
+            setError(e);
+          }
         },
         style: "cancel",
       },
