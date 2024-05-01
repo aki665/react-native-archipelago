@@ -11,6 +11,7 @@ import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
 import { ClientContext } from "../components/ClientContext";
+import { ErrorContext } from "../components/ErrorContext";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import { load, save } from "../utils/storageHandler";
@@ -48,13 +49,13 @@ export default function MapScreen({
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { setError } = useContext(ErrorContext);
   const [trips, setTrips] = useState<any[] | trip[]>([]);
 
   const getCoordinatesForLocations = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
-      setErrorMsg("Permission to access location was denied");
+      setError("Permission to access location was denied");
       return;
     }
     const location = await Location.getCurrentPositionAsync({});

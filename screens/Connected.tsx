@@ -12,13 +12,13 @@ import { ClientContext } from "../components/ClientContext";
 const Tab = createMaterialTopTabNavigator();
 
 export default function Connected({
+  route,
   navigation,
 }: Readonly<{
   route: {
     params: { sessionName: string; replacedInfo: boolean };
   };
   navigation: MaterialTopTabNavigationHelpers;
-  replacedInfo: boolean;
 }>) {
   const { sessionName, replacedInfo } = route.params;
   const client = useContext(ClientContext);
@@ -143,7 +143,6 @@ export default function Connected({
         {(props) => (
           <MapScreen
             {...props}
-            client={client}
             sessionName={sessionName}
             replacedInfo={replacedInfo}
           />
