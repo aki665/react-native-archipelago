@@ -31,7 +31,6 @@ export default function Connected({
    */
   const handleMessages = (packet: PrintJSONPacket) => {
     const msg = packet.data.map((object) => {
-      console.log(messages);
       switch (object.type) {
         case "color":
           return {

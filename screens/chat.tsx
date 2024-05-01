@@ -40,7 +40,6 @@ const ChatLine = memo(
     }[];
     index: number;
   }) => {
-    console.log(message);
     const msgPart = message[0];
     const restOfMessage = message.slice(1);
     let style = chatStyles.message;
