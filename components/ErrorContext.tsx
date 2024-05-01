@@ -11,7 +11,7 @@ import errorStyles from "../styles/ErrorStyles";
  */
 
 export const ErrorContext = createContext<{
-  error: string;
+  error: unknown;
   setError: React.Dispatch<React.SetStateAction<unknown>>;
 }>({
   error: "",
@@ -47,7 +47,7 @@ export default function ErrorContextProvider({
 }: Readonly<{
   children?: ReactNode | ReactNode[];
 }>) {
-  const [error, setError] = useState("");
+  const [error, setError] = useState<unknown>("");
   const errorValue = { error, setError };
   return (
     <ErrorContext.Provider value={errorValue}>{children}</ErrorContext.Provider>
