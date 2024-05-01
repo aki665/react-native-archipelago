@@ -22,6 +22,10 @@ import commonStyles from "../styles/CommonStyles";
 import settingsStyles from "../styles/settingsStyles";
 import { getAllNames, load, remove, save } from "../utils/storageHandler";
 
+const EXTERNAL_EXTRA_DATA: string[] = []; // include extra storage keys you want to handle yourself in this array
+const EXTRA_DATA: string[] = []; // include any extra storage keys in this array
+const hiddenData: string[] = [...EXTERNAL_EXTRA_DATA, ...EXTRA_DATA]; // these values are hidden from the loadable list of connections
+
 const ListItem = ({
   item,
   connectToAp,
@@ -33,7 +37,6 @@ const ListItem = ({
   editInfo: (item: string) => Promise<void>;
   deleteItem: (item: string) => Promise<void>;
 }) => {
-  console.log(item.length);
   let fontSize = 20;
   if (item.length > 30) fontSize = 15;
   return (
@@ -91,12 +94,22 @@ export default function Settings({
   const client = useContext(ClientContext);
   const { setError } = useContext(ErrorContext);
 
+  const filterStorage = (item: string) => {
+    let res = true;
+    hiddenData.forEach((string) => {
+      if (item.includes(string)) res = false;
+    });
+    return res;
+  };
+
   const fetchStorage = async () => {
     try {
       setLoading(true);
       const infoNames = await getAllNames();
       console.log(infoNames);
-      setSavedInfo(infoNames);
+      const filteredNames =
+        hiddenData.length > 0 ? infoNames?.filter(filterStorage) : infoNames;
+      setSavedInfo(filteredNames);
       setLoading(false);
     } catch (e) {
       setError(e);
@@ -146,6 +159,13 @@ export default function Settings({
       await save(apInfo, editingName.newName);
       if (editingName.originalName !== editingName.newName) {
         await remove(editingName.originalName);
+        if (EXTRA_DATA.length > 0) {
+          EXTRA_DATA.forEach(async (item) => {
+            const data = await load(editingName.originalName + item);
+            await save(data, editingName.newName + item);
+            await remove(editingName.originalName + item);
+          });
+        }
       }
       fetchStorage();
       setModalVisible(false);
