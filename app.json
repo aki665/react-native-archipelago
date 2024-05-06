@@ -7,7 +7,6 @@
     "icon": "./assets/blue-icon.png",
     "userInterfaceStyle": "automatic",
     "plugins": [
-      "expo-secure-store",
       [
         "expo-location",
         {
