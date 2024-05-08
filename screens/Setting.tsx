@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ApInformation, apInfo } from "./Connect";
+import APLicense from "../components/APLicense";
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
@@ -251,6 +252,7 @@ export default function Settings({
         />
       </Popup>
       <View>
+        <APLicense />
         <Text style={commonStyles.inputLabel}>Saved info</Text>
         <View
           style={{ height: "80%", width: Dimensions.get("screen").width - 5 }}
