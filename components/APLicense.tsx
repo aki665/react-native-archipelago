@@ -76,6 +76,7 @@ const Link = ({
 const styles = StyleSheet.create({
   card: {
     borderRadius: 4,
+    maxHeight: 150,
     overflow: "hidden",
     flexDirection: "row",
     backgroundColor: "white",
@@ -106,6 +107,7 @@ const styles = StyleSheet.create({
   image: {
     width: 96,
     maxWidth: 96,
+    maxHeight: 96,
     flex: 1,
     borderRadius: 0,
     resizeMode: "contain",

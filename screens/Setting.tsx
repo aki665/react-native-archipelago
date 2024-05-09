@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   Alert,
   Dimensions,
+  ScrollView,
   Text,
   TextInput,
   TouchableHighlight,
@@ -249,29 +250,37 @@ export default function Settings({
           savedInfo={editingValues}
         />
       </Popup>
-      <View>
-        <APLicense />
-        <Text style={commonStyles.inputLabel}>Saved info</Text>
-        <View
-          style={{ height: "80%", width: Dimensions.get("screen").width - 5 }}
-        >
-          <FlashList
-            estimatedItemSize={83}
-            data={savedInfo}
-            ListEmptyComponent={<Text>No saved connections</Text>}
-            renderItem={({ item }) => (
-              <ListItem
-                item={item}
-                connectToAp={connectToAP}
-                editInfo={editInfo}
-                deleteItem={deleteSavedInfo}
-              />
-            )}
-            onRefresh={fetchStorage}
-            refreshing={loading}
-          />
+      <ScrollView nestedScrollEnabled>
+        <View>
+          <APLicense />
+          <Text style={commonStyles.inputLabel}>Saved info</Text>
+          <View
+            style={{
+              height: 700,
+              width: Dimensions.get("screen").width - 5,
+              borderWidth: 3,
+              borderRadius: 5,
+            }}
+          >
+            <FlashList
+              estimatedItemSize={83}
+              data={savedInfo}
+              nestedScrollEnabled
+              ListEmptyComponent={<Text>No saved connections</Text>}
+              renderItem={({ item }) => (
+                <ListItem
+                  item={item}
+                  connectToAp={connectToAP}
+                  editInfo={editInfo}
+                  deleteItem={deleteSavedInfo}
+                />
+              )}
+              onRefresh={fetchStorage}
+              refreshing={loading}
+            />
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
