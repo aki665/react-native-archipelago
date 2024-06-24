@@ -33,7 +33,8 @@ async function generateLocation(
   min = 0,
 ) {
   if (min > max) {
-    throw new Error(`min(${min}) cannot be greater than max(${max})`);
+    console.log("max", max);
+    return { distance: 0 };
   }
 
   // earth radius in km
@@ -51,28 +52,32 @@ async function generateLocation(
   let newLatitude = latitude + dy / DEGREE;
   let newLongitude = longitude + dx / (DEGREE * Math.cos(deg2rad(latitude)));
 
-  const OSMInfoResponse = await fetch(
-    getOSMTypeAndIdAPI(newLatitude, newLongitude),
-  );
+  try {
+    const OSMInfoResponse = await fetch(
+      getOSMTypeAndIdAPI(newLatitude, newLongitude),
+    );
 
-  const OSMInfo = await OSMInfoResponse.json();
-  const lookupResponse = await fetch(
-    lookupApi(OSMInfo.osm_type[0].toUpperCase(), OSMInfo.osm_id),
-  );
-  const lookupInfo = await lookupResponse.json();
-  newLatitude = parseFloat(lookupInfo[0].lat);
-  newLongitude = parseFloat(lookupInfo[0].lon);
-  const distance = getDistanceFromLatLonInKm(
-    latitude,
-    longitude,
-    newLatitude,
-    newLongitude,
-  );
-  return {
-    newLatitude,
-    newLongitude,
-    distance,
-  };
+    const OSMInfo = await OSMInfoResponse.json();
+    const lookupResponse = await fetch(
+      lookupApi(OSMInfo.osm_type[0].toUpperCase(), OSMInfo.osm_id),
+    );
+    const lookupInfo = await lookupResponse.json();
+    newLatitude = parseFloat(lookupInfo[0].lat);
+    newLongitude = parseFloat(lookupInfo[0].lon);
+    const distance = getDistanceFromLatLonInKm(
+      latitude,
+      longitude,
+      newLatitude,
+      newLongitude,
+    );
+    return {
+      newLatitude,
+      newLongitude,
+      distance,
+    };
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 // See https://stackoverflow.com/a/27943/10975709
@@ -101,19 +106,28 @@ function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
 
+/**
+ * Returns a set of coordinates based on input. If resulting coordinates are farther than maximum_distance or nearer than minimum_distance, coordinates get rolled again
+ */
 async function getLocationCoordinates(
   latitude: number,
   longitude: number,
   maximum_distance: number,
   theta: number,
   distance_tier: number,
+  trip_length: number,
+  current_position: number,
   minimum_distance = 0,
   loop = 0,
 ) {
+  console.log(
+    `${maximum_distance} / 10 * ${distance_tier} * ${current_position} / ${trip_length} - 5 * ${loop}`,
+  );
   let res = await generateLocation(
     latitude,
     longitude,
-    (maximum_distance / 10) * distance_tier - 5 * loop,
+    (maximum_distance / 10) * distance_tier * (current_position / trip_length) -
+      5 * loop,
     theta,
     minimum_distance,
   );
@@ -121,11 +135,21 @@ async function getLocationCoordinates(
     res.distance * 1000 <= minimum_distance ||
     res.distance * 1000 >= maximum_distance
   ) {
+    console.log(
+      "error generating, expected values between",
+      minimum_distance,
+      maximum_distance,
+      "got:",
+      res.distance,
+    );
     res = await getLocationCoordinates(
       latitude,
       longitude,
-      maximum_distance - 5,
+      maximum_distance,
       theta,
+      distance_tier,
+      trip_length,
+      current_position,
       minimum_distance,
       loop + 1,
     );
@@ -139,25 +163,22 @@ export default async function getLocations(
   minimum_distance: number,
   speed_requirement: number,
   trip: {
-    amount: number;
     distance_tier: number;
     key_needed: number;
     speed_tier: number;
   },
+  theta: number,
 ) {
   // random angle
-  const theta = Math.random() * 2 * Math.PI;
-  const res = [];
-  for (let i = 0; i < trip.amount; i++) {
-    const coordinates = await getLocationCoordinates(
-      initialCords.latitude,
-      initialCords.longitude,
-      maximum_distance,
-      theta,
-      minimum_distance,
-      trip.distance_tier,
-    );
-    res.push({ lat: coordinates.newLatitude, lon: coordinates.newLongitude });
-  }
-  return res;
+  const coordinates = await getLocationCoordinates(
+    initialCords.latitude,
+    initialCords.longitude,
+    maximum_distance,
+    theta,
+    trip.distance_tier,
+    1,
+    1,
+    minimum_distance,
+  );
+  return { lat: coordinates.newLatitude, lon: coordinates.newLongitude };
 }

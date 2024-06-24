@@ -3,6 +3,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import "react-native-gesture-handler";
+import * as TaskManager from "expo-task-manager";
 import React from "react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -16,6 +17,7 @@ require("react-native-get-random-values");
 const Stack = createNativeStackNavigator();
 
 const EmptyHeader = () => <></>;
+TaskManager.unregisterAllTasksAsync();
 
 function App() {
   return (
@@ -39,5 +41,4 @@ function App() {
     </SafeAreaProvider>
   );
 }
-
 export default App;

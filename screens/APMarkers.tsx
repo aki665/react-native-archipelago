@@ -1,57 +1,60 @@
-import { Client } from "archipelago.js";
+import { Client, SERVER_PACKET_TYPE } from "archipelago.js";
 import * as Location from "expo-location";
-import React, { useContext } from "react";
+import React, { memo, useContext } from "react";
 import { Image } from "react-native";
-import { Marker } from "react-native-maps";
+import { Circle, Marker } from "react-native-maps";
 
 import { trip } from "./MapScreen";
 import { ClientContext } from "../components/ClientContext";
 
-function APMarker({
+const MemoizedMarker = memo(function APMarker({
   trip,
+  receivedKeys
 }: Readonly<{
   trip: trip;
+  receivedKeys:number
 }>) {
+  const canCheck = receivedKeys >=trip.trip.key_needed
+  console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`)
   return (
     <>
-      {trip.coords.map((trip) => {
-        return (
-          <Marker
-            coordinate={{ latitude: trip.lat, longitude: trip.lon }}
-            key={`${trip.lat}&${trip.lon}`}
-          >
-            <Image
-              source={require("../assets/color-icon.png")}
-              style={{ width: 26, height: 28 }}
-              resizeMode="center"
-              resizeMethod="resize"
-            />
-          </Marker>
-        );
-      })}
+      <Circle
+        center={{ latitude: trip.coords.lat, longitude: trip.coords.lon }}
+        radius={20}
+        strokeColor="blue"
+        fillColor="rgba(0,0,0,0)"
+        key={`${trip.coords.lat}&${trip.coords.lon}-circle`}
+      />
+      <Marker
+        coordinate={{ latitude: trip.coords.lat, longitude: trip.coords.lon }}
+        key={`${trip.coords.lat}&${trip.coords.lon}-marker`}
+      >
+        <Image
+          source={require("../assets/APMarker_blue.png")}
+          style={{ width: 50, height: 50}}
+          resizeMode="center"
+          resizeMethod="resize"
+          tintColor={!canCheck ? "gray" : ""}
+        />
+      </Marker>
     </>
   );
-}
+});
 
 export default function APMarkers({
   trips,
   location,
+  receivedKeys
 }: Readonly<{
   client: Client;
   trips: any[] | trip[];
   location: Location.LocationObject | null;
+  receivedKeys:number
 }>) {
-  const client = useContext(ClientContext);
-
   return (
     <>
       {trips.map((trip: trip) => {
-        return (
-          <APMarker
-            trip={trip}
-            key={`${trip.coords[0].lat}-${trip.coords[0].lon}-${trip.trip.distance_tier}`}
-          />
-        );
+        return <MemoizedMarker trip={trip} key={`${trip.name}`} receivedKeys={receivedKeys} />;
       })}
     </>
   );

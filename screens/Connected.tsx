@@ -1,13 +1,17 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
+import * as Location from "expo-location";
 import React, { useContext, useEffect, useState } from "react";
-import { Alert, BackHandler } from "react-native";
+import { Alert, BackHandler, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import MapScreen from "./MapScreen";
 import Chat, { messages } from "./chat";
 import { ClientContext } from "../components/ClientContext";
+import { ErrorContext } from "../components/ErrorContext";
+import handleItems from "../utils/handleItems";
+import { load } from "../utils/storageHandler";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -25,7 +29,8 @@ export default function Connected({
 
   const [messages, setMessages] = useState<messages>([]);
   const insets = useSafeAreaInsets();
-
+  const { setError } = useContext(ErrorContext);
+  const [allowedLocation, setAllowedLocation] = useState(false);
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
    */
@@ -80,6 +85,55 @@ export default function Connected({
     setMessages((prevState) => [...prevState, msg]);
   };
 
+  const handleBackgroundPermission = async () => {
+    const backgroundStatus = await Location.requestBackgroundPermissionsAsync();
+    if (backgroundStatus.status === "granted") {
+      setAllowedLocation(true);
+    } else {
+      setError("Permission to access location was denied");
+      handleDisconnect();
+    }
+  };
+
+  const askLocationPermission = async () => {
+    const fgPermission = await Location.getForegroundPermissionsAsync();
+    const bgPermission = await Location.getBackgroundPermissionsAsync();
+    if (fgPermission.granted && bgPermission.granted) {
+      setAllowedLocation(true);
+    } else {
+      const foregroundStatus =
+        await Location.requestForegroundPermissionsAsync();
+      if (foregroundStatus.status !== "granted") {
+        setError("Permission to access location was denied");
+        handleDisconnect();
+        return;
+      }
+      if (Platform.OS === "android") {
+        Alert.alert(
+          "Background location permission required!",
+          "Background location permission is required for the app to function. Go to settings and set the location permission to always. Pressing cancel will disconnect you from the current server.",
+          [
+            {
+              text: "Cancel",
+              onPress: () => {
+                handleDisconnect();
+              },
+              style: "cancel",
+            },
+            {
+              text: "Go to settings",
+              onPress: () => {
+                handleBackgroundPermission();
+              },
+            },
+          ],
+        );
+      } else {
+        handleBackgroundPermission();
+      }
+    }
+  };
+
   const handleDisconnect = async () => {
     client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
       console.log("starting message listener...");
@@ -96,6 +150,7 @@ export default function Connected({
       handleMessages(packet);
       // Add any additional logic here.
     });
+
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -121,6 +176,7 @@ export default function Connected({
       "hardwareBackPress",
       backAction,
     );
+    askLocationPermission();
     return () => {
       client.removeListener(
         SERVER_PACKET_TYPE.PRINT_JSON,
@@ -138,15 +194,17 @@ export default function Connected({
       <Tab.Screen name="chat">
         {(props) => <Chat {...props} messages={messages} />}
       </Tab.Screen>
-      <Tab.Screen name="map">
-        {(props) => (
-          <MapScreen
-            {...props}
-            sessionName={sessionName}
-            replacedInfo={replacedInfo}
-          />
-        )}
-      </Tab.Screen>
+      {allowedLocation && (
+        <Tab.Screen name="map">
+          {(props) => (
+            <MapScreen
+              {...props}
+              sessionName={sessionName}
+              replacedInfo={replacedInfo}
+            />
+          )}
+        </Tab.Screen>
+      )}
     </Tab.Navigator>
   );
 }

@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "archipela-go",
+    "name": "Archipela-Go!",
     "slug": "archipela-go",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "orientation": "portrait",
-    "icon": "./assets/blue-icon.png",
+    "icon": "./assets/archipela-go-logo.png",
     "userInterfaceStyle": "automatic",
     "plugins": [
       [
@@ -28,10 +28,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/blue-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/archipela-go-logo.png",
+        "backgroundColor": "#306D84"
       },
-      "package": "com.aki665.archipelago"
+      "package": "com.aki665.archipelago",
+      "permissions": ["ACCESS_BACKGROUND_LOCATION"]
     },
     "web": {
       "favicon": "./assets/favicon.png"

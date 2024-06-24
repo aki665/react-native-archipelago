@@ -51,6 +51,60 @@ export default function APLicense() {
           </TouchableOpacity>
         </View>
       </View>
+      <View style={styles.cardShadow}>
+        <View style={styles.card}>
+          <TouchableOpacity onPress={() => {}}>
+            <Image
+              source={require("../assets/archipela-go-logo_full.png")}
+              style={styles.image}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.item}>
+            <View style={{ maxWidth: "90%" }}>
+              <Text style={styles.name}>
+                The Archipela-Go! Logo created by @Combo99 on the Archipelago
+                discord server
+              </Text>
+              <Link style={styles.text} url="">
+                Based on the Archipelago logo.
+              </Link>
+            </View>
+            <FontAwesome
+              style={{ alignSelf: "center" }}
+              color="#34495e"
+              size={16}
+              name="chevron-right"
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View style={styles.cardShadow}>
+        <View style={styles.card}>
+          <TouchableOpacity onPress={() => {}}>
+            <Image
+              source={require("../assets/APMarker_blue.png")}
+              style={styles.image}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.item}>
+            <View style={{ maxWidth: "90%" }}>
+              <Text style={styles.name}>
+                The Archipelago Map Marker created by @linkhs on the Archipelago
+                discord server
+              </Text>
+              <Link style={styles.text} url="">
+                Based on the Archipelago logo.
+              </Link>
+            </View>
+            <FontAwesome
+              style={{ alignSelf: "center" }}
+              color="#34495e"
+              size={16}
+              name="chevron-right"
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }

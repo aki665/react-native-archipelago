@@ -1,5 +1,5 @@
 import { Client } from "archipelago.js";
-import React, { ReactNode, createContext, useMemo } from "react";
+import React, { ReactNode, createContext, useContext, useMemo } from "react";
 
 /**
  * Used to get the client from the context using useContext(ClientContext)

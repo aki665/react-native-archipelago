@@ -72,7 +72,7 @@ export function ErrorMessage() {
           <Text style={{ ...errorStyles.text, fontSize }}>{errorString}</Text>
           <Button
             buttonStyle={errorStyles.button}
-            text="dismiss"
+            text="Dismiss"
             onPress={() => setError("")}
           />
         </View>
