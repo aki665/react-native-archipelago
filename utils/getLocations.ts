@@ -115,8 +115,6 @@ async function getLocationCoordinates(
   maximum_distance: number,
   theta: number,
   distance_tier: number,
-  trip_length: number,
-  current_position: number,
   minimum_distance = 0,
   loop = 0,
 ) {
@@ -148,8 +146,6 @@ async function getLocationCoordinates(
       maximum_distance,
       theta,
       distance_tier,
-      trip_length,
-      current_position,
       minimum_distance,
       loop + 1,
     );
@@ -176,8 +172,6 @@ export default async function getLocations(
     maximum_distance,
     theta,
     trip.distance_tier,
-    1,
-    1,
     minimum_distance,
   );
   return { lat: coordinates.newLatitude, lon: coordinates.newLongitude };

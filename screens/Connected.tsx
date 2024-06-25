@@ -10,8 +10,6 @@ import MapScreen from "./MapScreen";
 import Chat, { messages } from "./chat";
 import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
-import handleItems from "../utils/handleItems";
-import { load } from "../utils/storageHandler";
 
 const Tab = createMaterialTopTabNavigator();
 
