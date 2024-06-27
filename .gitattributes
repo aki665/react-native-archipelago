@@ -1,3 +1,4 @@
 # Stops prettier from yelling at me
 * text eol=lf
+*.js text
 *.png binary
