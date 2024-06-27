@@ -22,7 +22,13 @@ import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import settingsStyles from "../styles/settingsStyles";
-import { getAllNames, load, remove, save } from "../utils/storageHandler";
+import {
+  STORAGE_TYPES,
+  getAllNames,
+  load,
+  remove,
+  save,
+} from "../utils/storageHandler";
 
 const EXTERNAL_EXTRA_DATA: string[] = []; // include extra storage keys you want to handle yourself in this array
 const EXTRA_DATA: string[] = []; // include any extra storage keys in this array
@@ -122,7 +128,7 @@ export default function Settings({
   const editInfo = async (storageName: string) => {
     try {
       setLoading(true);
-      const apInfo: apInfo = await load(storageName);
+      const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
       setEditingValues(apInfo);
       setEditingName({ originalName: storageName, newName: storageName });
       setLoading(false);
@@ -135,7 +141,7 @@ export default function Settings({
   const connectToAP = async (storageName: string) => {
     try {
       setLoading(true);
-      const apInfo: apInfo = await load(storageName);
+      const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
       const connectionInfo: ConnectionInformation = {
         protocol: "wss",
         tags: ["AP", "TextOnly"],
@@ -158,13 +164,16 @@ export default function Settings({
   const saveEditedInfo = async (apInfo: apInfo) => {
     try {
       setLoading(true);
-      await save(apInfo, editingName.newName);
+      await save(apInfo, editingName.newName, STORAGE_TYPES.OBJECT);
       if (editingName.originalName !== editingName.newName) {
         await remove(editingName.originalName);
         if (EXTRA_DATA.length > 0) {
           EXTRA_DATA.forEach(async (item) => {
-            const data = await load(editingName.originalName + item);
-            await save(data, editingName.newName + item);
+            const data = await load(
+              editingName.originalName + item,
+              STORAGE_TYPES.OBJECT,
+            );
+            await save(data, editingName.newName + item, STORAGE_TYPES.OBJECT);
             await remove(editingName.originalName + item);
           });
         }
@@ -208,7 +217,7 @@ export default function Settings({
   }, []);
 
   return (
-    <SafeAreaView style={settingsStyles.settingsContainer}>
+    <View style={settingsStyles.settingsContainer}>
       <Popup
         visible={modalVisible}
         closePopup={() => {
@@ -281,6 +290,6 @@ export default function Settings({
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

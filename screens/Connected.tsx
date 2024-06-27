@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Chat, { messages } from "./chat";
 import { ClientContext } from "../components/ClientContext";
+import { ErrorContext } from "../components/ErrorContext";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -89,11 +90,7 @@ export default function Connected({
     navigation.navigate("connect");
   };
   useEffect(() => {
-    client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
-      console.log("starting message listener...");
-      handleMessages(packet);
-      // Add any additional logic here.
-    });
+    client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -120,13 +117,7 @@ export default function Connected({
       backAction,
     );
     return () => {
-      client.removeListener(
-        SERVER_PACKET_TYPE.PRINT_JSON,
-        (packet, message) => {
-          console.log("starting message listener...");
-          handleMessages(packet);
-        },
-      );
+      client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
       backHandler.remove();
     };
   }, []);

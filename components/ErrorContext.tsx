@@ -55,24 +55,13 @@ export default function ErrorContextProvider({
 }
 
 /**
- * Helper method to figure out the font size of the error message
- */
-function getFontSize(length: number) {
-  console.log(length);
-  if (length > 40) return 16;
-  else if (length > 20) return 18;
-  else return 25;
-}
-
-/**
  * Renders error message as a string at the bottom of the app
  */
 export function ErrorMessage() {
   const { error, setError } = useContext(ErrorContext);
   const errorString = composeError(error);
   console.log(errorString);
-  const fontSize = getFontSize(errorString.length);
-  console.log(fontSize);
+  const fontSize = errorString.length > 20 ? 18 : 25;
   return (
     <>
       {!!error && (
@@ -83,7 +72,7 @@ export function ErrorMessage() {
           <Text style={{ ...errorStyles.text, fontSize }}>{errorString}</Text>
           <Button
             buttonStyle={errorStyles.button}
-            text="dismiss"
+            text="Dismiss"
             onPress={() => setError("")}
           />
         </View>

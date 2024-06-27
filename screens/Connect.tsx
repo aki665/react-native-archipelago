@@ -10,7 +10,7 @@ import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
-import { getAllNames, save } from "../utils/storageHandler";
+import { STORAGE_TYPES, getAllNames, save } from "../utils/storageHandler";
 
 export type apInfo = {
   hostname: string;
@@ -122,7 +122,6 @@ export default function Connect({
 }>) {
   const client = useContext(ClientContext);
   const { setError } = useContext(ErrorContext);
-
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [sessionName, setSessionName] = useState("");
@@ -133,7 +132,7 @@ export default function Connect({
     setModalVisible(false);
   };
   const saveInfoAndConnect = async () => {
-    await save(infoToSave, sessionName);
+    await save(infoToSave, sessionName, STORAGE_TYPES.OBJECT);
     connect();
   };
   const handleSaveConnectionInfo = async () => {
@@ -203,7 +202,7 @@ export default function Connect({
           }}
           value={sessionName}
           editable={!loading}
-          placeholder="Port"
+          placeholder="Session name"
         />
         <View style={commonStyles.modalButtonContainer}>
           <Button
