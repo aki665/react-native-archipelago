@@ -143,11 +143,7 @@ export default function Connected({
     navigation.navigate("connect");
   };
   useEffect(() => {
-    client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
-      console.log("starting message listener...");
-      handleMessages(packet);
-      // Add any additional logic here.
-    });
+    client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
 
     const backAction = () => {
       Alert.alert(
@@ -176,13 +172,8 @@ export default function Connected({
     );
     askLocationPermission();
     return () => {
-      client.removeListener(
-        SERVER_PACKET_TYPE.PRINT_JSON,
-        (packet, message) => {
-          console.log("starting message listener...");
-          handleMessages(packet);
-        },
-      );
+      client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+
       backHandler.remove();
     };
   }, []);

@@ -1,4 +1,12 @@
-import { Client, NetworkItem, SERVER_PACKET_TYPE } from "archipelago.js";
+import {
+  CLIENT_STATUS,
+  Client,
+  NetworkItem,
+  PERMISSION,
+  ReceivedItemsPacket,
+  RoomUpdatePacket,
+  SERVER_PACKET_TYPE,
+} from "archipelago.js";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import React, {
@@ -12,10 +20,11 @@ import { View } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
+import AsyncAlert from "../components/AsyncAlert";
 import { ClientContext } from "../components/ClientContext";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
-import handleItems from "../utils/handleItems";
+import handleItems, { GOAL_MAP } from "../utils/handleItems";
 import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
 
 export const MARKER_RADIUS = 20;
@@ -27,6 +36,54 @@ const MemoizedMap = memo(function MemoizedMap(props: PropsWithChildren) {
     </MapView>
   );
 });
+
+const sendGoal = async (client: Client) => {
+  client.updateStatus(CLIENT_STATUS.GOAL);
+  if (
+    client.data.permissions.release === PERMISSION.ENABLED ||
+    client.data.permissions.release === PERMISSION.GOAL
+  ) {
+    await AsyncAlert(
+      "Goal Achieved",
+      "Do you want to send the remaining items from your world? (Runs the !release command)",
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "YES",
+          onPress: () => {
+            client.say("!release");
+          },
+        },
+      ],
+    );
+  }
+  if (
+    client.data.permissions.collect === PERMISSION.ENABLED ||
+    client.data.permissions.collect === PERMISSION.GOAL
+  ) {
+    await AsyncAlert(
+      "Goal Achieved",
+      "Do you want to collect the remaining items from your world? (Runs the !collect command)",
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "YES",
+          onPress: () => {
+            client.say("!collect");
+          },
+        },
+      ],
+    );
+  }
+};
 
 const geofenceLocations = async (
   trips: trip[],
@@ -80,8 +137,10 @@ const geofenceLocations = async (
 };
 
 const removeGeofencing = async () => {
-  console.log(await Location.hasStartedGeofencingAsync("apgo-geofencing"));
-  await Location.stopGeofencingAsync("apgo-geofencing");
+  if (await Location.hasStartedGeofencingAsync("apgo-geofencing")) {
+    await Location.stopGeofencingAsync("apgo-geofencing");
+    console.log("apgo-geofencing is defined");
+  }
 };
 /**
  * Remove the given array of ids from the given array of trips
@@ -122,18 +181,52 @@ export default function MapScreen({
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
+  const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
   const [trips, setTrips] = useState<any[] | trip[]>([]);
   const [checkedLocations, setCheckedLocations] = useState<readonly number[]>(
     [],
   );
   const [receivedKeys, setReceivedKeys] = useState<number>(0);
   const [receivedReductions, setReceivedReductions] = useState<number>(0);
+  const [macguffinString, setMacguffinString] =
+    useState<string>("Archipela-Go!");
+
   const handleCheckedLocation = async (checkedLocations: readonly number[]) => {
     if (checkedLocations.length > 0) {
       const filteredTrips = removeCheckedLocations(trips, checkedLocations);
+      if (!goalAchieved) handleGoal(client, filteredTrips, macguffinString);
       setTrips(filteredTrips);
       console.log("saving filtered trips...");
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
+    }
+  };
+
+  const handleGoal = (
+    client: Client,
+    remainingTrips: trip[],
+    macguffinString = "Archipela-Go!",
+  ) => {
+    const goal: number = parseInt(
+      JSON.stringify(client.data.slotData?.goal),
+      10,
+    );
+    switch (goal) {
+      case GOAL_MAP.ALLSANITY:
+        if (remainingTrips.length === 0) {
+          sendGoal(client);
+          setGoalAchieved(true);
+        }
+        break;
+      case GOAL_MAP.SHORT_MACGUFFIN:
+      case GOAL_MAP.LONG_MACGUFFIN:
+        if (macguffinString.length === 0) {
+          sendGoal(client);
+          setGoalAchieved(true);
+        }
+        break;
+      default:
+        console.log("Goal not reached");
+        break;
     }
   };
 
@@ -142,18 +235,22 @@ export default function MapScreen({
     sessionName: string,
     newIndex: number,
   ) => {
-    const { keyAmount, distanceReductions } = await handleItems(
-      items,
-      sessionName,
-      newIndex,
+    const goal: number = parseInt(
+      JSON.stringify(client.data.slotData?.goal),
+      10,
     );
+
+    const { keyAmount, distanceReductions, macguffinString } =
+      await handleItems(items, sessionName, newIndex, goal);
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
+
+    setMacguffinString(macguffinString);
   };
 
   const getCoordinatesForLocations = async () => {
-    if (trips.length > 0) {
-      console.log("Trips found. Existing coordinate loading...");
+    if (trips.length > 0 || goalAchieved) {
+      console.log("Trips found. Exiting coordinate loading...");
       return;
     }
     const location = await Location.getCurrentPositionAsync({});
@@ -180,9 +277,9 @@ export default function MapScreen({
         }
         const coords = await getLocations(
           location.coords,
-          client.data.slotData.maximum_distance,
-          client.data?.slotData.minimum_distance,
-          client.data?.slotData.speed_requirement,
+          parseInt(JSON.stringify(client.data.slotData.maximum_distance), 10),
+          parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
+          parseInt(JSON.stringify(client.data.slotData.speed_requirement), 10),
           trip,
           tracker.theta,
         );
@@ -198,10 +295,28 @@ export default function MapScreen({
         client.locations.checked,
       );
     }
+
     setTrips(filteredTrips);
     geofenceLocations(filteredTrips, client, receivedKeys, receivedReductions);
     if (sessionName)
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
+  };
+
+  const roomUpdateListener = (packet: RoomUpdatePacket) => {
+    console.log("starting room update listener...");
+    if (packet.checked_locations) {
+      setCheckedLocations(packet.checked_locations);
+    }
+  };
+
+  const receivedItemsListener = async (packet: ReceivedItemsPacket) => {
+    console.log("starting message listener...");
+
+    const { keyAmount, distanceReductions, macguffinString } =
+      await handleItems(packet.items, sessionName, packet.index);
+    setReceivedKeys(keyAmount);
+    setReceivedReductions(distanceReductions);
+    setMacguffinString(macguffinString);
   };
 
   useEffect(() => {
@@ -209,34 +324,22 @@ export default function MapScreen({
       const location = await Location.getCurrentPositionAsync({});
       setLocation(location);
     };
-    handleOfflineItems(client.items.received, sessionName, client.items.index);
     getLocation();
     getCoordinatesForLocations(); //TODO: fix this happening on every render
-    client.addListener(SERVER_PACKET_TYPE.ROOM_UPDATE, (packet) => {
-      console.log("starting room update listener...");
-      if (packet.checked_locations) {
-        setCheckedLocations(packet.checked_locations);
-      }
-    });
-    client.addListener(SERVER_PACKET_TYPE.RECEIVED_ITEMS, async (packet) => {
-      console.log("starting message listener...");
-      console.log(packet.items);
-      const { keyAmount, distanceReductions } = await handleItems(
-        packet.items,
-        sessionName,
-        packet.index,
-      );
-      setReceivedKeys(keyAmount);
-      setReceivedReductions(distanceReductions);
-    });
+    handleOfflineItems(client.items.received, sessionName, client.items.index);
+    client.addListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
+    client.addListener(
+      SERVER_PACKET_TYPE.RECEIVED_ITEMS,
+      receivedItemsListener,
+    );
+    if (!goalAchieved) handleGoal(client, trips, macguffinString);
     return () => {
       removeGeofencing();
-      client.removeListener(SERVER_PACKET_TYPE.ROOM_UPDATE, (packet) => {
-        console.log("starting room update listener...");
-        if (packet.checked_locations) {
-          setCheckedLocations(packet.checked_locations);
-        }
-      });
+      client.removeListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
+      client.removeListener(
+        SERVER_PACKET_TYPE.RECEIVED_ITEMS,
+        receivedItemsListener,
+      );
     };
   }, []);
 
@@ -254,7 +357,6 @@ export default function MapScreen({
   }, [receivedReductions]);
 
   useEffect(() => {
-    console.log("receivedKeys", receivedKeys);
     if (trips.length === 0) {
       // don't do anything on first render
     } else {
@@ -262,6 +364,11 @@ export default function MapScreen({
       geofenceLocations(trips, client, receivedKeys, receivedReductions);
     }
   }, [receivedKeys]);
+
+  useEffect(() => {
+    console.log("macguffinString changed to", macguffinString);
+    if (!goalAchieved) handleGoal(client, trips, macguffinString);
+  }, [macguffinString]);
   return (
     <View style={mapStyles.container}>
       <MemoizedMap>

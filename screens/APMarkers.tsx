@@ -5,17 +5,16 @@ import { Image } from "react-native";
 import { Circle, Marker } from "react-native-maps";
 
 import { trip } from "./MapScreen";
-import { ClientContext } from "../components/ClientContext";
 
 const MemoizedMarker = memo(function APMarker({
   trip,
-  receivedKeys
+  receivedKeys,
 }: Readonly<{
   trip: trip;
-  receivedKeys:number
+  receivedKeys: number;
 }>) {
-  const canCheck = receivedKeys >=trip.trip.key_needed
-  console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`)
+  const canCheck = receivedKeys >= trip.trip.key_needed;
+  console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`);
   return (
     <>
       <Circle
@@ -30,11 +29,14 @@ const MemoizedMarker = memo(function APMarker({
         key={`${trip.coords.lat}&${trip.coords.lon}-marker`}
       >
         <Image
-          source={require("../assets/APMarker_blue.png")}
-          style={{ width: 50, height: 50}}
+          source={
+            canCheck
+              ? require("../assets/APMarker_blue.png")
+              : require("../assets/APMarker_gray.png")
+          }
+          style={{ width: 50, height: 50 }}
           resizeMode="center"
           resizeMethod="resize"
-          tintColor={!canCheck ? "gray" : ""}
         />
       </Marker>
     </>
@@ -44,17 +46,23 @@ const MemoizedMarker = memo(function APMarker({
 export default function APMarkers({
   trips,
   location,
-  receivedKeys
+  receivedKeys,
 }: Readonly<{
   client: Client;
   trips: any[] | trip[];
   location: Location.LocationObject | null;
-  receivedKeys:number
+  receivedKeys: number;
 }>) {
   return (
     <>
       {trips.map((trip: trip) => {
-        return <MemoizedMarker trip={trip} key={`${trip.name}`} receivedKeys={receivedKeys} />;
+        return (
+          <MemoizedMarker
+            trip={trip}
+            key={`${trip.name}`}
+            receivedKeys={receivedKeys}
+          />
+        );
       })}
     </>
   );

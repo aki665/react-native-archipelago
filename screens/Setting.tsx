@@ -219,7 +219,7 @@ export default function Settings({
   }, []);
 
   return (
-    <SafeAreaView style={settingsStyles.settingsContainer}>
+    <View style={settingsStyles.settingsContainer}>
       <Popup
         visible={modalVisible}
         closePopup={() => {
@@ -292,6 +292,6 @@ export default function Settings({
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

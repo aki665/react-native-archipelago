@@ -52,6 +52,7 @@ async function generateLocation(
   let newLatitude = latitude + dy / DEGREE;
   let newLongitude = longitude + dx / (DEGREE * Math.cos(deg2rad(latitude)));
 
+  console.log("generated coordinates:", newLatitude, newLongitude);
   try {
     const OSMInfoResponse = await fetch(
       getOSMTypeAndIdAPI(newLatitude, newLongitude),
@@ -116,16 +117,12 @@ async function getLocationCoordinates(
   theta: number,
   distance_tier: number,
   minimum_distance = 0,
-  loop = 0,
 ) {
-  console.log(
-    `${maximum_distance} / 10 * ${distance_tier} * ${current_position} / ${trip_length} - 5 * ${loop}`,
-  );
+  console.log(`${maximum_distance} / 10 * ${distance_tier}`);
   let res = await generateLocation(
     latitude,
     longitude,
-    (maximum_distance / 10) * distance_tier * (current_position / trip_length) -
-      5 * loop,
+    (maximum_distance / 10) * distance_tier,
     theta,
     minimum_distance,
   );
@@ -138,7 +135,7 @@ async function getLocationCoordinates(
       minimum_distance,
       maximum_distance,
       "got:",
-      res.distance,
+      res.distance * 1000,
     );
     res = await getLocationCoordinates(
       latitude,
@@ -147,7 +144,6 @@ async function getLocationCoordinates(
       theta,
       distance_tier,
       minimum_distance,
-      loop + 1,
     );
   }
   return res;

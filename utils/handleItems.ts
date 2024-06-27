@@ -1,4 +1,4 @@
-import { ITEM_FLAGS, NetworkItem, ReceivedItemsPacket } from "archipelago.js";
+import { ITEM_FLAGS, NetworkItem } from "archipelago.js";
 
 import { STORAGE_TYPES, load, save } from "./storageHandler";
 
@@ -34,27 +34,96 @@ export const MAP_ID_TO_ITEM = {
   MACGUFFIN_EXCLAMATION: ITEM_ID_OFFSET + 213,
 };
 
+export const GOAL_MAP = {
+  ONE_HARD_TRAVEL: 0,
+  ALLSANITY: 1,
+  SHORT_MACGUFFIN: 2,
+  LONG_MACGUFFIN: 3,
+};
+
 async function handleTrap(item: NetworkItem) {}
 
 export default async function handleItems(
   items: readonly NetworkItem[],
   sessionName: string,
   newIndex: number,
+  goal = 1,
 ) {
   const index: number =
     (await load(sessionName + "_itemIndex", STORAGE_TYPES.OBJECT)) || 0;
 
   let keyAmount = 0;
   let distanceReductions = 0;
+
+  let macguffinString = "";
+
+  if (goal === GOAL_MAP.SHORT_MACGUFFIN) macguffinString = "Ap-Go!";
+  if (goal === GOAL_MAP.LONG_MACGUFFIN) macguffinString = "Archipela-Go!";
+
   items.forEach(async (item, i) => {
+    console.log("handling item", item);
     if (item.item === MAP_ID_TO_ITEM.KEY) keyAmount++;
     if (item.item === MAP_ID_TO_ITEM.COLLECTION_DISTANCE) distanceReductions++;
+    if (macguffinString) {
+      switch (item.item) {
+        case MAP_ID_TO_ITEM.MACGUFFIN_A:
+          macguffinString = macguffinString.replace("A", "");
+          break;
+        case MAP_ID_TO_ITEM.MACGUFFIN_R:
+          macguffinString = macguffinString.replace("r", "");
+          break;
+        case MAP_ID_TO_ITEM.MACGUFFIN_C:
+          macguffinString = macguffinString.replace("c", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_H:
+          macguffinString = macguffinString.replace("h", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_I:
+          macguffinString = macguffinString.replace("i", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_P:
+          macguffinString = macguffinString.replace("p", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_E:
+          macguffinString = macguffinString.replace("e", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_L:
+          macguffinString = macguffinString.replace("l", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_A2:
+          macguffinString = macguffinString.replace("a", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_HYPHEN:
+          macguffinString = macguffinString.replace("-", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_G:
+          macguffinString = macguffinString.replace("G", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_O:
+          macguffinString = macguffinString.replace("o", "");
+          break;
+
+        case MAP_ID_TO_ITEM.MACGUFFIN_EXCLAMATION:
+          macguffinString = macguffinString.replace("!", "");
+          break;
+      }
+    }
     if (i < index) {
       // Do nothing if item is already handled
     } else if (item.flags === ITEM_FLAGS.TRAP) {
       await handleTrap(item);
+    } else if (item.flags === ITEM_FLAGS.PROGRESSION) {
     }
   });
   await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
-  return { keyAmount, distanceReductions };
+  return { keyAmount, distanceReductions, macguffinString };
 }
