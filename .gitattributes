@@ -1,3 +1,4 @@
 # Stops prettier from yelling at me
-*.js text
+*.tsx text
+*.ts text
 *.png binary
