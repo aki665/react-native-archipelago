@@ -80,13 +80,18 @@ export default function APLicense() {
       </View>
       <View style={styles.cardShadow}>
         <View style={styles.card}>
-          <TouchableOpacity onPress={() => {}}>
+          <TouchableOpacity
+            onPress={() => Linking.openURL("https://sunny.garden/@linkhs")}
+          >
             <Image
               source={require("../assets/APMarker_blue.png")}
               style={styles.image}
             />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => Linking.openURL("https://sunny.garden/@linkhs")}
+          >
             <View style={{ maxWidth: "90%" }}>
               <Text style={styles.name}>
                 The Archipelago Map Marker created by @linkhs on the Archipelago
