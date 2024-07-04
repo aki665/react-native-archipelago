@@ -78,6 +78,7 @@ async function generateLocation(
     };
   } catch (e) {
     console.log(e);
+    return { distance: 0 };
   }
 }
 
@@ -161,7 +162,6 @@ export default async function getLocations(
   },
   theta: number,
 ) {
-  // random angle
   const coordinates = await getLocationCoordinates(
     initialCords.latitude,
     initialCords.longitude,
