@@ -12,7 +12,6 @@ import {
   TouchableHighlight,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ApInformation, apInfo } from "./Connect";
 import APLicense from "../components/APLicense";
@@ -198,9 +197,13 @@ export default function Settings({
         text: "Delete",
         onPress: () => {
           try {
-            remove(storageName);
-            remove(storageName + "_trips");
             setLoading(true);
+            remove(storageName);
+            if (EXTRA_DATA.length > 0) {
+              EXTRA_DATA.forEach(async (item) => {
+                await remove(storageName + item);
+              });
+            }
             fetchStorage();
             setLoading(false);
           } catch (e) {

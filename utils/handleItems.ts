@@ -1,6 +1,7 @@
-import { ITEM_FLAGS, NetworkItem } from "archipelago.js";
+import { Client, ITEM_FLAGS, NetworkItem } from "archipelago.js";
 
 import { STORAGE_TYPES, load, save } from "./storageHandler";
+import AsyncAlert from "../components/AsyncAlert";
 
 export const ITEM_ID_OFFSET = 8902301100000;
 export const MAP_ID_TO_ITEM = {
@@ -47,13 +48,17 @@ export default async function handleItems(
   items: readonly NetworkItem[],
   sessionName: string,
   newIndex: number,
+  client: Client,
   goal = 1,
 ) {
   const index: number =
     (await load(sessionName + "_itemIndex", STORAGE_TYPES.OBJECT)) || 0;
 
+  const itemPackage =
+    client.data.package.get("Archipela-Go!")?.item_id_to_name || {};
   let keyAmount = 0;
   let distanceReductions = 0;
+  let skipNotifications = false;
 
   let macguffinString = "";
 
@@ -119,9 +124,28 @@ export default async function handleItems(
     }
     if (i < index) {
       // Do nothing if item is already handled
-    } else if (item.flags === ITEM_FLAGS.TRAP) {
-      await handleTrap(item);
-    } else if (item.flags === ITEM_FLAGS.PROGRESSION) {
+    } else {
+      const itemName = itemPackage[item.item] || "";
+      if (!skipNotifications) {
+        await AsyncAlert(
+          "Item received!",
+          `Received ${itemName} from ${client.players.name(item.player)}`,
+          [
+            {
+              text: "Skip all",
+              onPress: () => (skipNotifications = true),
+            },
+            {
+              text: "OK",
+              onPress: () => null,
+            },
+          ],
+        );
+      }
+      if (item.flags === ITEM_FLAGS.TRAP) {
+        await handleTrap(item);
+      } else if (item.flags === ITEM_FLAGS.PROGRESSION) {
+      }
     }
   });
   await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);

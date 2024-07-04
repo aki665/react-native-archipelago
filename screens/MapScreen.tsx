@@ -241,7 +241,7 @@ export default function MapScreen({
     );
 
     const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(items, sessionName, newIndex, goal);
+      await handleItems(items, sessionName, newIndex, client, goal);
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
 
@@ -261,6 +261,10 @@ export default function MapScreen({
     let filteredTrips: trip[];
 
     if ((!loadedTrips || replacedInfo) && client.data?.slotData.trips) {
+      if (replacedInfo) {
+        await save(0, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
+      }
+
       console.log("no saved data found. Generating new coordinates...");
       const tempTrips: any[] | trip[] = [];
       const tracker = { tripGroup: 0, theta: Math.random() * 2 * Math.PI };
@@ -313,7 +317,7 @@ export default function MapScreen({
     console.log("starting message listener...");
 
     const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(packet.items, sessionName, packet.index);
+      await handleItems(packet.items, sessionName, packet.index, client);
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
     setMacguffinString(macguffinString);
