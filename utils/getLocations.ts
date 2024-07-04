@@ -1,5 +1,7 @@
 import { LocationObjectCoords } from "expo-location";
 
+const DISTANCE_LENIENCY = 0.1;
+
 /**
  * Return a openstreetmaps 'lookup' API url
  * See https://nominatim.org/release-docs/latest/api/Lookup/ for more info
@@ -34,7 +36,7 @@ async function generateLocation(
 ) {
   if (min > max) {
     console.log("max", max);
-    return { distance: 0 };
+    return { distance: 0, newLatitude: 0, newLongitude: 0 };
   }
 
   // earth radius in km
@@ -43,8 +45,15 @@ async function generateLocation(
   // 1° latitude in meters
   const DEGREE = ((EARTH_RADIUS * 2 * Math.PI) / 360) * 1000;
 
+  const randomNumber = Math.random();
   // random distance within [min-max] in m in a non-uniform way
-  const r = (max - min + 1) * Math.random() ** 0.5 + min;
+
+  const r = (max - min + 1) * randomNumber ** 0.5 + min;
+  console.log(
+    "Generated distance",
+    r,
+    `from (${max} - ${min} + 1) * ${randomNumber} ** 0.5 + ${min}`,
+  );
 
   const dy = r * Math.sin(theta);
   const dx = r * Math.cos(theta);
@@ -78,7 +87,7 @@ async function generateLocation(
     };
   } catch (e) {
     console.log(e);
-    return { distance: 0 };
+    return { distance: 0, newLatitude: 0, newLongitude: 0 };
   }
 }
 
@@ -120,16 +129,18 @@ async function getLocationCoordinates(
   minimum_distance = 0,
 ) {
   console.log(`${maximum_distance} / 10 * ${distance_tier}`);
+  let maxDist = (maximum_distance / 10) * distance_tier;
+  if (maxDist < minimum_distance) maxDist = minimum_distance;
   let res = await generateLocation(
     latitude,
     longitude,
-    (maximum_distance / 10) * distance_tier,
+    maxDist,
     theta,
     minimum_distance,
   );
   if (
-    res.distance * 1000 <= minimum_distance ||
-    res.distance * 1000 >= maximum_distance
+    res.distance * 1000 * 1 + DISTANCE_LENIENCY <= minimum_distance ||
+    res.distance * 1000 * 1 + DISTANCE_LENIENCY >= maximum_distance
   ) {
     console.log(
       "error generating, expected values between",
