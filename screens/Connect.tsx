@@ -165,7 +165,7 @@ export default function Connect({
       setLoading(true);
       const connectionInfo: ConnectionInformation = {
         protocol: "wss",
-        tags: ["AP", "TextOnly"],
+        tags: ["TextOnly"],
         game: "",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
         ...apInfo,
