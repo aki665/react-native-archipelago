@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 
 const errorStyles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: "black",
     flexDirection: "row",
     padding: 5,
@@ -12,12 +11,14 @@ const errorStyles = StyleSheet.create({
     color: "red",
     flex: 10,
     verticalAlign: "middle",
+    fontSize: 18,
   },
   button: {
-    flex: 2,
+    flex: 3,
+    paddingVertical: "5%",
   },
   icon: {
-    flex: 2,
+    flex: 3,
   },
 });
 

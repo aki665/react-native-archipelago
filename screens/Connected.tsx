@@ -144,7 +144,6 @@ export default function Connected({
   };
   useEffect(() => {
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
-
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -173,7 +172,6 @@ export default function Connected({
     askLocationPermission();
     return () => {
       client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
-
       backHandler.remove();
     };
   }, []);

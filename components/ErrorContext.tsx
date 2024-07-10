@@ -61,7 +61,6 @@ export function ErrorMessage() {
   const { error, setError } = useContext(ErrorContext);
   const errorString = composeError(error);
   console.log(errorString);
-  const fontSize = errorString.length > 20 ? 18 : 25;
   return (
     <>
       {!!error && (
@@ -69,7 +68,7 @@ export function ErrorMessage() {
           <View style={errorStyles.icon}>
             <AntDesign name="exclamationcircleo" size={50} color="red" />
           </View>
-          <Text style={{ ...errorStyles.text, fontSize }}>{errorString}</Text>
+          <Text style={errorStyles.text}>{errorString}</Text>
           <Button
             buttonStyle={errorStyles.button}
             text="Dismiss"
