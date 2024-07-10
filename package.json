@@ -19,7 +19,7 @@
     "@react-navigation/native-stack": "^6.9.22",
     "@shopify/flash-list": "1.6.4",
     "archipelago.js": "^1.1.0",
-    "expo": "~51.0.17",
+    "expo": "^51.0.18",
     "expo-dev-client": "~4.0.19",
     "expo-location": "~17.0.1",
     "expo-status-bar": "~1.12.1",
