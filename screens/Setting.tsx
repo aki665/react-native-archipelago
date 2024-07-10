@@ -12,7 +12,6 @@ import {
   TouchableHighlight,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ApInformation, apInfo } from "./Connect";
 import APLicense from "../components/APLicense";
@@ -144,7 +143,7 @@ export default function Settings({
       const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
       const connectionInfo: ConnectionInformation = {
         protocol: "wss",
-        tags: ["AP", "TextOnly"],
+        tags: ["TextOnly"],
         game: "",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
         ...apInfo,
@@ -197,8 +196,13 @@ export default function Settings({
         text: "Delete",
         onPress: () => {
           try {
-            remove(storageName);
             setLoading(true);
+            remove(storageName);
+            if (EXTRA_DATA.length > 0) {
+              EXTRA_DATA.forEach(async (item) => {
+                await remove(storageName + item);
+              });
+            }
             fetchStorage();
             setLoading(false);
           } catch (e) {
