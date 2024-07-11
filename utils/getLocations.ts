@@ -6,6 +6,10 @@ const DISTANCE_LENIENCY = 0.1;
  * Return a openstreetmaps 'lookup' API url
  * See https://nominatim.org/release-docs/latest/api/Lookup/ for more info
  */
+const wait = async (time: number) => {
+  setTimeout(() => {}, time);
+};
+
 const lookupApi = (type: string, id: number) => {
   return `https://nominatim.openstreetmap.org/lookup?osm_ids=${type}${id}&format=json`;
 };
@@ -46,13 +50,14 @@ async function generateLocation(
   const DEGREE = ((EARTH_RADIUS * 2 * Math.PI) / 360) * 1000;
 
   const randomNumber = Math.random();
+  console.log(randomNumber);
   // random distance within [min-max] in m in a non-uniform way
 
-  const r = (max - min + 1) * randomNumber ** 0.5 + min;
+  const r = (max - min) * randomNumber ** 0.5 + min;
   console.log(
     "Generated distance",
     r,
-    `from (${max} - ${min} + 1) * ${randomNumber} ** 0.5 + ${min}`,
+    `from (${max} - ${min}) * ${randomNumber} ** 0.5 + ${min}`,
   );
 
   const dy = r * Math.sin(theta);
@@ -63,6 +68,7 @@ async function generateLocation(
 
   console.log("generated coordinates:", newLatitude, newLongitude);
   try {
+    await wait(1000);
     const OSMInfoResponse = await fetch(
       getOSMTypeAndIdAPI(newLatitude, newLongitude),
     );
@@ -72,6 +78,10 @@ async function generateLocation(
       lookupApi(OSMInfo.osm_type[0].toUpperCase(), OSMInfo.osm_id),
     );
     const lookupInfo = await lookupResponse.json();
+    console.log("lookupInfo", lookupInfo);
+    console.log(newLatitude, "is now", lookupInfo[0].lat);
+    console.log(newLongitude, "is now", lookupInfo[0].lon);
+
     newLatitude = parseFloat(lookupInfo[0].lat);
     newLongitude = parseFloat(lookupInfo[0].lon);
     const distance = getDistanceFromLatLonInKm(
@@ -109,7 +119,9 @@ function getDistanceFromLatLonInKm(
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c; // Distance in km
-
+  console.log(
+    `distance between ${lat1},${lon1} and ${lat2},${lon2} is ${d} km`,
+  );
   return d;
 }
 
@@ -130,7 +142,8 @@ async function getLocationCoordinates(
 ) {
   console.log(`${maximum_distance} / 10 * ${distance_tier}`);
   let maxDist = (maximum_distance / 10) * distance_tier;
-  if (maxDist < minimum_distance) maxDist = minimum_distance;
+  if (maxDist < minimum_distance)
+    maxDist = minimum_distance * (1 + DISTANCE_LENIENCY);
   let res = await generateLocation(
     latitude,
     longitude,
@@ -140,7 +153,7 @@ async function getLocationCoordinates(
   );
   if (
     res.distance * 1000 * 1 + DISTANCE_LENIENCY <= minimum_distance ||
-    res.distance * 1000 * 1 + DISTANCE_LENIENCY >= maximum_distance
+    res.distance * 1000 * 1 - DISTANCE_LENIENCY >= maximum_distance
   ) {
     console.log(
       "error generating, expected values between",
@@ -171,13 +184,12 @@ export default async function getLocations(
     key_needed: number;
     speed_tier: number;
   },
-  theta: number,
 ) {
   const coordinates = await getLocationCoordinates(
     initialCords.latitude,
     initialCords.longitude,
     maximum_distance,
-    theta,
+    Math.random() * 2 * Math.PI,
     trip.distance_tier,
     minimum_distance,
   );

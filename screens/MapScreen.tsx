@@ -254,6 +254,9 @@ export default function MapScreen({
       return;
     }
     const location = await Location.getCurrentPositionAsync({});
+    console.log(location);
+    console.log(client.data?.slotData?.trips);
+
     const loadedTrips = await load(
       sessionName + "_trips",
       STORAGE_TYPES.OBJECT,
@@ -271,6 +274,7 @@ export default function MapScreen({
       for (const [name, trip] of Object.entries(
         client.data?.slotData?.trips,
       ).sort((a, b) => a[1].key_needed - b[1].key_needed)) {
+        console.log("Generating trip", name);
         //Makes the slot data into an array that is sorted by key_needed...
         const id =
           client.data.package.get("Archipela-Go!")?.location_name_to_id[name];
@@ -285,7 +289,6 @@ export default function MapScreen({
           parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
           parseInt(JSON.stringify(client.data.slotData.speed_requirement), 10),
           trip,
-          tracker.theta,
         );
         tempTrips.push({ coords, trip, name, id });
       }
