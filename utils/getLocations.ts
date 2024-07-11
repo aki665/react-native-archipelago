@@ -136,24 +136,32 @@ async function getLocationCoordinates(
   latitude: number,
   longitude: number,
   maximum_distance: number,
-  theta: number,
   distance_tier: number,
   minimum_distance = 0,
+  correction = 0,
 ) {
   console.log(`${maximum_distance} / 10 * ${distance_tier}`);
   let maxDist = (maximum_distance / 10) * distance_tier;
+  let minDist = minimum_distance;
+  if (correction > 0) maxDist = maxDist - correction;
+  else if (correction < 0) minDist = minDist - correction;
   if (maxDist < minimum_distance)
     maxDist = minimum_distance * (1 + DISTANCE_LENIENCY);
+  if (minDist > maximum_distance)
+    minDist = maximum_distance * (1 - DISTANCE_LENIENCY);
   let res = await generateLocation(
     latitude,
     longitude,
     maxDist,
-    theta,
-    minimum_distance,
+    Math.random() * 2 * Math.PI,
+    minDist,
+  );
+  const calculatedResult = Math.round(
+    res.distance * 1000 * 1 + DISTANCE_LENIENCY,
   );
   if (
-    res.distance * 1000 * 1 + DISTANCE_LENIENCY <= minimum_distance ||
-    res.distance * 1000 * 1 - DISTANCE_LENIENCY >= maximum_distance
+    calculatedResult < minimum_distance ||
+    calculatedResult > maximum_distance
   ) {
     console.log(
       "error generating, expected values between",
@@ -162,13 +170,20 @@ async function getLocationCoordinates(
       "got:",
       res.distance * 1000,
     );
+    let cor = correction;
+    if (calculatedResult <= minimum_distance) {
+      cor += minimum_distance - calculatedResult;
+    } else if (calculatedResult >= maximum_distance) {
+      cor += maximum_distance - calculatedResult;
+    }
+    console.log("correction", cor);
     res = await getLocationCoordinates(
       latitude,
       longitude,
       maximum_distance,
-      theta,
       distance_tier,
       minimum_distance,
+      cor,
     );
   }
   return res;
@@ -189,7 +204,6 @@ export default async function getLocations(
     initialCords.latitude,
     initialCords.longitude,
     maximum_distance,
-    Math.random() * 2 * Math.PI,
     trip.distance_tier,
     minimum_distance,
   );
