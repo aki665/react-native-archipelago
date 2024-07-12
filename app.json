@@ -2,7 +2,7 @@
   "expo": {
     "name": "Archipela-Go!",
     "slug": "archipela-go",
-    "version": "0.3.0",
+    "version": "0.3.2",
     "orientation": "portrait",
     "icon": "./assets/archipela-go-logo.png",
     "userInterfaceStyle": "automatic",
