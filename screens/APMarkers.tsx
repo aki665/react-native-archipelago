@@ -1,6 +1,6 @@
-import { Client, SERVER_PACKET_TYPE } from "archipelago.js";
+import { Client } from "archipelago.js";
 import * as Location from "expo-location";
-import React, { memo, useContext } from "react";
+import React, { memo } from "react";
 import { Image } from "react-native";
 import { Circle, Marker } from "react-native-maps";
 
