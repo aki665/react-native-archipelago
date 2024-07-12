@@ -19,7 +19,7 @@ const lookupApi = (type: string, id: number) => {
  * See https://nominatim.org/release-docs/latest/api/Reverse/ for more info
  */
 const getOSMTypeAndIdAPI = (latitude: number, longitude: number) => {
-  return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+  return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&zoom=17&format=json`;
 };
 
 /**
