@@ -52,7 +52,7 @@ export default async function handleItems(
   goal = 1,
 ) {
   const index: number =
-    (await load(sessionName + "_itemIndex", STORAGE_TYPES.OBJECT)) || 0;
+    (await load(sessionName + "_itemIndex", STORAGE_TYPES.OBJECT)) || -1;
 
   const itemPackage =
     client.data.package.get("Archipela-Go!")?.item_id_to_name || {};
@@ -122,7 +122,7 @@ export default async function handleItems(
           break;
       }
     }
-    if (i < index) {
+    if (i <= index) {
       // Do nothing if item is already handled
     } else {
       const itemName = itemPackage[item.item] || "";
