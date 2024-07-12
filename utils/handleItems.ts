@@ -51,8 +51,13 @@ export default async function handleItems(
   client: Client,
   goal = 1,
 ) {
-  const index: number =
-    (await load(sessionName + "_itemIndex", STORAGE_TYPES.OBJECT)) || -1;
+  let index = -1;
+
+  try {
+    index = await load(sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
+  } catch {
+    console.log("Could not load saved index...");
+  }
 
   const itemPackage =
     client.data.package.get("Archipela-Go!")?.item_id_to_name || {};
