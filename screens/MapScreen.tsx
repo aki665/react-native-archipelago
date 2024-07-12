@@ -283,13 +283,29 @@ export default function MapScreen({
           tracker.tripGroup = trip.key_needed;
           tracker.theta = Math.random() * 2 * Math.PI; // .. so the theta can be changed when key_needed changes.
         }
-        const coords = await getLocations(
-          location.coords,
-          parseInt(JSON.stringify(client.data.slotData.maximum_distance), 10),
-          parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
-          parseInt(JSON.stringify(client.data.slotData.speed_requirement), 10),
-          trip,
-        );
+        let generatingCoords = true;
+        let coords = { lat: 0, lon: 0 };
+
+        while (generatingCoords) {
+          //TODO: Add logic to break out of this loop if in it for too long
+          coords = await getLocations(
+            location.coords,
+            parseInt(JSON.stringify(client.data.slotData.maximum_distance), 10),
+            parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
+            parseInt(
+              JSON.stringify(client.data.slotData.speed_requirement),
+              10,
+            ),
+            trip,
+          );
+          generatingCoords = tempTrips.some(
+            (value) =>
+              value.coords.lat === coords.lat &&
+              value.coords.lon === coords.lon,
+          );
+          console.log("Generated unique coordinates?", !generatingCoords);
+        }
+
         tempTrips.push({ coords, trip, name, id });
       }
       filteredTrips = removeCheckedLocations(
