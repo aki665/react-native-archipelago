@@ -49,7 +49,6 @@ export default async function handleItems(
   sessionName: string,
   newIndex: number,
   client: Client,
-  goal = 1,
 ) {
   let index = -1;
 
@@ -61,12 +60,14 @@ export default async function handleItems(
 
   const itemPackage =
     client.data.package.get("Archipela-Go!")?.item_id_to_name || {};
+  const goal: number = parseInt(JSON.stringify(client.data.slotData?.goal), 10);
   let keyAmount = 0;
   let distanceReductions = 0;
   let skipNotifications = false;
 
-  let macguffinString = "";
+  let macguffinString = "Archipela-Go";
 
+  console.log("goal:", goal);
   if (goal === GOAL_MAP.SHORT_MACGUFFIN) macguffinString = "Ap-Go!";
   if (goal === GOAL_MAP.LONG_MACGUFFIN) macguffinString = "Archipela-Go!";
 
@@ -74,6 +75,7 @@ export default async function handleItems(
     console.log("handling item", item);
     if (item.item === MAP_ID_TO_ITEM.KEY) keyAmount++;
     if (item.item === MAP_ID_TO_ITEM.COLLECTION_DISTANCE) distanceReductions++;
+    console.log("macguffinString =", macguffinString);
     if (macguffinString) {
       switch (item.item) {
         case MAP_ID_TO_ITEM.MACGUFFIN_A:

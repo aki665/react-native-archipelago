@@ -241,7 +241,7 @@ export default function MapScreen({
     );
 
     const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(items, sessionName, newIndex, client, goal);
+      await handleItems(items, sessionName, newIndex, client);
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
 
