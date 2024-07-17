@@ -168,7 +168,6 @@ export default function Connect({
       setLoading(true);
       const connectionInfo: ConnectionInformation = {
         protocol: "wss",
-        tags: ["AP"],
         game: "Archipela-Go!",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
         ...apInfo,
