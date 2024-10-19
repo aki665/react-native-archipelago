@@ -84,11 +84,15 @@ export default function Chat({
   messages: messages;
 }>) {
   const [chat, setChat] = useState("");
-  const client = useContext(ClientContext);
+  const { client } = useContext(ClientContext);
   const chatBoxRef = useRef<ScrollView>(null);
   const sendMessage = () => {
     console.log("sending message", chat);
-    if (chat !== "") client.say(chat);
+    try {
+      if (chat !== "") client.say(chat);
+    } catch (e) {
+      console.log(e);
+    }
     setChat("");
   };
   return (

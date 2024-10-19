@@ -1,8 +1,13 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
-import { PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
+import {
+  CLIENT_PACKET_TYPE,
+  PrintJSONPacket,
+  SERVER_PACKET_TYPE,
+  ServerPacket,
+} from "archipelago.js";
 import * as Location from "expo-location";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Alert, BackHandler, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -12,6 +17,11 @@ import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
 
 const Tab = createMaterialTopTabNavigator();
+
+/**Send a sync to the server, if the connection hasn't been verified in this many seconds */
+const ALLOWED_TIME_BETWEEN_PACKETS = 120;
+
+const minTime = ALLOWED_TIME_BETWEEN_PACKETS * 1000;
 
 export default function Connected({
   route,
@@ -23,12 +33,16 @@ export default function Connected({
   navigation: MaterialTopTabNavigationHelpers;
 }>) {
   const { sessionName, replacedInfo } = route.params;
-  const client = useContext(ClientContext);
-
+  const { client, connectionInfoRef } = useContext(ClientContext);
+  const lastConnectionRef = useRef(new Date().getTime());
+  const triedSyncRef = useRef(false);
+  const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [messages, setMessages] = useState<messages>([]);
+
   const insets = useSafeAreaInsets();
   const { setError } = useContext(ErrorContext);
   const [allowedLocation, setAllowedLocation] = useState(false);
+
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
    */
@@ -133,17 +147,79 @@ export default function Connected({
   };
 
   const handleDisconnect = async () => {
-    client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
-      console.log("starting message listener...");
-      handleMessages(packet);
-    });
+    client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+    client.removeListener("PacketReceived", handleConnectionStatus);
     console.log("disconnecting...");
     client.disconnect();
     setMessages([]);
+    const retry = retryRef.current;
+    if (retry !== null) {
+      clearInterval(retry);
+    }
     navigation.navigate("connect");
   };
+
+  const handleConnectionStatus = () => {
+    lastConnectionRef.current = new Date().getTime();
+    triedSyncRef.current = false;
+  };
+
+  const checkConnected = (lastConnection: number) => {
+    if (lastConnection + minTime < new Date().getTime()) {
+      console.log(
+        "connection not verified in ",
+        ALLOWED_TIME_BETWEEN_PACKETS,
+        "seconds. Sending Sync package...",
+      );
+      triedSyncRef.current = true;
+      client.send({ cmd: CLIENT_PACKET_TYPE.SYNC });
+    }
+  };
+
+  const handleReconnection = async () => {
+    const info = connectionInfoRef?.current;
+    const checkConnection = triedSyncRef.current;
+    const lastConnection = lastConnectionRef.current;
+
+    console.log(
+      lastConnection + minTime < new Date().getTime(),
+      checkConnection,
+    );
+    checkConnected(lastConnection);
+    if (lastConnection + minTime < new Date().getTime() && checkConnection) {
+      try {
+        if (info) {
+          console.log("trying to connect with info", info);
+          const res = await client.connect(info);
+          console.log(res);
+        }
+      } catch (e) {
+        const retry = retryRef.current;
+        if (retry !== null) {
+          clearInterval(retry);
+        }
+        console.log(e);
+        Alert.alert(
+          "Connection Error!",
+          "You have been disconnected, and the automatic attempt to reconnect failed.",
+          [
+            {
+              text: "Go to info screen",
+              onPress: () => {
+                handleDisconnect();
+              },
+              style: "cancel",
+            },
+          ],
+        );
+      }
+    }
+  };
+
   useEffect(() => {
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+    client.addListener("PacketReceived", handleConnectionStatus);
+
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -169,10 +245,19 @@ export default function Connected({
       "hardwareBackPress",
       backAction,
     );
+    const retry = setInterval(() => {
+      handleReconnection();
+    }, 10000);
+    retryRef.current = retry;
+
     askLocationPermission();
+
     return () => {
+      console.log("Connected.tsx useEffect cleanup is running...");
       client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+      client.removeListener("PacketReceived", handleConnectionStatus);
       backHandler.remove();
+      clearInterval(retry);
     };
   }, []);
 

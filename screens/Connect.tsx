@@ -120,7 +120,7 @@ export default function Connect({
 }: Readonly<{
   navigation: MaterialTopTabNavigationHelpers;
 }>) {
-  const client = useContext(ClientContext);
+  const { client, connectionInfoRef } = useContext(ClientContext);
   const { setError } = useContext(ErrorContext);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -166,18 +166,21 @@ export default function Connect({
   const connectToAP = async (apInfo: apInfo) => {
     try {
       setLoading(true);
+      const port = apInfo.port !== 0 ? apInfo.port : 38281;
       const connectionInfo: ConnectionInformation = {
-        protocol: "wss",
-        tags: ["AP"],
         game: "Archipela-Go!",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
         ...apInfo,
+        port,
       };
 
       await client.connect(connectionInfo);
-      setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${apInfo.port}`);
+      if (connectionInfoRef !== null) {
+        connectionInfoRef.current = connectionInfo;
+      }
+      setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${port}`);
       setModalVisible(true);
-      setInfoToSave(apInfo);
+      setInfoToSave({ ...apInfo, port });
       setLoading(false);
       setError("");
     } catch (e) {
