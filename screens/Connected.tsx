@@ -20,7 +20,7 @@ function Placeholder() {
 }
 
 /**Send a sync to the server, if the connection hasn't been verified in this many seconds */
-const ALLOWED_TIME_BETWEEN_PACKETS = 15;
+const ALLOWED_TIME_BETWEEN_PACKETS = 120;
 
 const minTime = ALLOWED_TIME_BETWEEN_PACKETS * 1000;
 
