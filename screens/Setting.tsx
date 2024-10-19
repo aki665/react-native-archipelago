@@ -98,7 +98,7 @@ export default function Settings({
     originalName: "",
     newName: "",
   });
-  const client = useContext(ClientContext);
+  const { client, connectionInfoRef } = useContext(ClientContext);
   const { setError } = useContext(ErrorContext);
 
   const filterStorage = (item: string) => {
@@ -142,7 +142,6 @@ export default function Settings({
       setLoading(true);
       const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
       const connectionInfo: ConnectionInformation = {
-        protocol: "wss",
         tags: ["TextOnly"],
         game: "",
         items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
@@ -150,6 +149,9 @@ export default function Settings({
       };
 
       await client.connect(connectionInfo);
+      if (connectionInfoRef) {
+        connectionInfoRef.current = connectionInfo;
+      }
       //client.say("connected to the server from react-native!");
       navigation.navigate("connected");
       setLoading(false);
