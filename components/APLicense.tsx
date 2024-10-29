@@ -61,6 +61,12 @@ export default function APLicense() {
   return (
     <View>
       <LicenseItem
+        MainTextLink="https://www.openstreetmap.org/copyright"
+        mainText="Location data provided by OpenStreetMap"
+        subText="Open Database License"
+        subTextLink="https://www.openstreetmap.org/copyright"
+      />
+      <LicenseItem
         logoLink="https://github.com/ArchipelagoMW/Archipelago"
         logo={require("../assets/color-icon.png")}
         MainTextLink="http://creativecommons.org/licenses/by-nc/4.0/"
@@ -68,65 +74,18 @@ export default function APLicense() {
         subTextLink="http://creativecommons.org/licenses/by-nc/4.0/"
         subText="Attribution-NonCommercial 4.0 International"
       />
-      <View style={styles.cardShadow}>
-        <View style={styles.card}>
-          <TouchableOpacity onPress={() => {}}>
-            <Image
-              source={require("../assets/archipela-go-logo_full.png")}
-              style={styles.image}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.item}>
-            <View style={{ maxWidth: "90%" }}>
-              <Text style={styles.name}>
-                The Archipela-Go! Logo created by @Combo99 on the Archipelago
-                discord server
-              </Text>
-              <Link style={styles.text} url="">
-                Based on the Archipelago logo.
-              </Link>
-            </View>
-            <FontAwesome
-              style={{ alignSelf: "center" }}
-              color="#34495e"
-              size={16}
-              name="chevron-right"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
-      <View style={styles.cardShadow}>
-        <View style={styles.card}>
-          <TouchableOpacity
-            onPress={() => Linking.openURL("https://sunny.garden/@linkhs")}
-          >
-            <Image
-              source={require("../assets/APMarker_blue.png")}
-              style={styles.image}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => Linking.openURL("https://sunny.garden/@linkhs")}
-          >
-            <View style={{ maxWidth: "90%" }}>
-              <Text style={styles.name}>
-                The Archipelago Map Marker created by @linkhs on the Archipelago
-                discord server
-              </Text>
-              <Link style={styles.text} url="">
-                Based on the Archipelago logo.
-              </Link>
-            </View>
-            <FontAwesome
-              style={{ alignSelf: "center" }}
-              color="#34495e"
-              size={16}
-              name="chevron-right"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <LicenseItem
+        logo={require("../assets/archipela-go-logo_full.png")}
+        mainText="The Archipela-Go! Logo created by @Combo99 on the Archipelago discord server"
+        subText="Based on the Archipelago logo."
+      />
+      <LicenseItem
+        logoLink="https://sunny.garden/@linkhs"
+        logo={require("../assets/APMarker_blue.png")}
+        MainTextLink="https://sunny.garden/@linkhs"
+        mainText="The Archipelago Map Marker created by @linkhs on the Archipelago discord server"
+        subText="Based on the Archipelago logo."
+      />
     </View>
   );
 }
@@ -187,6 +146,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 0,
     resizeMode: "contain",
+    marginTop: 8,
   },
 
   text: {
