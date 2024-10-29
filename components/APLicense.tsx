@@ -7,50 +7,67 @@ import {
   Linking,
   Image,
   StyleSheet,
+  ImageSourcePropType,
 } from "react-native";
+
+const LicenseItem = ({
+  logoLink,
+  logo,
+  MainTextLink,
+  mainText,
+  subTextLink,
+  subText,
+}: {
+  logoLink?: string;
+  logo?: ImageSourcePropType;
+  MainTextLink?: string;
+  mainText?: string;
+  subTextLink?: string;
+  subText?: string;
+}) => {
+  return (
+    <View style={styles.cardShadow}>
+      <View style={styles.card}>
+        {logo && (
+          <TouchableOpacity
+            onPress={() => (logoLink ? Linking.openURL(logoLink) : null)}
+          >
+            <Image source={logo} style={styles.image} />
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          onPress={() => (MainTextLink ? Linking.openURL(MainTextLink) : null)}
+          style={styles.item}
+        >
+          <View style={{ maxWidth: "90%" }}>
+            <Text style={styles.name}>{mainText}</Text>
+            <Link style={styles.text} url={subTextLink ?? ""}>
+              {subText}
+            </Link>
+          </View>
+          <FontAwesome
+            style={{ alignSelf: "center" }}
+            color="#34495e"
+            size={16}
+            name="chevron-right"
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 export default function APLicense() {
   return (
     <View>
-      <View style={styles.cardShadow}>
-        <View style={styles.card}>
-          <TouchableOpacity
-            onPress={() =>
-              Linking.openURL("https://github.com/ArchipelagoMW/Archipelago")
-            }
-          >
-            <Image
-              source={require("../assets/color-icon.png")}
-              style={styles.image}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              Linking.openURL("http://creativecommons.org/licenses/by-nc/4.0/")
-            }
-            style={styles.item}
-          >
-            <View style={{ maxWidth: "90%" }}>
-              <Text style={styles.name}>
-                The Archipelago logo © 2022 by Krista Corkos and Christopher
-                Wilson
-              </Text>
-              <Link
-                style={styles.text}
-                url="http://creativecommons.org/licenses/by-nc/4.0/"
-              >
-                Attribution-NonCommercial 4.0 International
-              </Link>
-            </View>
-            <FontAwesome
-              style={{ alignSelf: "center" }}
-              color="#34495e"
-              size={16}
-              name="chevron-right"
-            />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <LicenseItem
+        logoLink="https://github.com/ArchipelagoMW/Archipelago"
+        logo={require("../assets/color-icon.png")}
+        MainTextLink="http://creativecommons.org/licenses/by-nc/4.0/"
+        mainText="The Archipelago logo © 2022 by Krista Corkos and Christopher Wilson"
+        subTextLink="http://creativecommons.org/licenses/by-nc/4.0/"
+        subText="Attribution-NonCommercial 4.0 International"
+      />
     </View>
   );
 }
