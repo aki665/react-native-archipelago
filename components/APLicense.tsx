@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 0,
     resizeMode: "contain",
+    marginTop: 8,
   },
 
   text: {
