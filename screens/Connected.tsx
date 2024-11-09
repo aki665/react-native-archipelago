@@ -1,11 +1,6 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
-import {
-  CLIENT_PACKET_TYPE,
-  PrintJSONPacket,
-  SERVER_PACKET_TYPE,
-  ServerPacket,
-} from "archipelago.js";
+import { PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
 import * as Location from "expo-location";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Alert, BackHandler, Platform } from "react-native";
@@ -18,7 +13,7 @@ import { ErrorContext } from "../components/ErrorContext";
 
 const Tab = createMaterialTopTabNavigator();
 
-/**Send a sync to the server, if the connection hasn't been verified in this many seconds */
+/**Check connection status every this many seconds */
 const ALLOWED_TIME_BETWEEN_PACKETS = 120;
 
 const minTime = ALLOWED_TIME_BETWEEN_PACKETS * 1000;
@@ -34,9 +29,6 @@ export default function Connected({
 }>) {
   const { sessionName, replacedInfo } = route.params;
   const { client, connectionInfoRef } = useContext(ClientContext);
-  const lastConnectionRef = useRef(new Date().getTime());
-  const triedSyncRef = useRef(false);
-  const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [messages, setMessages] = useState<messages>([]);
 
   const insets = useSafeAreaInsets();
@@ -148,7 +140,6 @@ export default function Connected({
 
   const handleDisconnect = async () => {
     client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
-    client.removeListener("PacketReceived", handleConnectionStatus);
     console.log("disconnecting...");
     client.disconnect();
     setMessages([]);
@@ -159,34 +150,10 @@ export default function Connected({
     navigation.navigate("connect");
   };
 
-  const handleConnectionStatus = () => {
-    lastConnectionRef.current = new Date().getTime();
-    triedSyncRef.current = false;
-  };
-
-  const checkConnected = (lastConnection: number) => {
-    if (lastConnection + minTime < new Date().getTime()) {
-      console.log(
-        "connection not verified in ",
-        ALLOWED_TIME_BETWEEN_PACKETS,
-        "seconds. Sending Sync package...",
-      );
-      triedSyncRef.current = true;
-      client.send({ cmd: CLIENT_PACKET_TYPE.SYNC });
-    }
-  };
-
   const handleReconnection = async () => {
     const info = connectionInfoRef?.current;
-    const checkConnection = triedSyncRef.current;
-    const lastConnection = lastConnectionRef.current;
-
-    console.log(
-      lastConnection + minTime < new Date().getTime(),
-      checkConnection,
-    );
-    checkConnected(lastConnection);
-    if (lastConnection + minTime < new Date().getTime() && checkConnection) {
+    console.log(client.status);
+    if (client.status === "Disconnected") {
       try {
         if (info) {
           console.log("trying to connect with info", info);
@@ -218,7 +185,6 @@ export default function Connected({
 
   useEffect(() => {
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
-    client.addListener("PacketReceived", handleConnectionStatus);
 
     const backAction = () => {
       Alert.alert(
@@ -247,7 +213,7 @@ export default function Connected({
     );
     const retry = setInterval(() => {
       handleReconnection();
-    }, 10000);
+    }, minTime);
     retryRef.current = retry;
 
     askLocationPermission();
@@ -255,7 +221,6 @@ export default function Connected({
     return () => {
       console.log("Connected.tsx useEffect cleanup is running...");
       client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
-      client.removeListener("PacketReceived", handleConnectionStatus);
       backHandler.remove();
       clearInterval(retry);
     };
