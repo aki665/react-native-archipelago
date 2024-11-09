@@ -9,13 +9,7 @@ import {
 } from "archipelago.js";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
-import React, {
-  PropsWithChildren,
-  memo,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { ReactNode, memo, useContext, useEffect, useState } from "react";
 import { View } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 
@@ -29,10 +23,14 @@ import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
 
 export const MARKER_RADIUS = 20;
 
-const MemoizedMap = memo(function MemoizedMap(props: PropsWithChildren) {
+const MemoizedMap = memo(function MemoizedMap({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <MapView provider={PROVIDER_GOOGLE} style={mapStyles.map} showsUserLocation>
-      {props.children}
+      {children}
     </MapView>
   );
 });
@@ -90,8 +88,9 @@ const geofenceLocations = async (
   client: Client,
   receivedKeys: number,
   receivedReductions: number,
+  setCheckedLocations: React.Dispatch<React.SetStateAction<readonly number[]>>,
 ) => {
-  const geofenceArr: Location.LocationRegion[] = trips.map((trip) => {
+  const geofenceArr = trips.map((trip) => {
     if (receivedKeys >= trip.trip.key_needed) {
       return {
         identifier: trip.id.toString(),
@@ -123,7 +122,11 @@ const geofenceLocations = async (
         }
         if (eventType === Location.GeofencingEventType.Enter) {
           console.log("entered location with id", region.identifier);
-          client.locations.check(parseInt(region.identifier, 10));
+          if (region.identifier !== undefined) {
+            const id = parseInt(region.identifier, 10);
+            client.locations.check(id);
+            setCheckedLocations((prev) => [...prev, id]);
+          }
         }
       },
     );
@@ -147,7 +150,7 @@ const removeGeofencing = async () => {
  */
 const removeCheckedLocations = (
   trips: trip[],
-  checkedLocations: readonly number[],
+  checkedLocations: number[] | readonly number[],
 ) => {
   return trips.filter((trip) => {
     return !checkedLocations.includes(trip.id);
@@ -176,7 +179,7 @@ export default function MapScreen({
   sessionName: string;
   replacedInfo: boolean;
 }>) {
-  const client = useContext(ClientContext);
+  const { client } = useContext(ClientContext);
 
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
@@ -192,12 +195,17 @@ export default function MapScreen({
     useState<string>("Archipela-Go!");
 
   const handleCheckedLocation = async (checkedLocations: readonly number[]) => {
-    if (checkedLocations.length > 0) {
+    if (checkedLocations !== null && checkedLocations.length > 0) {
       const filteredTrips = removeCheckedLocations(trips, checkedLocations);
       if (!goalAchieved) handleGoal(client, filteredTrips, macguffinString);
       setTrips(filteredTrips);
       console.log("saving filtered trips...");
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
+      await save(
+        [...new Set(checkedLocations)],
+        sessionName + "_checked",
+        STORAGE_TYPES.OBJECT,
+      );
     }
   };
 
@@ -235,17 +243,20 @@ export default function MapScreen({
     sessionName: string,
     newIndex: number,
   ) => {
-    const goal: number = parseInt(
-      JSON.stringify(client.data.slotData?.goal),
-      10,
-    );
-
     const { keyAmount, distanceReductions, macguffinString } =
       await handleItems(items, sessionName, newIndex, client);
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
 
     setMacguffinString(macguffinString);
+
+    const loadedChecks = await load(
+      sessionName + "_checked",
+      STORAGE_TYPES.OBJECT,
+    );
+    console.log("loadedChecks", loadedChecks);
+    if (loadedChecks !== null)
+      loadedChecks.forEach((id: number) => client.locations.check(id));
   };
 
   const getCoordinatesForLocations = async () => {
@@ -278,6 +289,7 @@ export default function MapScreen({
         //Makes the slot data into an array that is sorted by key_needed...
         const id =
           client.data.package.get("Archipela-Go!")?.location_name_to_id[name];
+        if (!id) return;
         if (client.locations.checked.includes(id)) continue;
         if (trip.key_needed !== tracker.tripGroup) {
           tracker.tripGroup = trip.key_needed;
@@ -320,7 +332,13 @@ export default function MapScreen({
     }
 
     setTrips(filteredTrips);
-    geofenceLocations(filteredTrips, client, receivedKeys, receivedReductions);
+    geofenceLocations(
+      filteredTrips,
+      client,
+      receivedKeys,
+      receivedReductions,
+      setCheckedLocations,
+    );
     if (sessionName)
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
   };
@@ -328,7 +346,9 @@ export default function MapScreen({
   const roomUpdateListener = (packet: RoomUpdatePacket) => {
     console.log("starting room update listener...");
     if (packet.checked_locations) {
-      setCheckedLocations(packet.checked_locations);
+      setCheckedLocations((prev) => [
+        ...new Set([...prev, ...packet.checked_locations]),
+      ]);
     }
   };
 
@@ -384,7 +404,13 @@ export default function MapScreen({
       // don't do anything on first render
     } else {
       //removeGeofencing();
-      geofenceLocations(trips, client, receivedKeys, receivedReductions);
+      geofenceLocations(
+        trips,
+        client,
+        receivedKeys,
+        receivedReductions,
+        setCheckedLocations,
+      );
     }
   }, [receivedKeys]);
 
