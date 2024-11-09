@@ -3,19 +3,22 @@ import { LocationObjectCoords } from "expo-location";
 const DISTANCE_LENIENCY = 0.1;
 
 /**
- * Return a openstreetmaps 'lookup' API url
- * See https://nominatim.org/release-docs/latest/api/Lookup/ for more info
+ * Wait provided amount of time (in milliseconds)
  */
 const wait = async (time: number) => {
   setTimeout(() => {}, time);
 };
 
+/**
+ * Return a openstreetmaps 'lookup' API url
+ * See https://nominatim.org/release-docs/latest/api/Lookup/ for more info
+ */
 const lookupApi = (type: string, id: number) => {
   return `https://nominatim.openstreetmap.org/lookup?osm_ids=${type}${id}&format=json`;
 };
 
 /**
- * Return a openstreetmaps reverse geicidubg API url
+ * Return a openstreetmaps reverse geocoding API url
  * See https://nominatim.org/release-docs/latest/api/Reverse/ for more info
  */
 const getOSMTypeAndIdAPI = (latitude: number, longitude: number) => {
@@ -71,11 +74,21 @@ async function generateLocation(
     await wait(1000);
     const OSMInfoResponse = await fetch(
       getOSMTypeAndIdAPI(newLatitude, newLongitude),
+      {
+        method: "GET",
+        referrer: "com.aki665.archipelago",
+        headers: { "user-agent": "archipela-go/0.2.0" },
+      },
     );
-
     const OSMInfo = await OSMInfoResponse.json();
+    await wait(1000);
     const lookupResponse = await fetch(
       lookupApi(OSMInfo.osm_type[0].toUpperCase(), OSMInfo.osm_id),
+      {
+        method: "GET",
+        referrer: "com.aki665.archipelago",
+        headers: { "user-agent": "archipela-go/0.2.0" },
+      },
     );
     const lookupInfo = await lookupResponse.json();
     console.log("lookupInfo", lookupInfo);
