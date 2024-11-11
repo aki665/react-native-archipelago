@@ -11,11 +11,12 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import React, { ReactNode, memo, useContext, useEffect, useState } from "react";
 import { View } from "react-native";
-import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
+import MapView from "react-native-maps";
 
 import APMarkers from "./APMarkers";
 import AsyncAlert from "../components/AsyncAlert";
 import { ClientContext } from "../components/ClientContext";
+import LocationInfoPopup from "../components/LocationInfoPopup";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP } from "../utils/handleItems";
@@ -29,7 +30,11 @@ const MemoizedMap = memo(function MemoizedMap({
   children: ReactNode;
 }) {
   return (
-    <MapView provider={PROVIDER_GOOGLE} style={mapStyles.map} showsUserLocation>
+    <MapView
+      style={mapStyles.map}
+      userLocationUpdateInterval={1000}
+      showsUserLocation
+    >
       {children}
     </MapView>
   );
@@ -181,10 +186,11 @@ export default function MapScreen({
 }>) {
   const { client } = useContext(ClientContext);
 
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<null | trip>(null);
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
-  const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
   const [trips, setTrips] = useState<any[] | trip[]>([]);
   const [checkedLocations, setCheckedLocations] = useState<readonly number[]>(
     [],
@@ -193,7 +199,16 @@ export default function MapScreen({
   const [receivedReductions, setReceivedReductions] = useState<number>(0);
   const [macguffinString, setMacguffinString] =
     useState<string>("Archipela-Go!");
+  const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
 
+  const handleShowPopup = (trip: trip) => {
+    setSelectedLocation(trip);
+    setShowPopup(true);
+  };
+  const closePopup = () => {
+    setShowPopup(false);
+    setSelectedLocation(null);
+  };
   const handleCheckedLocation = async (checkedLocations: readonly number[]) => {
     if (checkedLocations !== null && checkedLocations.length > 0) {
       const filteredTrips = removeCheckedLocations(trips, checkedLocations);
@@ -420,12 +435,20 @@ export default function MapScreen({
   }, [macguffinString]);
   return (
     <View style={mapStyles.container}>
+      <LocationInfoPopup
+        visible={showPopup}
+        closePopup={closePopup}
+        location={selectedLocation}
+        client={client}
+        receivedKeys={receivedKeys}
+      />
       <MemoizedMap>
         <APMarkers
           client={client}
           trips={trips}
           location={location}
           receivedKeys={receivedKeys}
+          handleShowPopup={handleShowPopup}
         />
       </MemoizedMap>
     </View>
