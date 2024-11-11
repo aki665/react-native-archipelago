@@ -2,7 +2,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
 import * as Location from "expo-location";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Alert, BackHandler, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -12,6 +12,11 @@ import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
 
 const Tab = createMaterialTopTabNavigator();
+
+/**Check connection status every this many seconds */
+const ALLOWED_TIME_BETWEEN_PACKETS = 120;
+
+const minTime = ALLOWED_TIME_BETWEEN_PACKETS * 1000;
 
 export default function Connected({
   route,
@@ -23,12 +28,13 @@ export default function Connected({
   navigation: MaterialTopTabNavigationHelpers;
 }>) {
   const { sessionName, replacedInfo } = route.params;
-  const client = useContext(ClientContext);
-
+  const { client, connectionInfoRef } = useContext(ClientContext);
   const [messages, setMessages] = useState<messages>([]);
+
   const insets = useSafeAreaInsets();
   const { setError } = useContext(ErrorContext);
   const [allowedLocation, setAllowedLocation] = useState(false);
+
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
    */
@@ -133,17 +139,53 @@ export default function Connected({
   };
 
   const handleDisconnect = async () => {
-    client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, (packet, message) => {
-      console.log("starting message listener...");
-      handleMessages(packet);
-    });
+    client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
     console.log("disconnecting...");
     client.disconnect();
     setMessages([]);
+    const retry = retryRef.current;
+    if (retry !== null) {
+      clearInterval(retry);
+    }
     navigation.navigate("connect");
   };
+
+  const handleReconnection = async () => {
+    const info = connectionInfoRef?.current;
+    console.log(client.status);
+    if (client.status === "Disconnected") {
+      try {
+        if (info) {
+          console.log("trying to connect with info", info);
+          const res = await client.connect(info);
+          console.log(res);
+        }
+      } catch (e) {
+        const retry = retryRef.current;
+        if (retry !== null) {
+          clearInterval(retry);
+        }
+        console.log(e);
+        Alert.alert(
+          "Connection Error!",
+          "You have been disconnected, and the automatic attempt to reconnect failed.",
+          [
+            {
+              text: "Go to info screen",
+              onPress: () => {
+                handleDisconnect();
+              },
+              style: "cancel",
+            },
+          ],
+        );
+      }
+    }
+  };
+
   useEffect(() => {
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",
@@ -169,10 +211,18 @@ export default function Connected({
       "hardwareBackPress",
       backAction,
     );
+    const retry = setInterval(() => {
+      handleReconnection();
+    }, minTime);
+    retryRef.current = retry;
+
     askLocationPermission();
+
     return () => {
+      console.log("Connected.tsx useEffect cleanup is running...");
       client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
       backHandler.remove();
+      clearInterval(retry);
     };
   }, []);
 

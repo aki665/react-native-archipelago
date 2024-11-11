@@ -1,10 +1,22 @@
-import { Client } from "archipelago.js";
-import React, { ReactNode, createContext, useMemo } from "react";
+import { Client, ConnectionInformation } from "archipelago.js";
+import React, {
+  MutableRefObject,
+  ReactNode,
+  createContext,
+  useMemo,
+  useRef,
+} from "react";
 
 /**
  * Used to get the client from the context using useContext(ClientContext)
  */
-export const ClientContext = createContext(new Client());
+export const ClientContext = createContext<{
+  client: Client;
+  connectionInfoRef: MutableRefObject<ConnectionInformation | null> | null;
+}>({
+  client: new Client(),
+  connectionInfoRef: null,
+});
 
 /**
  * Returns a provider for the clientContext.
@@ -16,7 +28,11 @@ export default function ClientContextProvider({
   children?: ReactNode | ReactNode[];
 }>) {
   const client = useMemo(() => new Client(), []);
+  const connectionInfoRef = useRef<ConnectionInformation | null>(null);
+  const contextValue = useMemo(() => ({ client, connectionInfoRef }), []);
   return (
-    <ClientContext.Provider value={client}>{children}</ClientContext.Provider>
+    <ClientContext.Provider value={contextValue}>
+      {children}
+    </ClientContext.Provider>
   );
 }
