@@ -30,7 +30,11 @@ const MemoizedMap = memo(function MemoizedMap({
   children: ReactNode;
 }) {
   return (
-    <MapView style={mapStyles.map} showsUserLocation>
+    <MapView
+      style={mapStyles.map}
+      userLocationUpdateInterval={1000}
+      showsUserLocation
+    >
       {children}
     </MapView>
   );
