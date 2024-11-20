@@ -1,9 +1,8 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { Client } from "archipelago.js";
 import * as Location from "expo-location";
 import React, { memo } from "react";
 import { Image, Text, View } from "react-native";
-import { Callout, CalloutSubview, Circle, Marker } from "react-native-maps";
+import { Callout, Circle, Marker } from "react-native-maps";
 
 import { trip } from "./MapScreen";
 
@@ -30,6 +29,7 @@ const MemoizedMarker = memo(function APMarker({
       <Marker
         coordinate={{ latitude: trip.coords.lat, longitude: trip.coords.lon }}
         key={`${trip.coords.lat}&${trip.coords.lon}-marker`}
+        tracksViewChanges={false} //android only
       >
         <Image
           source={
@@ -67,7 +67,6 @@ export default function APMarkers({
   receivedKeys,
   handleShowPopup,
 }: Readonly<{
-  client: Client;
   trips: any[] | trip[];
   location: Location.LocationObject | null;
   receivedKeys: number;
