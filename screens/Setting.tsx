@@ -30,7 +30,7 @@ import {
 } from "../utils/storageHandler";
 
 const EXTERNAL_EXTRA_DATA: string[] = []; // include extra storage keys you want to handle yourself in this array
-const EXTRA_DATA: string[] = ["_trips", "_itemIndex"]; // include any extra storage keys in this array
+const EXTRA_DATA: string[] = ["_trips", "_itemIndex", "_checked"]; // include any extra storage keys in this array
 const hiddenData: string[] = [...EXTERNAL_EXTRA_DATA, ...EXTRA_DATA]; // these values are hidden from the loadable list of connections
 
 const ListItem = ({
@@ -153,9 +153,6 @@ export default function Settings({
         if (connectionInfoRef) {
           connectionInfoRef.current = connectionInfo;
         }
-        navigation.navigate("connected");
-        setLoading(false);
-
         //client.say("connected to the server from react-native!");
         navigation.navigate("connected", {
           sessionName: storageName,
