@@ -106,18 +106,24 @@ export default function LocationInfoPopup({
           {!hint && (
             <>
               <Text style={{ marginBottom: 10 }}>
-                This location can be hinted. A hint requires{" "}
+                {canHint && "This location can be hinted. "}A hint requires{" "}
                 {client.data.hintCost} hint points. You currently have{" "}
                 {client.data.hintPoints}.
               </Text>
-              <Button
-                onPress={() => handleHintLocation()}
-                text="Hint location"
-                buttonStyle={{ marginBottom: 10 }}
-                buttonProps={{
-                  disabled: !canHint || loading,
-                }}
-              />
+              {canHint ? (
+                <Button
+                  onPress={() => handleHintLocation()}
+                  text="Hint location"
+                  buttonStyle={{ marginBottom: 10 }}
+                  buttonProps={{
+                    disabled: !canHint || loading,
+                  }}
+                />
+              ) : (
+                <Text style={{ marginBottom: 10, color: "gray" }}>
+                  You do not have enough hint points to hint this location
+                </Text>
+              )}
             </>
           )}
           {locationInfo.keysNeeded > 0 && (
@@ -126,7 +132,7 @@ export default function LocationInfoPopup({
                 This location requires {locationInfo.keysNeeded} keys, and you
                 currently have {receivedKeys}
               </Text>
-              {locationInfo.keysNeeded > receivedKeys && (
+              {locationInfo.keysNeeded > receivedKeys && canHint ? (
                 <Button
                   onPress={() => handleHintKey()}
                   text="Hint Key"
@@ -134,6 +140,10 @@ export default function LocationInfoPopup({
                     disabled: !canHint || loading,
                   }}
                 />
+              ) : (
+                <Text style={{ color: "gray" }}>
+                  You do not have enough hint points to hint a key
+                </Text>
               )}
             </>
           )}
