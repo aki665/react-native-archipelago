@@ -80,14 +80,29 @@ const ChatLine = memo(
 
 export default function Chat({
   messages,
+  setMessages,
 }: Readonly<{
   messages: messages;
+  setMessages: React.Dispatch<React.SetStateAction<messages>>;
 }>) {
   const [chat, setChat] = useState("");
   const { client } = useContext(ClientContext);
   const chatBoxRef = useRef<ScrollView>(null);
   const sendMessage = () => {
-    console.log("sending message", chat);
+    console.log("handling message", chat);
+    if (chat.startsWith("/")) {
+      setMessages((prevState) => [
+        ...prevState,
+        [
+          {
+            text: "This client does not implement local commands",
+            type: "color",
+            color: "red",
+          },
+        ],
+      ]);
+      return;
+    }
     try {
       if (chat !== "") client.say(chat);
     } catch (e) {

@@ -229,7 +229,9 @@ export default function Connected({
   return (
     <Tab.Navigator initialRouteName="chat" style={{ paddingTop: insets.top }}>
       <Tab.Screen name="chat">
-        {(props) => <Chat {...props} messages={messages} />}
+        {(props) => (
+          <Chat {...props} messages={messages} setMessages={setMessages} />
+        )}
       </Tab.Screen>
       <Tab.Screen name="nothing yet" component={Placeholder} />
     </Tab.Navigator>
