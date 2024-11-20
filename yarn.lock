@@ -3957,39 +3957,39 @@ expo-constants@~16.0.0:
     "@expo/config" "~9.0.0"
     "@expo/env" "~0.3.0"
 
-expo-dev-client@~4.0.20:
-  version "4.0.20"
-  resolved "https://registry.yarnpkg.com/expo-dev-client/-/expo-dev-client-4.0.20.tgz#fc2c88f3c299d84f1cd52118420a8f36802d3bf3"
-  integrity sha512-lSr5PoJSqXD2srzWyPY3sb8kcwRaLWNCVemdQryW796tglm6sTnSbRhmUGtUPvrm6Bk+rZAmQNFsqKh1sjHfqg==
+expo-dev-client@~4.0.29:
+  version "4.0.29"
+  resolved "https://registry.yarnpkg.com/expo-dev-client/-/expo-dev-client-4.0.29.tgz#86683c584db6b787828b10e2a049f810a246441d"
+  integrity sha512-aANlw9dC4PJEPaRNpe+X5xwyYI+aCIcbZklAAsFlkv2/05gLrsvAFgmQpRtowAzF+VggHWde1eKUOeUccAYIEg==
   dependencies:
-    expo-dev-launcher "4.0.22"
-    expo-dev-menu "5.0.16"
-    expo-dev-menu-interface "1.8.3"
+    expo-dev-launcher "4.0.29"
+    expo-dev-menu "5.0.23"
+    expo-dev-menu-interface "1.8.4"
     expo-manifests "~0.14.0"
     expo-updates-interface "~0.16.2"
 
-expo-dev-launcher@4.0.22:
-  version "4.0.22"
-  resolved "https://registry.yarnpkg.com/expo-dev-launcher/-/expo-dev-launcher-4.0.22.tgz#318c0e5312b719786abe950a68a72364e70ff534"
-  integrity sha512-U8SR4MphP+QatjmD+sQ7AWtKwy7faPpW2PcaPBPnfzBiDc3yk8Kc2sf6/JyN7bUmvA6PFqTnsSJMlZEWi917OQ==
+expo-dev-launcher@4.0.29:
+  version "4.0.29"
+  resolved "https://registry.yarnpkg.com/expo-dev-launcher/-/expo-dev-launcher-4.0.29.tgz#c655d842802f696ad6a5e446c60d20c1e453d175"
+  integrity sha512-0a0SL8mc4FrqPeGxJHe9kf0kG+Di+38Gd+HP5DEL9dcOa8m2qffKnk22UcyujCT6+Qk0OUK1s53nnfqFB26uVw==
   dependencies:
     ajv "8.11.0"
-    expo-dev-menu "5.0.16"
+    expo-dev-menu "5.0.23"
     expo-manifests "~0.14.0"
     resolve-from "^5.0.0"
     semver "^7.6.0"
 
-expo-dev-menu-interface@1.8.3:
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/expo-dev-menu-interface/-/expo-dev-menu-interface-1.8.3.tgz#8c1262e29e0124fc5932a129c95b36de56656b20"
-  integrity sha512-QM0LRozeFT5Ek0N7XpV93M+HMdEKRLEOXn0aW5M3uoUlnqC1+PLtF3HMy3k3hMKTTE/kJ1y1Z7akH07T0lunCQ==
+expo-dev-menu-interface@1.8.4:
+  version "1.8.4"
+  resolved "https://registry.yarnpkg.com/expo-dev-menu-interface/-/expo-dev-menu-interface-1.8.4.tgz#fa23bf3228ea51cf412599fcb715c27259ffdd84"
+  integrity sha512-FpYI57EUu9qTSOOi+FZJ58xkCGJK7QD0mTiXK/y1I8lRdZGjCmdBqVvC4dAx2GcbIT78EPxaVf4/90tK/KRK6A==
 
-expo-dev-menu@5.0.16:
-  version "5.0.16"
-  resolved "https://registry.yarnpkg.com/expo-dev-menu/-/expo-dev-menu-5.0.16.tgz#56342552745618fbe26a7f4e8a47fd95c2ad3dab"
-  integrity sha512-zsUiVCvVWT9ve5EsYEGHGu0dJac13NoEQkmzOjhmvcQXb7+OnKgwtBiNAX6rvponfnx9il506rnyZ+0M9CbwYQ==
+expo-dev-menu@5.0.23:
+  version "5.0.23"
+  resolved "https://registry.yarnpkg.com/expo-dev-menu/-/expo-dev-menu-5.0.23.tgz#7e6d6fd93c54ca955e8a69601a0b1991b64389b3"
+  integrity sha512-ztDvrSdFGkRbMoQlGLyKMS6CslMGylonVW4kQHUrBQApCL0c2NtRwLlr2bA1SXF0S7qYdPPg/ayLnj7DDR5X2w==
   dependencies:
-    expo-dev-menu-interface "1.8.3"
+    expo-dev-menu-interface "1.8.4"
     semver "^7.5.4"
 
 expo-file-system@~17.0.1:
@@ -4013,6 +4013,19 @@ expo-keep-awake@~13.0.2:
   version "13.0.2"
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-13.0.2.tgz#5ef31311a339671eec9921b934fdd90ab9652b0e"
   integrity sha512-kKiwkVg/bY0AJ5q1Pxnm/GvpeB6hbNJhcFsoOWDh2NlpibhCLaHL826KHUM+WsnJRbVRxJ+K9vbPRHEMvFpVyw==
+
+expo-location@~17.0.1:
+  version "17.0.1"
+  resolved "https://registry.yarnpkg.com/expo-location/-/expo-location-17.0.1.tgz#3bdbf91066f1a40ec3468dc1807f3e106473f74c"
+  integrity sha512-m+OzotzlAXO3ZZ1uqW5GC25nXW868zN+ROyBA1V4VF6jGay1ZEs4URPglCVUDzZby2F5wt24cMzqDKw2IX6nRw==
+
+expo-manifests@~0.14.0:
+  version "0.14.3"
+  resolved "https://registry.yarnpkg.com/expo-manifests/-/expo-manifests-0.14.3.tgz#17854c45c8c9ced4a07031ae0838c38ac3115fbc"
+  integrity sha512-L3b5/qocBPiQjbW0cpOHfnqdKZbTJS7sA3mgeDJT+mWga/xYsdpma1EfNmsuvrOzjLGjStr1k1fceM9Bl49aqQ==
+  dependencies:
+    "@expo/config" "~9.0.0"
+    expo-json-utils "~0.13.0"
 
 expo-modules-autolinking@1.11.3:
   version "1.11.3"
@@ -4038,6 +4051,18 @@ expo-status-bar@~1.12.1:
   version "1.12.1"
   resolved "https://registry.yarnpkg.com/expo-status-bar/-/expo-status-bar-1.12.1.tgz#52ce594aab5064a0511d14375364d718ab78aa66"
   integrity sha512-/t3xdbS8KB0prj5KG5w7z+wZPFlPtkgs95BsmrP/E7Q0xHXTcDcQ6Cu2FkFuRM+PKTb17cJDnLkawyS5vDLxMA==
+
+expo-task-manager@~11.8.2:
+  version "11.8.2"
+  resolved "https://registry.yarnpkg.com/expo-task-manager/-/expo-task-manager-11.8.2.tgz#1090a445565ca65ed99991166ddda38575b3dc8c"
+  integrity sha512-Uhy3ol5gYeZOyeRFddYjLI1B2DGRH1gjp/YC8Hpn5p5MVENviySoKNF+wd98rRvOAokzrzElyDBHSTfX+C3tpg==
+  dependencies:
+    unimodules-app-loader "~4.6.0"
+
+expo-updates-interface@~0.16.2:
+  version "0.16.2"
+  resolved "https://registry.yarnpkg.com/expo-updates-interface/-/expo-updates-interface-0.16.2.tgz#ad1ac2ca8ee5a8cc84052ea3c18a11da64da569b"
+  integrity sha512-929XBU70q5ELxkKADj1xL0UIm3HvhYhNAOZv5DSk7rrKvLo7QDdPyl+JVnwZm9LrkNbH4wuE2rLoKu1KMgZ+9A==
 
 expo@~51.0.39:
   version "51.0.39"

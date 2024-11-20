@@ -4,7 +4,7 @@
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "eas-build-pre-install":"corepack enable",
+    "eas-build-pre-install": "corepack enable",
     "android": "expo start --android",
     "buildApk": "eas build -p android --profile apk",
     "ios": "expo start --ios",
@@ -21,7 +21,7 @@
     "@shopify/flash-list": "1.6.4",
     "archipelago.js": "1.2.0",
     "expo": "~51.0.39",
-    "expo-dev-client": "~4.0.20",
+    "expo-dev-client": "~4.0.29",
     "expo-location": "~17.0.1",
     "expo-status-bar": "~1.12.1",
     "expo-task-manager": "~11.8.2",
