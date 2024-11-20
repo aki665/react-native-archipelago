@@ -126,12 +126,14 @@ export default function Settings({
 
   const editInfo = async (storageName: string) => {
     try {
-      setLoading(true);
-      const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
-      setEditingValues(apInfo);
-      setEditingName({ originalName: storageName, newName: storageName });
-      setLoading(false);
-      setModalVisible(true);
+      if (client.status === "Disconnected") {
+        setLoading(true);
+        const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
+        setEditingValues(apInfo);
+        setEditingName({ originalName: storageName, newName: storageName });
+        setLoading(false);
+        setModalVisible(true);
+      }
     } catch (e) {
       setError(e);
     }
@@ -139,22 +141,23 @@ export default function Settings({
 
   const connectToAP = async (storageName: string) => {
     try {
-      setLoading(true);
-      const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
-      const connectionInfo: ConnectionInformation = {
-        tags: ["TextOnly"],
-        game: "",
-        items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
-        ...apInfo,
-      };
+      if (client.status === "Disconnected") {
+        setLoading(true);
+        const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
+        const connectionInfo: ConnectionInformation = {
+          tags: ["TextOnly"],
+          game: "",
+          items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
+          ...apInfo,
+        };
 
-      await client.connect(connectionInfo);
-      if (connectionInfoRef) {
-        connectionInfoRef.current = connectionInfo;
+        await client.connect(connectionInfo);
+        if (connectionInfoRef) {
+          connectionInfoRef.current = connectionInfo;
+        }
+        navigation.navigate("connected");
+        setLoading(false);
       }
-      //client.say("connected to the server from react-native!");
-      navigation.navigate("connected");
-      setLoading(false);
     } catch (e) {
       setError(e);
       console.error(e);
@@ -189,32 +192,38 @@ export default function Settings({
   };
 
   const deleteSavedInfo = async (storageName: string) => {
-    Alert.alert("Delete saved info", `Do you want to delete ${storageName}?`, [
-      {
-        text: "Cancel",
-        onPress: () => null,
-      },
-      {
-        text: "Delete",
-        onPress: () => {
-          try {
-            setLoading(true);
-            remove(storageName);
-            if (EXTRA_DATA.length > 0) {
-              EXTRA_DATA.forEach(async (item) => {
-                await remove(storageName + item);
-              });
-            }
-            fetchStorage();
-            setLoading(false);
-          } catch (e) {
-            console.log(e);
-            setError(e);
-          }
-        },
-        style: "cancel",
-      },
-    ]);
+    if (client.status === "Disconnected") {
+      Alert.alert(
+        "Delete saved info",
+        `Do you want to delete ${storageName}?`,
+        [
+          {
+            text: "Cancel",
+            onPress: () => null,
+          },
+          {
+            text: "Delete",
+            onPress: () => {
+              try {
+                setLoading(true);
+                remove(storageName);
+                if (EXTRA_DATA.length > 0) {
+                  EXTRA_DATA.forEach(async (item) => {
+                    await remove(storageName + item);
+                  });
+                }
+                fetchStorage();
+                setLoading(false);
+              } catch (e) {
+                console.log(e);
+                setError(e);
+              }
+            },
+            style: "cancel",
+          },
+        ],
+      );
+    }
   };
 
   //const editInfo = async();
