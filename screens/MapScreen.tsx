@@ -360,9 +360,10 @@ export default function MapScreen({
 
   const roomUpdateListener = (packet: RoomUpdatePacket) => {
     console.log("starting room update listener...");
-    if (packet.checked_locations) {
+    if (packet.checked_locations !== undefined) {
+      const checkedLocations = packet.checked_locations; //Stops typescript from yelling at me
       setCheckedLocations((prev) => [
-        ...new Set([...prev, ...packet.checked_locations]),
+        ...new Set([...prev, ...checkedLocations]),
       ]);
     }
   };
