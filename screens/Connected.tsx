@@ -14,9 +14,10 @@ function Placeholder() {
   return <></>;
 }
 
-/**Check connection status every this many seconds */
-const ALLOWED_TIME_BETWEEN_PACKETS = 30;
-
+/**Retry connection every this many seconds */
+const ALLOWED_TIME_BETWEEN_PACKETS = 5;
+/** How many times to retry automatically without prompting the user */
+const AUTO_RETRY_AMOUNT = 5;
 const minTime = ALLOWED_TIME_BETWEEN_PACKETS * 1000;
 
 export default function Connected({
@@ -29,6 +30,7 @@ export default function Connected({
   const [messages, setMessages] = useState<messages>([]);
   const insets = useSafeAreaInsets();
   const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const retryCountRef = useRef<number>(0);
 
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
@@ -96,41 +98,95 @@ export default function Connected({
     navigation.navigate("connect");
   };
 
+  /**
+   * Client listeners are defined here to remake them on reconnect
+   */
+  const handleAddListeners = () => {
+    client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+  };
+
+  const checkConnection = () => {
+    console.log("status in checkConnection", client.status);
+    if (client.status === "Disconnected" && retryRef.current === null) {
+      console.log("disconnected");
+      setMessages((prevState) => [
+        ...prevState,
+        [{ text: "Connection lost. Retrying..." }],
+      ]);
+
+      const retry = setInterval(() => {
+        handleReconnection();
+      }, minTime);
+      retryRef.current = retry;
+    } else if (client.status === "Connected" && retryRef.current !== null) {
+      const retry = retryRef.current;
+      if (retry !== null) {
+        clearInterval(retry);
+      }
+      retryRef.current = null;
+      retryCountRef.current = 0;
+    }
+  };
+
   const handleReconnection = async () => {
     const info = connectionInfoRef?.current;
     console.log(client.status);
-    if (client.status === "Disconnected") {
+    if (
+      client.status === "Disconnected" ||
+      client.status === "Waiting For Authentication"
+    ) {
       try {
         if (info) {
           console.log("trying to connect with info", info);
-          const res = await client.connect(info);
-          console.log(res);
+          await client.connect(info);
+          handleAddListeners();
+          setMessages((prevState) => [
+            ...prevState,
+            [
+              {
+                text: "Reconnected successfully",
+              },
+            ],
+          ]);
         }
       } catch (e) {
-        const retry = retryRef.current;
-        if (retry !== null) {
-          clearInterval(retry);
-        }
-        console.log(e);
-        Alert.alert(
-          "Connection Error!",
-          "You have been disconnected, and the automatic attempt to reconnect failed.",
-          [
-            {
-              text: "Go to info screen",
-              onPress: () => {
-                handleDisconnect();
+        retryCountRef.current += 1;
+
+        if (retryCountRef.current === AUTO_RETRY_AMOUNT) {
+          const retry = retryRef.current;
+          if (retry !== null) {
+            clearInterval(retry);
+          }
+          console.log(e);
+          Alert.alert(
+            "Connection Error!",
+            "You have been disconnected, and the automatic attempts to reconnect failed.",
+            [
+              {
+                text: "Go to info screen",
+                onPress: () => {
+                  handleDisconnect();
+                },
+                style: "cancel",
               },
-              style: "cancel",
-            },
-          ],
-        );
+            ],
+          );
+        } else {
+          setMessages((prevState) => [
+            ...prevState,
+            [
+              {
+                text: `Reconnection failed. Trying again in ${ALLOWED_TIME_BETWEEN_PACKETS} seconds...`,
+              },
+            ],
+          ]);
+        }
       }
     }
   };
 
   useEffect(() => {
-    client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+    handleAddListeners();
 
     const backAction = () => {
       Alert.alert(
@@ -158,16 +214,15 @@ export default function Connected({
       backAction,
     );
 
-    const retry = setInterval(() => {
-      handleReconnection();
+    const connectionCheck = setInterval(() => {
+      checkConnection();
     }, minTime);
-    retryRef.current = retry;
 
     return () => {
       console.log("Connected.tsx useEffect cleanup is running...");
       client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
       backHandler.remove();
-      clearInterval(retry);
+      clearInterval(connectionCheck);
     };
   }, []);
 
