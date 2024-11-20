@@ -31,6 +31,8 @@ export default function Connected({
   const { sessionName, replacedInfo } = route.params;
   const { client, connectionInfoRef } = useContext(ClientContext);
   const [messages, setMessages] = useState<messages>([]);
+  const [refreshClientListeners, setRefreshClientListeners] =
+    useState<boolean>(false);
 
   const insets = useSafeAreaInsets();
   const { setError } = useContext(ErrorContext);
@@ -157,6 +159,7 @@ export default function Connected({
    * Client listeners are defined here to remake them on reconnect
    */
   const handleAddListeners = () => {
+    setRefreshClientListeners(true);
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
   };
 
@@ -164,6 +167,7 @@ export default function Connected({
     console.log("status in checkConnection", client.status);
     if (client.status === "Disconnected" && retryRef.current === null) {
       console.log("disconnected");
+      setRefreshClientListeners(false);
       setMessages((prevState) => [
         ...prevState,
         [{ text: "Connection lost. Retrying..." }],
@@ -297,6 +301,7 @@ export default function Connected({
               {...props}
               sessionName={sessionName}
               replacedInfo={replacedInfo}
+              refreshClientListeners={refreshClientListeners}
             />
           )}
         </Tab.Screen>

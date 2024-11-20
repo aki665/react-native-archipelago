@@ -180,9 +180,11 @@ export type trip = {
 export default function MapScreen({
   sessionName,
   replacedInfo,
+  refreshClientListeners,
 }: Readonly<{
   sessionName: string;
   replacedInfo: boolean;
+  refreshClientListeners: boolean;
 }>) {
   const { client } = useContext(ClientContext);
 
@@ -434,6 +436,28 @@ export default function MapScreen({
     console.log("macguffinString changed to", macguffinString);
     if (!goalAchieved) handleGoal(client, trips, macguffinString);
   }, [macguffinString]);
+
+  useEffect(() => {
+    if (refreshClientListeners) {
+      try {
+        client.removeListener(
+          SERVER_PACKET_TYPE.ROOM_UPDATE,
+          roomUpdateListener,
+        );
+        client.removeListener(
+          SERVER_PACKET_TYPE.RECEIVED_ITEMS,
+          receivedItemsListener,
+        );
+      } catch {
+        console.log("client listeners did not exist");
+      }
+      client.addListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
+      client.addListener(
+        SERVER_PACKET_TYPE.RECEIVED_ITEMS,
+        receivedItemsListener,
+      );
+    }
+  }, [refreshClientListeners]);
   return (
     <View style={mapStyles.container}>
       <LocationInfoPopup
@@ -445,7 +469,6 @@ export default function MapScreen({
       />
       <MemoizedMap>
         <APMarkers
-          client={client}
           trips={trips}
           location={location}
           receivedKeys={receivedKeys}
