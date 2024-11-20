@@ -1,6 +1,6 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Location from "expo-location";
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { Image, Text, View } from "react-native";
 import { Callout, Circle, Marker } from "react-native-maps";
 
@@ -17,6 +17,19 @@ const MemoizedMarker = memo(function APMarker({
 }>) {
   const canCheck = receivedKeys >= trip.trip.key_needed;
   console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`);
+  const [tracksViewChanges, setTracksViewChanges] = useState(true);
+  useEffect(() => {
+    setTracksViewChanges(true);
+    setTimeout(() => {
+      setTracksViewChanges(false);
+    }, 5000);
+  }, [receivedKeys]);
+  useEffect(() => {
+    setTracksViewChanges(true);
+    setTimeout(() => {
+      setTracksViewChanges(false);
+    }, 5000);
+  }, []);
   return (
     <>
       <Circle
@@ -29,7 +42,7 @@ const MemoizedMarker = memo(function APMarker({
       <Marker
         coordinate={{ latitude: trip.coords.lat, longitude: trip.coords.lon }}
         key={`${trip.coords.lat}&${trip.coords.lon}-marker`}
-        tracksViewChanges={false} //android only
+        tracksViewChanges={tracksViewChanges} //android only
       >
         <Image
           source={
