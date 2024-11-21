@@ -9,9 +9,16 @@ import {
 } from "archipelago.js";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
-import React, { ReactNode, memo, useContext, useEffect, useState } from "react";
+import React, {
+  ReactNode,
+  memo,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { View } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { Camera } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
 import AsyncAlert from "../components/AsyncAlert";
@@ -19,21 +26,44 @@ import { ClientContext } from "../components/ClientContext";
 import LocationInfoPopup from "../components/LocationInfoPopup";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
-import handleItems, { GOAL_MAP } from "../utils/handleItems";
+import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
 
 export const MARKER_RADIUS = 20;
 
 const MemoizedMap = memo(function MemoizedMap({
   children,
+  location,
 }: {
   children: ReactNode;
+  location: Location.LocationObject | null;
 }) {
+  const mapRef = useRef<MapView | null>(null);
+
+  const onMapReady = () => {
+    let camera: Camera | null = null;
+    if (location)
+      camera = {
+        altitude: 3,
+        center: {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        },
+        heading: 0,
+        pitch: 0,
+        zoom: 15,
+      };
+    if (camera !== null && mapRef.current !== null) {
+      mapRef?.current.setCamera(camera);
+    }
+  };
   return (
     <MapView
+      ref={mapRef}
       style={mapStyles.map}
       userLocationUpdateInterval={1000}
       showsUserLocation
+      onMapReady={onMapReady}
     >
       {children}
     </MapView>
@@ -166,6 +196,7 @@ export type trip = {
   coords: {
     lat: number;
     lon: number;
+    osmID: number;
   };
   trip: {
     amount: number;
@@ -255,6 +286,16 @@ export default function MapScreen({
     }
   };
 
+  const handleOfflineChecks = async () => {
+    const loadedChecks = await load(
+      sessionName + "_checked",
+      STORAGE_TYPES.OBJECT,
+    );
+    console.log("loadedChecks", loadedChecks);
+    if (loadedChecks !== null)
+      loadedChecks.forEach((id: number) => client.locations.check(id));
+  };
+
   const handleOfflineItems = async (
     items: readonly NetworkItem[],
     sessionName: string,
@@ -266,14 +307,6 @@ export default function MapScreen({
     setReceivedReductions(distanceReductions);
 
     setMacguffinString(macguffinString);
-
-    const loadedChecks = await load(
-      sessionName + "_checked",
-      STORAGE_TYPES.OBJECT,
-    );
-    console.log("loadedChecks", loadedChecks);
-    if (loadedChecks !== null)
-      loadedChecks.forEach((id: number) => client.locations.check(id));
   };
 
   const getCoordinatesForLocations = async () => {
@@ -281,9 +314,8 @@ export default function MapScreen({
       console.log("Trips found. Exiting coordinate loading...");
       return;
     }
-    const location = await Location.getCurrentPositionAsync({});
+    const location = await Location.getCurrentPositionAsync();
     console.log(location);
-    console.log(client.data?.slotData?.trips);
 
     const loadedTrips = await load(
       sessionName + "_trips",
@@ -291,7 +323,10 @@ export default function MapScreen({
     );
     let filteredTrips: trip[];
 
-    if ((!loadedTrips || replacedInfo) && client.data?.slotData.trips) {
+    if (
+      (loadedTrips?.length === 0 || replacedInfo) &&
+      client.data?.slotData.trips
+    ) {
       if (replacedInfo) {
         await save(0, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
       }
@@ -347,12 +382,14 @@ export default function MapScreen({
         client.locations.checked,
       );
     }
-
+    const keyAmount = client.items.received.map(
+      (item) => item.item === MAP_ID_TO_ITEM.KEY,
+    ).length;
     setTrips(filteredTrips);
     geofenceLocations(
       filteredTrips,
       client,
-      receivedKeys,
+      keyAmount,
       receivedReductions,
       setCheckedLocations,
     );
@@ -374,7 +411,12 @@ export default function MapScreen({
     console.log("starting message listener...");
 
     const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(packet.items, sessionName, packet.index, client);
+      await handleItems(
+        client.items.received,
+        sessionName,
+        packet.index,
+        client,
+      );
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
     setMacguffinString(macguffinString);
@@ -386,8 +428,9 @@ export default function MapScreen({
       setLocation(location);
     };
     getLocation();
-    getCoordinatesForLocations(); //TODO: fix this happening on every render
+    handleOfflineChecks();
     handleOfflineItems(client.items.received, sessionName, client.items.index);
+    getCoordinatesForLocations(); //TODO: fix this happening on every render
     client.addListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
     client.addListener(
       SERVER_PACKET_TYPE.RECEIVED_ITEMS,
@@ -456,6 +499,12 @@ export default function MapScreen({
         SERVER_PACKET_TYPE.RECEIVED_ITEMS,
         receivedItemsListener,
       );
+      handleOfflineChecks();
+      handleOfflineItems(
+        client.items.received,
+        sessionName,
+        client.items.index,
+      );
     }
   }, [refreshClientListeners]);
   return (
@@ -467,7 +516,7 @@ export default function MapScreen({
         client={client}
         receivedKeys={receivedKeys}
       />
-      <MemoizedMap>
+      <MemoizedMap location={location}>
         <APMarkers
           trips={trips}
           location={location}
