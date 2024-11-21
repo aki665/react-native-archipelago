@@ -1,6 +1,7 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import { Image, Text, View } from "react-native";
 import { Callout, Circle, Marker } from "react-native-maps";
 
@@ -15,21 +16,32 @@ const MemoizedMarker = memo(function APMarker({
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
 }>) {
+  const navigation = useNavigation();
   const canCheck = receivedKeys >= trip.trip.key_needed;
+  const firstRenderDone = useRef(false);
   console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`);
   const [tracksViewChanges, setTracksViewChanges] = useState(true);
   useEffect(() => {
     setTracksViewChanges(true);
     setTimeout(() => {
       setTracksViewChanges(false);
-    }, 5000);
+    }, 100);
   }, [receivedKeys]);
   useEffect(() => {
-    setTracksViewChanges(true);
-    setTimeout(() => {
-      setTracksViewChanges(false);
-    }, 5000);
-  }, []);
+    const unsubscribe = navigation.addListener("focus", () => {
+      if (!firstRenderDone.current) {
+        setTracksViewChanges(true);
+        setTimeout(() => {
+          setTracksViewChanges(false);
+        }, 100);
+        firstRenderDone.current = true;
+        unsubscribe();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <>
       <Circle
