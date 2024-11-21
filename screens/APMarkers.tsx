@@ -25,7 +25,7 @@ const MemoizedMarker = memo(function APMarker({
     setTracksViewChanges(true);
     setTimeout(() => {
       setTracksViewChanges(false);
-    }, 100);
+    }, 200);
   }, [receivedKeys]);
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -33,7 +33,7 @@ const MemoizedMarker = memo(function APMarker({
         setTracksViewChanges(true);
         setTimeout(() => {
           setTracksViewChanges(false);
-        }, 100);
+        }, 200);
         firstRenderDone.current = true;
         unsubscribe();
       }
