@@ -1,7 +1,7 @@
 import { Client, ITEM_FLAGS, NetworkItem } from "archipelago.js";
+import { Alert } from "react-native";
 
 import { STORAGE_TYPES, load, save } from "./storageHandler";
-import AsyncAlert from "../components/AsyncAlert";
 
 export const ITEM_ID_OFFSET = 8902301100000;
 export const MAP_ID_TO_ITEM = {
@@ -63,16 +63,16 @@ export default async function handleItems(
   const goal: number = parseInt(JSON.stringify(client.data.slotData?.goal), 10);
   let keyAmount = 0;
   let distanceReductions = 0;
-  let skipNotifications = false;
 
   let macguffinString = "Archipela-Go";
 
   console.log("goal:", goal);
   if (goal === GOAL_MAP.SHORT_MACGUFFIN) macguffinString = "Ap-Go!";
   if (goal === GOAL_MAP.LONG_MACGUFFIN) macguffinString = "Archipela-Go!";
+  const indexDiff = newIndex - index;
+  const newItems: NetworkItem[] = [];
 
   items.forEach(async (item, i) => {
-    console.log("handling item", item);
     if (item.item === MAP_ID_TO_ITEM.KEY) keyAmount++;
     if (item.item === MAP_ID_TO_ITEM.COLLECTION_DISTANCE) distanceReductions++;
     console.log("macguffinString =", macguffinString);
@@ -129,32 +129,29 @@ export default async function handleItems(
           break;
       }
     }
-    if (i <= index) {
+    if (items.length - i - 1 >= indexDiff) {
       // Do nothing if item is already handled
     } else {
-      const itemName = itemPackage[item.item] || "";
-      if (!skipNotifications) {
-        await AsyncAlert(
-          "Item received!",
-          `Received ${itemName} from ${client.players.name(item.player)}`,
-          [
-            {
-              text: "Skip all",
-              onPress: () => (skipNotifications = true),
-            },
-            {
-              text: "OK",
-              onPress: () => null,
-            },
-          ],
-        );
-      }
+      newItems.push(item);
       if (item.flags === ITEM_FLAGS.TRAP) {
         await handleTrap(item);
       } else if (item.flags === ITEM_FLAGS.PROGRESSION) {
       }
     }
   });
+  if (newItems.length > 0) {
+    let itemString = "";
+    newItems.forEach((item: NetworkItem) => {
+      const itemName = itemPackage[item.item] || "";
+      itemString += `Received ${itemName} from ${client.players.name(item.player)}\n`;
+    });
+    Alert.alert("Items received!", itemString, [
+      {
+        text: "OK",
+        onPress: () => null,
+      },
+    ]);
+  }
   await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
   return { keyAmount, distanceReductions, macguffinString };
 }
