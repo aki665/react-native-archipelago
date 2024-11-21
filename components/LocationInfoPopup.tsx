@@ -1,6 +1,6 @@
 import { Client, Hint } from "archipelago.js";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
 import Button from "./Button";
 import Popup from "./Popup";
@@ -10,6 +10,7 @@ type locationInfo = {
   coords: {
     lat: number;
     lon: number;
+    osmID: number;
   };
   keysNeeded: number;
   name: string;
@@ -89,15 +90,34 @@ export default function LocationInfoPopup({
     }
   }, [location]);
   return (
-    <Popup visible={visible} closePopup={handleClosePopup}>
+    <Popup
+      visible={visible}
+      closePopup={handleClosePopup}
+      popupStyle={{ paddingTop: 0 }}
+    >
+      {locationInfo?.coords.osmID && (
+        <Pressable>
+          <Text style={{ fontSize: 12, color: "gray", textAlign: "right" }}>
+            osm ID:{locationInfo.coords.osmID}
+          </Text>
+        </Pressable>
+      )}
       <Button
         onPress={handleClosePopup}
         text="Close"
-        buttonStyle={{ marginBottom: 10 }}
+        buttonStyle={{ marginBottom: 10, marginTop: 10 }}
       />
       {locationInfo && (
         <View>
-          <Text style={{ marginBottom: 10 }}>{locationInfo.name}</Text>
+          <View
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 10,
+            }}
+          >
+            <Text>{locationInfo.name}</Text>
+          </View>
           {hint && (
             <Text style={{ marginBottom: 10 }}>
               {hint.receivingPlayer}'s {hint.item} can be found here.
@@ -132,18 +152,22 @@ export default function LocationInfoPopup({
                 This location requires {locationInfo.keysNeeded} keys, and you
                 currently have {receivedKeys}
               </Text>
-              {locationInfo.keysNeeded > receivedKeys && canHint ? (
-                <Button
-                  onPress={() => handleHintKey()}
-                  text="Hint Key"
-                  buttonProps={{
-                    disabled: !canHint || loading,
-                  }}
-                />
-              ) : (
-                <Text style={{ color: "gray" }}>
-                  You do not have enough hint points to hint a key
-                </Text>
+              {locationInfo.keysNeeded > receivedKeys && (
+                <>
+                  {canHint ? (
+                    <Button
+                      onPress={() => handleHintKey()}
+                      text="Hint Key"
+                      buttonProps={{
+                        disabled: !canHint || loading,
+                      }}
+                    />
+                  ) : (
+                    <Text style={{ color: "gray" }}>
+                      You do not have enough hint points to hint a key
+                    </Text>
+                  )}
+                </>
               )}
             </>
           )}

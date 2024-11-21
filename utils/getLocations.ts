@@ -43,7 +43,7 @@ async function generateLocation(
 ) {
   if (min > max) {
     console.log("max", max);
-    return { distance: 0, newLatitude: 0, newLongitude: 0 };
+    return { distance: 0, newLatitude: 0, newLongitude: 0, osmID: 0 };
   }
 
   // earth radius in km
@@ -92,11 +92,14 @@ async function generateLocation(
     );
     const lookupInfo = await lookupResponse.json();
     console.log("lookupInfo", lookupInfo);
+    if (lookupInfo[0].type === "motorway")
+      throw new Error("Location is in a forbidden area");
     console.log(newLatitude, "is now", lookupInfo[0].lat);
     console.log(newLongitude, "is now", lookupInfo[0].lon);
 
     newLatitude = parseFloat(lookupInfo[0].lat);
     newLongitude = parseFloat(lookupInfo[0].lon);
+    const osmID = lookupInfo[0].osm_id;
     const distance = getDistanceFromLatLonInKm(
       latitude,
       longitude,
@@ -107,10 +110,11 @@ async function generateLocation(
       newLatitude,
       newLongitude,
       distance,
+      osmID,
     };
   } catch (e) {
     console.log(e);
-    return { distance: 0, newLatitude: 0, newLongitude: 0 };
+    return { distance: 0, newLatitude: 0, newLongitude: 0, osmID: 0 };
   }
 }
 
@@ -152,7 +156,12 @@ async function getLocationCoordinates(
   distance_tier: number,
   minimum_distance = 0,
   correction = 0,
-) {
+): Promise<{
+  newLatitude: number;
+  newLongitude: number;
+  distance: number;
+  osmID: number;
+}> {
   console.log(`${maximum_distance} / 10 * ${distance_tier}`);
   let maxDist = (maximum_distance / 10) * distance_tier;
   let minDist = minimum_distance;
@@ -220,5 +229,9 @@ export default async function getLocations(
     trip.distance_tier,
     minimum_distance,
   );
-  return { lat: coordinates.newLatitude, lon: coordinates.newLongitude };
+  return {
+    lat: coordinates.newLatitude,
+    lon: coordinates.newLongitude,
+    osmID: coordinates.osmID,
+  };
 }
