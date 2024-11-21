@@ -159,8 +159,12 @@ const geofenceLocations = async (
           console.log("entered location with id", region.identifier);
           if (region.identifier !== undefined) {
             const id = parseInt(region.identifier, 10);
-            client.locations.check(id);
             setCheckedLocations((prev) => [...prev, id]);
+            try {
+              client.locations.check(id);
+            } catch {
+              console.log("could not send item");
+            }
           }
         }
       },

@@ -69,7 +69,6 @@ export default async function handleItems(
   console.log("goal:", goal);
   if (goal === GOAL_MAP.SHORT_MACGUFFIN) macguffinString = "Ap-Go!";
   if (goal === GOAL_MAP.LONG_MACGUFFIN) macguffinString = "Archipela-Go!";
-  const indexDiff = newIndex - index;
   const newItems: NetworkItem[] = [];
 
   items.forEach(async (item, i) => {
@@ -129,7 +128,7 @@ export default async function handleItems(
           break;
       }
     }
-    if (items.length - i - 1 >= indexDiff) {
+    if (i < index) {
       // Do nothing if item is already handled
     } else {
       newItems.push(item);
@@ -143,7 +142,11 @@ export default async function handleItems(
     let itemString = "";
     newItems.forEach((item: NetworkItem) => {
       const itemName = itemPackage[item.item] || "";
-      itemString += `Received ${itemName} from ${client.players.name(item.player)}\n`;
+      if (item.player === client.data.slot) {
+        itemString += `Found your own ${itemName}\n`;
+      } else {
+        itemString += `Received ${itemName} from ${client.players.name(item.player)}\n`;
+      }
     });
     Alert.alert("Items received!", itemString, [
       {
