@@ -156,6 +156,7 @@ async function getLocationCoordinates(
   distance_tier: number,
   minimum_distance = 0,
   correction = 0,
+  loop_count = 0,
 ): Promise<{
   newLatitude: number;
   newLongitude: number;
@@ -182,8 +183,9 @@ async function getLocationCoordinates(
     res.distance * 1000 * 1 + DISTANCE_LENIENCY,
   );
   if (
-    calculatedResult < minimum_distance ||
-    calculatedResult > maximum_distance
+    (calculatedResult < minimum_distance ||
+      calculatedResult > maximum_distance) &&
+    loop_count > 5
   ) {
     console.log(
       "error generating, expected values between",
@@ -206,6 +208,7 @@ async function getLocationCoordinates(
       distance_tier,
       minimum_distance,
       cor,
+      loop_count + 1,
     );
   }
   return res;
