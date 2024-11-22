@@ -4,13 +4,19 @@ import React, { useContext, useState } from "react";
 import { ActivityIndicator, Alert, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { EXTRA_DATA } from "./Setting";
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
 import mainStyles from "../styles/MainStyles";
-import { STORAGE_TYPES, getAllNames, save } from "../utils/storageHandler";
+import {
+  STORAGE_TYPES,
+  getAllNames,
+  remove,
+  save,
+} from "../utils/storageHandler";
 
 export type apInfo = {
   hostname: string;
@@ -135,15 +141,19 @@ export default function Connect({
     setModalVisible(false);
   };
   const saveInfoAndConnect = async () => {
+    EXTRA_DATA.forEach((data) => {
+      remove(sessionName + data.name);
+    });
     await save(infoToSave, sessionName, STORAGE_TYPES.OBJECT);
     connect(true);
   };
+
   const handleSaveConnectionInfo = async () => {
     const existingNames = await getAllNames();
     if (existingNames?.some((value: string) => value === sessionName)) {
       Alert.alert(
         "A connection is already saved with the specified name",
-        "Do you want to replace the existing one with this new one?\nNOTE: Also replaces saved destinations",
+        "Do you want to replace the existing one with this new one?\nNOTE: Deletes all saved info relating to this connection",
         [
           {
             text: "Cancel",
