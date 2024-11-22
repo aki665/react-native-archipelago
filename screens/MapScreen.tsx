@@ -476,14 +476,7 @@ export default function MapScreen({
       setLocation(location);
     };
     getLocation();
-    handleOfflineChecks();
-    handleOfflineItems(client.items.received, sessionName, client.items.index);
     getCoordinatesForLocations(); //TODO: fix this happening on every render
-    client.addListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
-    client.addListener(
-      SERVER_PACKET_TYPE.RECEIVED_ITEMS,
-      receivedItemsListener,
-    );
     if (!goalAchieved) handleGoal(client, trips, macguffinString);
     return () => {
       removeGeofencing();
