@@ -88,12 +88,10 @@ const MemoizedMarker = memo(function APMarker({
 
 export default function APMarkers({
   trips,
-  location,
   receivedKeys,
   handleShowPopup,
 }: Readonly<{
   trips: any[] | trip[];
-  location: Location.LocationObject | null;
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
 }>) {

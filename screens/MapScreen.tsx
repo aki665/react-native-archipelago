@@ -17,13 +17,15 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import MapView, { Camera } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
 import AsyncAlert from "../components/AsyncAlert";
 import { ClientContext } from "../components/ClientContext";
-import LocationInfoPopup from "../components/LocationInfoPopup";
+import LocationInfoPopup, {
+  REROLL_TIME,
+} from "../components/LocationInfoPopup";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
@@ -237,6 +239,7 @@ export default function MapScreen({
   const [macguffinString, setMacguffinString] =
     useState<string>("Archipela-Go!");
   const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
+  const rerollAllowedRef = useRef<boolean>(true);
 
   const handleShowPopup = (trip: trip) => {
     setSelectedLocation(trip);
@@ -246,6 +249,48 @@ export default function MapScreen({
     setShowPopup(false);
     setSelectedLocation(null);
   };
+
+  const rerollSelectedLocation = async (
+    id: number,
+    name: string,
+    loops = 0,
+  ) => {
+    if (client.data.slotData.trips !== null && location !== null) {
+      rerollAllowedRef.current = false;
+      const oldTrip: trip = trips.find((trip: trip) => trip.id === id);
+      console.log("oldTrip", oldTrip);
+      const filteredTrips = removeCheckedLocations(trips, [id]);
+      const trip = client.data?.slotData?.trips[name];
+      const coords = await getLocations(
+        location.coords,
+        parseInt(JSON.stringify(client.data.slotData.maximum_distance), 10),
+        parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
+        parseInt(JSON.stringify(client.data.slotData.speed_requirement), 10),
+        trip,
+      );
+      if (oldTrip.coords !== coords) {
+        filteredTrips.push({ coords, trip, name, id });
+        setTrips(filteredTrips);
+        setTimeout(() => {
+          console.log("reroll is allowed again");
+          rerollAllowedRef.current = true;
+        }, REROLL_TIME * 1000);
+      } else if (loops > 5) {
+        Alert.alert(
+          "Reroll failed",
+          "After 5 tries, the location could not be rerolled.\nLocation has not been changed and reroll is not on cooldown.",
+          [
+            {
+              text: "OK",
+              onPress: () => (rerollAllowedRef.current = true),
+              style: "default",
+            },
+          ],
+        );
+      } else rerollSelectedLocation(id, name, loops + 1);
+    }
+  };
+
   const handleCheckedLocation = async (checkedLocations: readonly number[]) => {
     if (checkedLocations !== null && checkedLocations.length > 0) {
       const filteredTrips = removeCheckedLocations(trips, checkedLocations);
@@ -319,7 +364,6 @@ export default function MapScreen({
       return;
     }
     const location = await Location.getCurrentPositionAsync();
-    console.log(location);
 
     const loadedTrips = await load(
       sessionName + "_trips",
@@ -477,7 +521,7 @@ export default function MapScreen({
         setCheckedLocations,
       );
     }
-  }, [receivedKeys]);
+  }, [receivedKeys, trips]);
 
   useEffect(() => {
     console.log("macguffinString changed to", macguffinString);
@@ -519,11 +563,12 @@ export default function MapScreen({
         location={selectedLocation}
         client={client}
         receivedKeys={receivedKeys}
+        rerollSelectedLocation={rerollSelectedLocation}
+        rerollAllowed={rerollAllowedRef}
       />
       <MemoizedMap location={location}>
         <APMarkers
           trips={trips}
-          location={location}
           receivedKeys={receivedKeys}
           handleShowPopup={handleShowPopup}
         />

@@ -1,10 +1,13 @@
 import { Client, Hint } from "archipelago.js";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 
 import Button from "./Button";
 import Popup from "./Popup";
 import { trip } from "../screens/MapScreen";
+
+/**Time between location rerolls in seconds */
+export const REROLL_TIME = 10;
 
 type locationInfo = {
   coords: {
@@ -28,17 +31,44 @@ export default function LocationInfoPopup({
   location,
   client,
   receivedKeys,
+  rerollSelectedLocation,
+  rerollAllowed,
 }: Readonly<{
   visible: boolean;
   closePopup: () => void;
   location: trip | null;
   client: Client;
   receivedKeys: number;
+  rerollSelectedLocation: (id: number, name: string) => Promise<void>;
+  rerollAllowed: React.MutableRefObject<boolean>;
 }>) {
   const [locationInfo, setLocationInfo] = useState<locationInfo | null>(null);
   const [hint, setHint] = useState<hintInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [canHint, setCanHint] = useState<boolean>(false);
+
+  const handleReroll = () => {
+    if (locationInfo !== null && rerollAllowed.current) {
+      Alert.alert(
+        "Do you want to reroll this location?",
+        `Do you want to reroll the existing one with a new one?\nYou will be unable to reroll locations for the next ${REROLL_TIME} seconds`,
+        [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel",
+          },
+          {
+            text: "Reroll",
+            onPress: () => {
+              rerollSelectedLocation(locationInfo?.id, locationInfo.name);
+              handleClosePopup();
+            },
+          },
+        ],
+      );
+    }
+  };
 
   const handleClosePopup = () => {
     setLocationInfo(null);
@@ -95,17 +125,33 @@ export default function LocationInfoPopup({
       closePopup={handleClosePopup}
       popupStyle={{ paddingTop: 0 }}
     >
-      {locationInfo?.coords.osmID && (
-        <Pressable>
-          <Text style={{ fontSize: 12, color: "gray", textAlign: "right" }}>
-            osm ID:{locationInfo.coords.osmID}
-          </Text>
-        </Pressable>
+      {locationInfo && (
+        <View
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            flexDirection: "row",
+            width: "100%",
+            marginTop: 10,
+          }}
+        >
+          <Button
+            onPress={handleReroll}
+            text="Reroll"
+            textStyle={{ fontSize: 10 }}
+            buttonStyle={{ paddingVertical: 2, paddingHorizontal: 4 }}
+          />
+          <Pressable>
+            <Text style={{ fontSize: 12, color: "gray", textAlign: "right" }}>
+              osm ID:{locationInfo.coords.osmID}
+            </Text>
+          </Pressable>
+        </View>
       )}
       <Button
         onPress={handleClosePopup}
         text="Close"
-        buttonStyle={{ marginBottom: 10, marginTop: 10 }}
+        buttonStyle={{ marginBottom: 10 }}
       />
       {locationInfo && (
         <View>
