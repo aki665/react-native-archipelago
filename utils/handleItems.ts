@@ -46,18 +46,9 @@ async function handleTrap(item: NetworkItem) {}
 
 export default async function handleItems(
   items: readonly NetworkItem[],
-  sessionName: string,
-  newIndex: number,
   client: Client,
+  index = -1,
 ) {
-  let index = -1;
-
-  try {
-    index = await load(sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
-  } catch {
-    console.log("Could not load saved index...");
-  }
-
   const itemPackage =
     client.data.package.get("Archipela-Go!")?.item_id_to_name || {};
   const goal: number = parseInt(JSON.stringify(client.data.slotData?.goal), 10);
@@ -155,6 +146,5 @@ export default async function handleItems(
       },
     ]);
   }
-  await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
   return { keyAmount, distanceReductions, macguffinString };
 }

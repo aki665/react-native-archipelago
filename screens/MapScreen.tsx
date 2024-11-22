@@ -258,7 +258,6 @@ export default function MapScreen({
     if (client.data.slotData.trips !== null && location !== null) {
       rerollAllowedRef.current = false;
       const oldTrip: trip = trips.find((trip: trip) => trip.id === id);
-      console.log("oldTrip", oldTrip);
       const filteredTrips = removeCheckedLocations(trips, [id]);
       const trip = client.data?.slotData?.trips[name];
       const coords = await getLocations(
@@ -350,8 +349,16 @@ export default function MapScreen({
     sessionName: string,
     newIndex: number,
   ) => {
+    let index = -1;
+    try {
+      index = await load(sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
+    } catch {
+      console.log("failed to load index");
+    }
     const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(items, sessionName, newIndex, client);
+      await handleItems(items, client, index);
+    await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
+
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
 
@@ -457,14 +464,29 @@ export default function MapScreen({
 
   const receivedItemsListener = async (packet: ReceivedItemsPacket) => {
     console.log("starting message listener...");
+    let index = -1;
+    try {
+      index = await load(sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
+      console.log("loaded index", index);
+    } catch {
+      console.log("failed to load index");
+    }
 
+    console.log(
+      "handling items, with ",
+      client.items.received.length,
+      "recieved and loaded index at",
+      index,
+      "and recieved index at ",
+      packet.index,
+    );
     const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(
-        client.items.received,
-        sessionName,
-        packet.index,
-        client,
-      );
+      await handleItems(client.items.received, client, index);
+    await save(
+      client.items.index,
+      sessionName + "_itemIndex",
+      STORAGE_TYPES.NUMBER,
+    );
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
     setMacguffinString(macguffinString);
