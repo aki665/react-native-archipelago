@@ -339,9 +339,9 @@ export default function MapScreen({
       sessionName + "_checked",
       STORAGE_TYPES.OBJECT,
     );
-    console.log("loadedChecks", loadedChecks);
-    if (loadedChecks !== null)
-      loadedChecks.forEach((id: number) => client.locations.check(id));
+    if (loadedChecks !== null) {
+      setCheckedLocations(loadedChecks);
+    }
   };
 
   const handleOfflineItems = async (
