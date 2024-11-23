@@ -99,7 +99,8 @@ async function generateLocation(
 
     newLatitude = parseFloat(lookupInfo[0].lat);
     newLongitude = parseFloat(lookupInfo[0].lon);
-    const osmID = lookupInfo[0].osm_id;
+    const osmID =
+      lookupInfo[0].osm_type[0].toUpperCase() + lookupInfo[0].osm_id;
     const distance = getDistanceFromLatLonInKm(
       latitude,
       longitude,
@@ -161,7 +162,7 @@ async function getLocationCoordinates(
   newLatitude: number;
   newLongitude: number;
   distance: number;
-  osmID: number;
+  osmID: string;
 }> {
   console.log(`${maximum_distance} / 10 * ${distance_tier}`);
   let maxDist = (maximum_distance / 10) * distance_tier;

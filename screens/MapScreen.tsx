@@ -202,7 +202,7 @@ export type trip = {
   coords: {
     lat: number;
     lon: number;
-    osmID: number;
+    osmID: string;
   };
   trip: {
     amount: number;
@@ -296,12 +296,14 @@ export default function MapScreen({
       if (!goalAchieved) handleGoal(client, filteredTrips, macguffinString);
       setTrips(filteredTrips);
       console.log("saving filtered trips...");
-      await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
-      await save(
-        [...new Set(checkedLocations)],
-        sessionName + "_checked",
-        STORAGE_TYPES.OBJECT,
-      );
+      if (sessionName && sessionName !== "") {
+        await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
+        await save(
+          [...new Set(checkedLocations)],
+          sessionName + "_checked",
+          STORAGE_TYPES.OBJECT,
+        );
+      }
     }
   };
 
@@ -335,12 +337,14 @@ export default function MapScreen({
   };
 
   const handleOfflineChecks = async () => {
-    const loadedChecks = await load(
-      sessionName + "_checked",
-      STORAGE_TYPES.OBJECT,
-    );
-    if (loadedChecks !== null) {
-      setCheckedLocations(loadedChecks);
+    if (sessionName && sessionName !== "") {
+      const loadedChecks = await load(
+        sessionName + "_checked",
+        STORAGE_TYPES.OBJECT,
+      );
+      if (loadedChecks !== null) {
+        setCheckedLocations(loadedChecks);
+      }
     }
   };
 
@@ -357,7 +361,9 @@ export default function MapScreen({
     }
     const { keyAmount, distanceReductions, macguffinString } =
       await handleItems(items, client, index);
-    await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
+    if (sessionName && sessionName !== "") {
+      await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
+    }
 
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
@@ -382,10 +388,6 @@ export default function MapScreen({
       (loadedTrips?.length === 0 || replacedInfo) &&
       client.data?.slotData.trips
     ) {
-      if (replacedInfo) {
-        await save(0, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
-      }
-
       console.log("no saved data found. Generating new coordinates...");
       const tempTrips: any[] | trip[] = [];
       const tracker = { tripGroup: 0, theta: Math.random() * 2 * Math.PI };
@@ -448,7 +450,7 @@ export default function MapScreen({
       receivedReductions,
       setCheckedLocations,
     );
-    if (sessionName)
+    if (sessionName && sessionName !== "")
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
   };
 
@@ -482,11 +484,13 @@ export default function MapScreen({
     );
     const { keyAmount, distanceReductions, macguffinString } =
       await handleItems(client.items.received, client, index);
-    await save(
-      client.items.index,
-      sessionName + "_itemIndex",
-      STORAGE_TYPES.NUMBER,
-    );
+    if (sessionName && sessionName !== "") {
+      await save(
+        client.items.index,
+        sessionName + "_itemIndex",
+        STORAGE_TYPES.NUMBER,
+      );
+    }
     setReceivedKeys(keyAmount);
     setReceivedReductions(distanceReductions);
     setMacguffinString(macguffinString);
@@ -498,8 +502,6 @@ export default function MapScreen({
       setLocation(location);
     };
     getLocation();
-    getCoordinatesForLocations(); //TODO: fix this happening on every render
-    if (!goalAchieved) handleGoal(client, trips, macguffinString);
     return () => {
       removeGeofencing();
       client.removeListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
@@ -545,6 +547,7 @@ export default function MapScreen({
 
   useEffect(() => {
     if (refreshClientListeners) {
+      getCoordinatesForLocations();
       try {
         client.removeListener(
           SERVER_PACKET_TYPE.ROOM_UPDATE,
@@ -568,6 +571,7 @@ export default function MapScreen({
         sessionName,
         client.items.index,
       );
+      if (!goalAchieved) handleGoal(client, trips, macguffinString);
     }
   }, [refreshClientListeners]);
   return (

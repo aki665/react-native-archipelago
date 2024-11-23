@@ -7,13 +7,13 @@ import Popup from "./Popup";
 import { trip } from "../screens/MapScreen";
 
 /**Time between location rerolls in seconds */
-export const REROLL_TIME = 10;
+export const REROLL_TIME = 120;
 
 type locationInfo = {
   coords: {
     lat: number;
     lon: number;
-    osmID: number;
+    osmID: string;
   };
   keysNeeded: number;
   name: string;
