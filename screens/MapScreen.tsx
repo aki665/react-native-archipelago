@@ -406,6 +406,7 @@ export default function MapScreen({
         }
         let generatingCoords = true;
         let coords = { lat: 0, lon: 0 };
+        let loopCount = 0;
 
         while (generatingCoords) {
           //TODO: Add logic to break out of this loop if in it for too long
@@ -425,6 +426,8 @@ export default function MapScreen({
               value.coords.lon === coords.lon,
           );
           console.log("Generated unique coordinates?", !generatingCoords);
+          if (loopCount === 5) generatingCoords = false;
+          loopCount++;
         }
 
         tempTrips.push({ coords, trip, name, id });
