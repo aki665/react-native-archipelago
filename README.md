@@ -1,11 +1,58 @@
+## How to play
+1. Download the apworld
+	- Be sure to download the yaml from the release page, as not all the options in the apworld are implemented
+2. Generate a game and host
+3. Download and install the app (.apk only for now, Google Play soon, iOS later)
+4. Open the app and connect using your connection info
+	- The initial connection message from the server does not show up in the chat. If you see the chat screen, you are connected!
+5. Wait for the app to generate locations and start playing
 
-# Archipela-Go!
+## Notable features
+### Connection saving
+When a connection is successfully made to an archipelago server, the app asks if you want to save that connection.
+![image](https://github.com/user-attachments/assets/7145d75f-ec41-4e5e-9aec-2df8a57ec0ea)
 
-  
+Once a connection is saved, it can be found in the (rather misnamed) settings screen. The two buttons can be used to edit a saved connection or to delete it.
 
-## Features of the app
+![image](https://github.com/user-attachments/assets/7004a9f5-07a3-4507-b2f2-eea255196748)
 
-  ### Client
+The list of generated locations is kept with this information, so if you delete or overwrite it, new locations will be generated on connection.
+
+If you decide to not save the connection, no info for the slot will be save locally. Automatic reconnection will still function.
+
+### Location information
+By tapping on an archipelago marker, a callout will be shown displaying that markers archipelago name.
+
+![image](https://github.com/user-attachments/assets/85c73182-8f2b-4209-8ba0-f0de7e793c59)
+
+If this callout is pressed a pop up will open.
+
+![image](https://github.com/user-attachments/assets/d60ab09d-5655-4fca-90cd-05041970d5de)
+
+If the location is hinted, the hint information will be shown
+
+![image](https://github.com/user-attachments/assets/f811ba90-1eec-40a0-9105-90956dc1c10e)
+
+
+If not, hint information will be shown, along with a hint button if enough hint points are available.
+
+![image](https://github.com/user-attachments/assets/33c55c4b-50e6-4fce-861d-4138d7cf14c3)
+
+If the location is locked, displayed with a greyed out icon, the pop up will show similar hint information for a key
+
+![image](https://github.com/user-attachments/assets/7b95fb42-6919-4f17-8892-b386018faa9a)
+
+![image](https://github.com/user-attachments/assets/5eb0ac17-14ce-4954-ae42-06160b2d1195) 
+
+![image](https://github.com/user-attachments/assets/0776165c-5b58-4514-9257-2aa9f59732a6)
+
+The pop up also contains a button than can be used to re-roll the location. This does have a cooldown, currently set to 2 minutes.
+
+If a location is inaccessible, see [A location is in an inaccessible area](#a-location-is-in-an-inaccessible-area)
+
+## Feature list
+
+### Client
 | Feature |Status  |
 |--|--|
 | Saving and loading connection info | ✔️ |
@@ -14,7 +61,6 @@
 | Receiving and sending messages| ✔️ |
 | Handling poor connection situations| ❓<sup>1</sup> |
 | Showing hinted items, e.g. Text clients hints tab| ❌ |
-
 <sub>1. The app has not been tested in low connectivity situations </sub> 
 
 ### Game
@@ -33,18 +79,30 @@
 | Prompting the player to release and/or collect on reaching goal| ✔️ |
 | Saving starting location and making the player return there between trips| ❌ |
 | Scouting nearby locations| ❌ |
-
 <sub>2. Works in theory, but has not been tested extensively</sub> 
-
 <sub>3. `One Hard Travel`goal has not yet been implemented</sub> 
   
 ### Items
 | Item|Status  |
 |--|--|
-| Progressive Key| ✔️ |
-| Macguffins | ✔️ <sup>4</sup>|
+| Progressive Key| ✔️ <sup>4</sup>|
+| Macguffins | ✔️ |
 | Distance Reductions| ❌ |
 | Scouting Distance| ❌ |
-| Traps| ❌ |
-
+| Traps| ❌<sup>5</sup> |
 <sub>4. Both short and long macguffin hunts</sub> 
+<sub>5. Traps do nothing functionality, but the player is notified when they are received</sub> 
+
+## Troubleshooting
+### A location is in an inaccessible area
+If a generated location is inaccessible for some reason, e.g. forbidden area or not walkable, it can be re-rolled from the location info pop up. Before doing this, please make note of the place ID displayed in the pop up. This is the Open Street Map ID of that location. This ID can be used to get the info of that location and may help in preventing some inaccessible locations in the future. 
+
+If you are comfortable with sharing this ID, **which can be used to find the location on a map**, please send it me over discord directly (@aki665) or in the [future-games-design thread](https://discord.com/channels/731205301247803413/1203890996794884126)
+
+If you are not comfortable with sharing info that may reveal your location, you can still help. By going to https://nominatim.openstreetmap.org/ui/details.html and putting the id there, you can find the information I'm looking for by yourself. I'm mainly interested in the type and extra tags fields, as those seem to hold the most relevant information for exclusion. Please send this information to me over discord directly (@aki665) or in the [future-games-design thread](https://discord.com/channels/731205301247803413/1203890996794884126)
+
+### Locations do not appear
+The location generation is not perfect. If there are only a few location that satisfy the maximum and minimum distance, it might take a few tries to find a suitable location. Additionally, the app tries to make non duplicate locations. If either of these take too many tries, the location will eventually be accepted.
+
+### Any other issues
+Post in the [future-games-design thread](https://discord.com/channels/731205301247803413/1203890996794884126) or open an issue here on github and I'll take a look. If possible, please attach screenshots.
