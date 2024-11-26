@@ -230,7 +230,7 @@ export default function MapScreen({
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
   );
-  const [trips, setTrips] = useState<any[] | trip[]>([]);
+  const [trips, setTrips] = useState<any[] | trip[]>(["placeholder"]);
   const [checkedLocations, setCheckedLocations] = useState<readonly number[]>(
     [],
   );
@@ -372,7 +372,7 @@ export default function MapScreen({
   };
 
   const getCoordinatesForLocations = async () => {
-    if (trips.length > 0 || goalAchieved) {
+    if (trips[0] !== "placeholder" || goalAchieved) {
       console.log("Trips found. Exiting coordinate loading...");
       return;
     }
@@ -529,7 +529,7 @@ export default function MapScreen({
   }, [receivedReductions]);
 
   useEffect(() => {
-    if (trips.length === 0) {
+    if (trips[0] === "placeholder") {
       // don't do anything on first render
     } else {
       //removeGeofencing();

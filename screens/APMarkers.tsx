@@ -97,15 +97,18 @@ export default function APMarkers({
 }>) {
   return (
     <>
-      {trips.map((trip: trip) => {
-        return (
-          <MemoizedMarker
-            trip={trip}
-            key={`${trip.name}`}
-            receivedKeys={receivedKeys}
-            handleShowPopup={handleShowPopup}
-          />
-        );
+      {trips.map((t: trip | string) => {
+        if (typeof t !== "string") {
+          return (
+            <MemoizedMarker
+              trip={t}
+              key={`${t.name}`}
+              receivedKeys={receivedKeys}
+              handleShowPopup={handleShowPopup}
+            />
+          );
+        }
+        return null;
       })}
     </>
   );
