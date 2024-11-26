@@ -21,8 +21,12 @@ const lookupApi = (type: string, id: number) => {
  * Return a openstreetmaps reverse geocoding API url
  * See https://nominatim.org/release-docs/latest/api/Reverse/ for more info
  */
-const getOSMTypeAndIdAPI = (latitude: number, longitude: number) => {
-  return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&zoom=17&format=json`;
+const getOSMTypeAndIdAPI = (
+  latitude: number,
+  longitude: number,
+  zoom: number,
+) => {
+  return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&zoom=${zoom}&format=json`;
 };
 
 /**
@@ -39,6 +43,7 @@ async function generateLocation(
   longitude: number,
   max: number,
   theta: number,
+  zoom: number,
   min = 0,
 ) {
   if (min > max) {
@@ -73,7 +78,7 @@ async function generateLocation(
   try {
     await wait(1000);
     const OSMInfoResponse = await fetch(
-      getOSMTypeAndIdAPI(newLatitude, newLongitude),
+      getOSMTypeAndIdAPI(newLatitude, newLongitude, zoom),
       {
         method: "GET",
         referrer: "com.aki665.archipelago",
@@ -173,11 +178,13 @@ async function getLocationCoordinates(
     maxDist = minimum_distance * (1 + DISTANCE_LENIENCY);
   if (minDist > maximum_distance)
     minDist = maximum_distance * (1 - DISTANCE_LENIENCY);
+  const zoom = loop_count > 1 ? 18 : 17;
   let res = await generateLocation(
     latitude,
     longitude,
     maxDist,
     Math.random() * 2 * Math.PI,
+    zoom,
     minDist,
   );
   const calculatedResult = Math.round(
