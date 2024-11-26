@@ -76,7 +76,7 @@ export default function APLicense() {
       />
       <LicenseItem
         logo={require("../assets/archipela-go-logo_full.png")}
-        mainText="The Archipela-Go! Logo created by @Combo99 on the Archipelago discord server"
+        mainText="The Archipela-Go! Logo created by @combo89 on the Archipelago discord server"
         subText="Based on the Archipelago logo."
       />
       <LicenseItem
