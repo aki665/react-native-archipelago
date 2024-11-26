@@ -21,6 +21,7 @@
     "@shopify/flash-list": "1.6.4",
     "archipelago.js": "1.2.0",
     "expo": "~51.0.39",
+    "expo-build-properties": "~0.12.5",
     "expo-dev-client": "~4.0.29",
     "expo-location": "~17.0.1",
     "expo-status-bar": "~1.12.1",

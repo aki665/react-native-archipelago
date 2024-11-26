@@ -13,6 +13,12 @@
           "isIosBackgroundLocationEnabled": true,
           "isAndroidBackgroundLocationEnabled":true
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "usesCleartextTraffic":true
+        }
       ]
     ],
     "splash": {
