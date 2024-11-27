@@ -14,10 +14,10 @@ import { ErrorContext } from "../components/ErrorContext";
 const Tab = createMaterialTopTabNavigator();
 
 /**Check connection status every this many seconds */
-const ALLOWED_TIME_BETWEEN_PACKETS = 120;
+const CHECK_CONNECTION_TIME = 120;
 /** How many times to retry automatically without prompting the user */
 const AUTO_RETRY_AMOUNT = 5;
-const minTime = ALLOWED_TIME_BETWEEN_PACKETS * 1000;
+const minTime = CHECK_CONNECTION_TIME * 1000;
 
 export default function Connected({
   route,
@@ -160,6 +160,11 @@ export default function Connected({
    */
   const handleAddListeners = () => {
     setRefreshClientListeners(true);
+    try {
+      client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+    } catch {
+      console.log("message listener not initialized yet...");
+    }
     client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
   };
 
@@ -175,7 +180,7 @@ export default function Connected({
 
       const retry = setInterval(() => {
         handleReconnection();
-      }, minTime);
+      }, 5000);
       retryRef.current = retry;
     } else if (client.status === "Connected" && retryRef.current !== null) {
       const retry = retryRef.current;
@@ -189,14 +194,12 @@ export default function Connected({
 
   const handleReconnection = async () => {
     const info = connectionInfoRef?.current;
-    console.log(client.status);
     if (
       client.status === "Disconnected" ||
       client.status === "Waiting For Authentication"
     ) {
       try {
         if (info) {
-          console.log("trying to connect with info", info);
           await client.connect(info);
           handleAddListeners();
           setMessages((prevState) => [
@@ -222,7 +225,7 @@ export default function Connected({
             "You have been disconnected, and the automatic attempts to reconnect failed.",
             [
               {
-                text: "Go to info screen",
+                text: "Disconnect",
                 onPress: () => {
                   handleDisconnect();
                 },
@@ -235,7 +238,7 @@ export default function Connected({
             ...prevState,
             [
               {
-                text: `Reconnection failed. Trying again in ${ALLOWED_TIME_BETWEEN_PACKETS} seconds...`,
+                text: "Reconnection failed. Trying again...",
               },
             ],
           ]);

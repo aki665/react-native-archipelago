@@ -14,7 +14,7 @@ import {
   View,
 } from "react-native";
 
-import { ApInformation, apInfo } from "./Connect";
+import APConnectionInfo, { apInfo } from "../components/APConnectionInfo";
 import APLicense from "../components/APLicense";
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
@@ -282,7 +282,7 @@ export default function Settings({
             placeholder="Name of saved connection"
           />
         </View>
-        <ApInformation
+        <APConnectionInfo
           onPress={saveEditedInfo}
           buttonText="Save"
           loading={loading}
