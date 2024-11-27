@@ -11,7 +11,7 @@ export default function Popup({
 }: Readonly<{
   visible: boolean;
   closePopup: () => void;
-  popupStyle: ViewStyle;
+  popupStyle?: ViewStyle;
   children?: ReactNode | ReactNode[];
 }>) {
   return (
