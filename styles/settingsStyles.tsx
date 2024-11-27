@@ -2,8 +2,6 @@ import { StyleSheet } from "react-native";
 
 const settingsStyles = StyleSheet.create({
   settingsContainer: {
-    flex: 1,
-    alignItems: "center",
     borderColor: "black",
   },
   list: {

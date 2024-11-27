@@ -54,7 +54,6 @@ export async function load(name: string, type: string) {
   try {
     const value = await AsyncStorage.getItem(name);
     if (!value) return null;
-
     switch (type) {
       case STORAGE_TYPES.OBJECT: {
         return JSON.parse(value);

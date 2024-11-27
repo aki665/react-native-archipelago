@@ -3,18 +3,9 @@ import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-
 import { FlashList } from "@shopify/flash-list";
 import { ConnectionInformation, ITEMS_HANDLING_FLAGS } from "archipelago.js";
 import React, { useContext, useEffect, useState } from "react";
-import {
-  Alert,
-  Dimensions,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableHighlight,
-  View,
-} from "react-native";
+import { Alert, Text, TextInput, TouchableHighlight, View } from "react-native";
 
 import APConnectionInfo, { apInfo } from "../components/APConnectionInfo";
-import APLicense from "../components/APLicense";
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
