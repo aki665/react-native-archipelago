@@ -80,7 +80,33 @@ const ListItem = ({
   );
 };
 
-export default function Settings({
+const debugButtons = () => {
+  const junkData = Array.from(Array(10).keys());
+  const makeMockSaves = () => {
+    junkData.forEach(async (item) => {
+      await save(
+        item,
+        Math.random().toString() + Math.random().toString(),
+        STORAGE_TYPES.NUMBER,
+      );
+    });
+  };
+  const deleteAllData = async () => {
+    const infoNames = await getAllNames();
+    infoNames?.forEach((item) => {
+      remove(item);
+    });
+  };
+
+  return (
+    <View>
+      <Button onPress={makeMockSaves} text="create junk data" />
+      <Button onPress={deleteAllData} text="delete all saved data" />
+    </View>
+  );
+};
+
+export default function SavedInfo({
   navigation,
 }: Readonly<{
   navigation: MaterialTopTabNavigationHelpers;
@@ -232,7 +258,9 @@ export default function Settings({
   }, []);
 
   return (
-    <View style={settingsStyles.settingsContainer}>
+    <View
+      style={{ height: "100%", flex: 1, alignItems: "center", marginTop: 3 }}
+    >
       <Popup
         visible={modalVisible}
         closePopup={() => {
@@ -274,37 +302,24 @@ export default function Settings({
           savedInfo={editingValues}
         />
       </Popup>
-      <ScrollView nestedScrollEnabled>
-        <View>
-          <APLicense />
-          <Text style={commonStyles.inputLabel}>Saved info</Text>
-          <View
-            style={{
-              height: 700,
-              width: Dimensions.get("screen").width - 5,
-              borderWidth: 3,
-              borderRadius: 5,
-            }}
-          >
-            <FlashList
-              estimatedItemSize={83}
-              data={savedInfo}
-              nestedScrollEnabled
-              ListEmptyComponent={<Text>No saved connections</Text>}
-              renderItem={({ item }) => (
-                <ListItem
-                  item={item}
-                  connectToAp={connectToAP}
-                  editInfo={editInfo}
-                  deleteItem={deleteSavedInfo}
-                />
-              )}
-              onRefresh={fetchStorage}
-              refreshing={loading}
+      <View style={{ width: "98%", height: "100%" }}>
+        <FlashList
+          data={savedInfo}
+          estimatedItemSize={83}
+          nestedScrollEnabled
+          ListEmptyComponent={<Text>No saved connections</Text>}
+          renderItem={({ item }) => (
+            <ListItem
+              item={item}
+              connectToAp={connectToAP}
+              editInfo={editInfo}
+              deleteItem={deleteSavedInfo}
             />
-          </View>
-        </View>
-      </ScrollView>
+          )}
+          onRefresh={fetchStorage}
+          refreshing={loading}
+        />
+      </View>
     </View>
   );
 }
