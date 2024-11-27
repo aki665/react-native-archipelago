@@ -16,8 +16,11 @@
       ],
       [
         "expo-build-properties",
-        {
-          "usesCleartextTraffic":true
+        { 
+          "android":
+          { 
+            "usesCleartextTraffic": true 
+          } 
         }
       ]
     ],
