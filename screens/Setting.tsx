@@ -216,7 +216,7 @@ export default function Settings({
                 remove(storageName);
                 if (EXTRA_DATA.length > 0) {
                   EXTRA_DATA.forEach(async (item) => {
-                    await remove(storageName + item);
+                    await remove(storageName + item.name);
                   });
                 }
                 fetchStorage();
