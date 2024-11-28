@@ -32,6 +32,7 @@ export default function Connected({
   const insets = useSafeAreaInsets();
   const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryCountRef = useRef<number>(0);
+  const reconnectingRef = useRef<boolean>(false);
 
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
@@ -122,7 +123,7 @@ export default function Connected({
 
       const retry = setInterval(() => {
         handleReconnection();
-      }, 5000);
+      }, 1000);
       retryRef.current = retry;
     } else if (client.status === "Connected" && retryRef.current !== null) {
       const retry = retryRef.current;
@@ -135,13 +136,11 @@ export default function Connected({
   };
 
   const handleReconnection = async () => {
-    const info = connectionInfoRef?.current;
-    if (
-      client.status === "Disconnected" ||
-      client.status === "Waiting For Authentication"
-    ) {
+    if (!reconnectingRef.current) {
+      const info = connectionInfoRef?.current;
       try {
         if (info) {
+          reconnectingRef.current = true;
           await client.connect(info);
           handleAddListeners();
           setMessages((prevState) => [
@@ -152,6 +151,7 @@ export default function Connected({
               },
             ],
           ]);
+          reconnectingRef.current = false;
         }
       } catch (e) {
         retryCountRef.current += 1;
@@ -185,6 +185,7 @@ export default function Connected({
             ],
           ]);
         }
+        reconnectingRef.current = false;
       }
     }
   };
