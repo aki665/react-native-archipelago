@@ -297,7 +297,6 @@ export default function MapScreen({
       setTrips(filteredTrips);
       console.log("saving filtered trips...");
       if (sessionName && sessionName !== "") {
-        await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
         await save(
           [...new Set(checkedLocations)],
           sessionName + "_checked",
