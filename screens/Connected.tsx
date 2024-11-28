@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Chat, { messages } from "./chat";
 import { ClientContext } from "../components/ClientContext";
+import { SettingsContext } from "../components/SettingsContext";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -14,18 +15,18 @@ function Placeholder() {
   return <></>;
 }
 
-/**Retry connection every this many seconds */
-const CHECK_CONNECTION_TIME = 5;
-/** How many times to retry automatically without prompting the user */
-const AUTO_RETRY_AMOUNT = 5;
-const minTime = CHECK_CONNECTION_TIME * 1000;
-
 export default function Connected({
   navigation,
 }: Readonly<{
   navigation: MaterialTopTabNavigationHelpers;
 }>) {
   const { client, connectionInfoRef } = useContext(ClientContext);
+
+  const { getSetting } = useContext(SettingsContext);
+  const CHECK_CONNECTION_TIME = getSetting("CHECK_CONNECTION_TIME", "number");
+  const AUTO_RETRY_AMOUNT = getSetting("AUTO_RETRY_AMOUNT", "number");
+
+  const minTime = CHECK_CONNECTION_TIME * 1000;
 
   const [messages, setMessages] = useState<messages>([]);
   const insets = useSafeAreaInsets();

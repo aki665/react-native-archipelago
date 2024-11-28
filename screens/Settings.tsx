@@ -10,6 +10,9 @@ import commonStyles from "../styles/CommonStyles";
 import settingsStyles from "../styles/settingsStyles";
 import { save, STORAGE_TYPES } from "../utils/storageHandler";
 
+/**
+ * Renders a single setting from the default settings array in SettingsContext. Input type is determined from the type of the setting's value.
+ */
 function SettingItem({
   setting,
   onChange,

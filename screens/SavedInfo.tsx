@@ -20,7 +20,7 @@ import {
   save,
 } from "../utils/storageHandler";
 
-const EXTERNAL_EXTRA_DATA: string[] = []; // include extra storage keys you want to handle yourself in this array
+const EXTERNAL_EXTRA_DATA: string[] = ["__settings"]; // include extra storage keys you want to handle yourself in this array
 const EXTRA_DATA: string[] = []; // include any extra storage keys in this array
 const hiddenData: string[] = [...EXTERNAL_EXTRA_DATA, ...EXTRA_DATA]; // these values are hidden from the loadable list of connections
 
