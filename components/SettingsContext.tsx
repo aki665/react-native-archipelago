@@ -25,6 +25,14 @@ export type Settings = {
    * Value of the setting. Default is set in {@link defaultSettings}
    */
   value: string | boolean | number;
+  /**
+   * Only used for numeric values. Maximum allowed value of the setting.
+   */
+  maxValue?: number;
+  /**
+   * Only used for numeric values. Minimum allowed value of the setting. If not set, 0 is the smallest value allowed.
+   */
+  minValue?: number;
 };
 
 type getSettingType<T> = T extends "number"

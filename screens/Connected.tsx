@@ -116,15 +116,27 @@ export default function Connected({
     console.log("status in checkConnection", client.status);
     if (client.status === "Disconnected" && retryRef.current === null) {
       console.log("disconnected");
-      setMessages((prevState) => [
-        ...prevState,
-        [{ text: "Connection lost. Retrying..." }],
-      ]);
+      if (AUTO_RETRY_AMOUNT === 0) {
+        Alert.alert("Connection Error!", "You have been disconnected", [
+          {
+            text: "Disconnect",
+            onPress: () => {
+              handleDisconnect();
+            },
+            style: "cancel",
+          },
+        ]);
+      } else {
+        setMessages((prevState) => [
+          ...prevState,
+          [{ text: "Connection lost. Retrying..." }],
+        ]);
 
-      const retry = setInterval(() => {
-        handleReconnection();
-      }, 1000);
-      retryRef.current = retry;
+        const retry = setInterval(() => {
+          handleReconnection();
+        }, 1000);
+        retryRef.current = retry;
+      }
     } else if (client.status === "Connected" && retryRef.current !== null) {
       const retry = retryRef.current;
       if (retry !== null) {

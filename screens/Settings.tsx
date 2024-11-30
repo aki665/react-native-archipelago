@@ -1,4 +1,5 @@
 import { AntDesign } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
 import React, { useContext, useState } from "react";
 import { ScrollView, Switch, Text, TextInput, View } from "react-native";
 
@@ -20,7 +21,7 @@ function SettingItem({
   setting: Settings;
   onChange: (newValue: any, name: any) => void;
 }>) {
-  const [switchState, setSwitchState] = useState(setting.value);
+  const [settingState, setSettingState] = useState(setting.value);
 
   if (typeof setting.value === "string") {
     return (
@@ -35,23 +36,43 @@ function SettingItem({
     return (
       <TextInput
         style={{ ...commonStyles.textInput, minWidth: "20%" }}
-        defaultValue={setting.value.toString()}
-        onChangeText={(newText) =>
-          onChange(parseInt(newText, 10), setting.name)
-        }
+        value={settingState.toString()}
+        inputMode="numeric"
+        onChangeText={(newText) => {
+          setSettingState(newText);
+          const newValue = parseInt(newText, 10);
+          const min = setting.minValue ?? 0;
+          const max = setting.maxValue ?? Infinity;
+          if (isNaN(newValue)) {
+            //don't change the setting if it is not a number
+          } else if (newValue < min) {
+            onChange(min, setting.name);
+            setSettingState(min);
+          } else if (newValue > max) {
+            onChange(max, setting.name);
+            setSettingState(max);
+          } else {
+            onChange(newValue, setting.name);
+          }
+        }}
+        onEndEditing={(e) => {
+          console.log("onEndEditing", e.nativeEvent.text === "");
+          if (e.nativeEvent.text === "")
+            setSettingState(setting.value.toString());
+        }}
       />
     );
   }
-  if (typeof setting.value === "boolean" && typeof switchState === "boolean") {
+  if (typeof setting.value === "boolean" && typeof settingState === "boolean") {
     return (
       <Switch
         trackColor={{ true: "#green" }}
         thumbColor="#f4f3f4"
         onValueChange={(value) => {
-          setSwitchState(value);
+          setSettingState(value);
           onChange(value, setting.name);
         }}
-        value={switchState}
+        value={settingState}
       />
     );
   }
