@@ -4,7 +4,7 @@ import React, { useContext, useState } from "react";
 import { Alert, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { EXTRA_DATA } from "./Setting";
+import { EXTRA_DATA } from "./SavedInfo";
 import APConnectionInfo, { apInfo } from "../components/APConnectionInfo";
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
