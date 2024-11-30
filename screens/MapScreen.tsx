@@ -377,7 +377,7 @@ export default function MapScreen({
     }
     const location = await Location.getCurrentPositionAsync();
 
-    const loadedTrips = await load(
+    const loadedTrips: trip[] = await load(
       sessionName + "_trips",
       STORAGE_TYPES.OBJECT,
     );
@@ -454,6 +454,12 @@ export default function MapScreen({
     );
     if (sessionName && sessionName !== "")
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
+    filteredTrips.forEach((trip) => {
+      if (trip.coords.osmID === "0") {
+        rerollSelectedLocation(trip.id, trip.name, -10);
+        rerollAllowedRef.current = true;
+      }
+    });
   };
 
   const roomUpdateListener = (packet: RoomUpdatePacket) => {
