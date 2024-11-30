@@ -77,6 +77,7 @@ async function generateLocation(
   console.log("generated coordinates:", newLatitude, newLongitude);
   try {
     await wait(1000);
+    console.log("fetching OSMInfo with zoom", zoom);
     const OSMInfoResponse = await fetch(
       getOSMTypeAndIdAPI(newLatitude, newLongitude, zoom),
       {
@@ -160,6 +161,7 @@ async function getLocationCoordinates(
   longitude: number,
   maximum_distance: number,
   distance_tier: number,
+  useNearZoom: boolean,
   minimum_distance = 0,
   correction = 0,
   loop_count = 0,
@@ -178,7 +180,7 @@ async function getLocationCoordinates(
     maxDist = minimum_distance * (1 + DISTANCE_LENIENCY);
   if (minDist > maximum_distance)
     minDist = maximum_distance * (1 - DISTANCE_LENIENCY);
-  const zoom = loop_count > 1 ? 18 : 17;
+  const zoom = loop_count > 1 || useNearZoom ? 18 : 17;
   let res = await generateLocation(
     latitude,
     longitude,
@@ -214,6 +216,7 @@ async function getLocationCoordinates(
       longitude,
       maximum_distance,
       distance_tier,
+      useNearZoom,
       minimum_distance,
       cor,
       loop_count + 1,
@@ -232,12 +235,14 @@ export default async function getLocations(
     key_needed: number;
     speed_tier: number;
   },
+  useNearZoom: boolean,
 ) {
   const coordinates = await getLocationCoordinates(
     initialCords.latitude,
     initialCords.longitude,
     maximum_distance,
     trip.distance_tier,
+    useNearZoom,
     minimum_distance,
   );
   return {

@@ -52,7 +52,7 @@ const defaultSettings: Settings[] = [
     name: "CHECK_CONNECTION_TIME",
     displayName: "Connection timeout",
     description:
-      "Determines how often connection status is checked (in seconds)\nDefault:120",
+      "Determines how often connection status is checked (in seconds)\nDefault: 120",
     value: 120,
   },
   {
@@ -60,11 +60,20 @@ const defaultSettings: Settings[] = [
     displayName: "Reconnect attempt amount",
     description:
       "Determines how many times the app should try automatic reconnection before " +
-      "notifying the user and disconnecting.\nDefault:5",
+      "notifying the user and disconnecting.\nDefault: 5",
     value: 5,
   },
+  {
+    name: "NEAR_ZOOM",
+    displayName: "Allow multiple locations on the same road",
+    description:
+      "Allow location checks to be on the same road. e.g. Address 1 and Address 2 vs just one at Address" +
+      "\nIs automatically used if location generation is failed too many times" +
+      "\n\nShould be turned on if playing in an area with few roads or many locations to speed up generation" +
+      "\nDefault: false",
+    value: false,
+  },
 ];
-
 /**
  *
  * @param name Name of the setting to get

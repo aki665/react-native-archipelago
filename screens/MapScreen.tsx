@@ -26,6 +26,7 @@ import { ClientContext } from "../components/ClientContext";
 import LocationInfoPopup, {
   REROLL_TIME,
 } from "../components/LocationInfoPopup";
+import { SettingsContext } from "../components/SettingsContext";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
@@ -224,6 +225,8 @@ export default function MapScreen({
   refreshClientListeners: boolean;
 }>) {
   const { client } = useContext(ClientContext);
+  const { getSetting } = useContext(SettingsContext);
+  const NEAR_ZOOM = getSetting("NEAR_ZOOM", "boolean");
 
   const [showPopup, setShowPopup] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<null | trip>(null);
@@ -266,6 +269,7 @@ export default function MapScreen({
         parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
         parseInt(JSON.stringify(client.data.slotData.speed_requirement), 10),
         trip,
+        NEAR_ZOOM,
       );
       if (oldTrip.coords !== coords) {
         filteredTrips.push({ coords, trip, name, id });
@@ -418,6 +422,7 @@ export default function MapScreen({
               10,
             ),
             trip,
+            NEAR_ZOOM,
           );
           generatingCoords = tempTrips.some(
             (value) =>
