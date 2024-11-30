@@ -10,6 +10,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import ClientContextProvider from "./components/ClientContext";
 import ErrorContextProvider, { ErrorMessage } from "./components/ErrorContext";
+import SettingsContextProvider from "./components/SettingsContext";
 import ConnectTabs from "./screens/ConnectTabs";
 import Connected from "./screens/Connected";
 require("react-native-get-random-values");
@@ -24,18 +25,20 @@ function App() {
     <SafeAreaProvider>
       <ErrorContextProvider>
         <ClientContextProvider>
-          <View style={{ flex: 15 }}>
-            <NavigationContainer>
-              <Stack.Navigator
-                initialRouteName="connect"
-                screenOptions={{ header: EmptyHeader }}
-              >
-                <Stack.Screen name="connect" component={ConnectTabs} />
-                <Stack.Screen name="connected" component={Connected} />
-              </Stack.Navigator>
-            </NavigationContainer>
-          </View>
-          <ErrorMessage />
+          <SettingsContextProvider>
+            <View style={{ flex: 15 }}>
+              <NavigationContainer>
+                <Stack.Navigator
+                  initialRouteName="connect"
+                  screenOptions={{ header: EmptyHeader }}
+                >
+                  <Stack.Screen name="connect" component={ConnectTabs} />
+                  <Stack.Screen name="connected" component={Connected} />
+                </Stack.Navigator>
+              </NavigationContainer>
+            </View>
+            <ErrorMessage />
+          </SettingsContextProvider>
         </ClientContextProvider>
       </ErrorContextProvider>
     </SafeAreaProvider>

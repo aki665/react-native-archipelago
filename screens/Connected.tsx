@@ -10,14 +10,9 @@ import MapScreen from "./MapScreen";
 import Chat, { messages } from "./chat";
 import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
+import { SettingsContext } from "../components/SettingsContext";
 
 const Tab = createMaterialTopTabNavigator();
-
-/**Check connection status every this many seconds */
-const CHECK_CONNECTION_TIME = 120;
-/** How many times to retry automatically without prompting the user */
-const AUTO_RETRY_AMOUNT = 5;
-const minTime = CHECK_CONNECTION_TIME * 1000;
 
 export default function Connected({
   route,
@@ -30,6 +25,13 @@ export default function Connected({
 }>) {
   const { sessionName, replacedInfo } = route.params;
   const { client, connectionInfoRef } = useContext(ClientContext);
+
+  const { getSetting } = useContext(SettingsContext);
+  const CHECK_CONNECTION_TIME = getSetting("CHECK_CONNECTION_TIME", "number");
+  const AUTO_RETRY_AMOUNT = getSetting("AUTO_RETRY_AMOUNT", "number");
+
+  const minTime = CHECK_CONNECTION_TIME * 1000;
+
   const [messages, setMessages] = useState<messages>([]);
   const [refreshClientListeners, setRefreshClientListeners] =
     useState<boolean>(false);
@@ -39,6 +41,7 @@ export default function Connected({
   const [allowedLocation, setAllowedLocation] = useState(false);
   const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryCountRef = useRef<number>(0);
+  const reconnectingRef = useRef<boolean>(false);
 
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
@@ -172,16 +175,27 @@ export default function Connected({
     console.log("status in checkConnection", client.status);
     if (client.status === "Disconnected" && retryRef.current === null) {
       console.log("disconnected");
-      setRefreshClientListeners(false);
-      setMessages((prevState) => [
-        ...prevState,
-        [{ text: "Connection lost. Retrying..." }],
-      ]);
+      if (AUTO_RETRY_AMOUNT === 0) {
+        Alert.alert("Connection Error!", "You have been disconnected", [
+          {
+            text: "Disconnect",
+            onPress: () => {
+              handleDisconnect();
+            },
+            style: "cancel",
+          },
+        ]);
+      } else {
+        setMessages((prevState) => [
+          ...prevState,
+          [{ text: "Connection lost. Retrying..." }],
+        ]);
 
-      const retry = setInterval(() => {
-        handleReconnection();
-      }, 5000);
-      retryRef.current = retry;
+        const retry = setInterval(() => {
+          handleReconnection();
+        }, 1000);
+        retryRef.current = retry;
+      }
     } else if (client.status === "Connected" && retryRef.current !== null) {
       const retry = retryRef.current;
       if (retry !== null) {
@@ -193,13 +207,11 @@ export default function Connected({
   };
 
   const handleReconnection = async () => {
-    const info = connectionInfoRef?.current;
-    if (
-      client.status === "Disconnected" ||
-      client.status === "Waiting For Authentication"
-    ) {
+    if (!reconnectingRef.current) {
+      const info = connectionInfoRef?.current;
       try {
         if (info) {
+          reconnectingRef.current = true;
           await client.connect(info);
           handleAddListeners();
           setMessages((prevState) => [
@@ -210,6 +222,7 @@ export default function Connected({
               },
             ],
           ]);
+          reconnectingRef.current = false;
         }
       } catch (e) {
         retryCountRef.current += 1;
@@ -243,6 +256,7 @@ export default function Connected({
             ],
           ]);
         }
+        reconnectingRef.current = false;
       }
     }
   };
