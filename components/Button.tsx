@@ -50,8 +50,12 @@ export default function Button({
             {endIcon}
           </Text>
         )}
-        {startIcon}
-        {endIcon}
+        {removeText && (
+          <>
+            {startIcon}
+            {endIcon}
+          </>
+        )}
       </>
     </TouchableHighlight>
   );
