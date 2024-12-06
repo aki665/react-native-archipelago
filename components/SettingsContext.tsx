@@ -128,20 +128,17 @@ export default function SettingsContextProvider({
       STORAGE_TYPES.OBJECT,
     );
 
-    console.log("loaded settings:", loadedSettings);
     const filteredSettings: Settings[] = [];
     if (loadedSettings !== null) {
       defaultSettings.forEach((setting, index) => {
         const loadedSetting = loadedSettings.find(
           (dSetting) => dSetting.name === setting.name,
         );
-        console.log(loadedSettings, setting);
         if (loadedSetting !== undefined) {
           setting.value = loadedSetting.value;
         }
         filteredSettings.push(setting);
       });
-      console.log("filtered settings:", filteredSettings);
 
       setSettings(filteredSettings);
     }
