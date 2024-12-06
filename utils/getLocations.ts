@@ -14,7 +14,7 @@ const wait = async (time: number) => {
  * See https://nominatim.org/release-docs/latest/api/Lookup/ for more info
  */
 const lookupApi = (type: string, id: number) => {
-  return `https://nominatim.openstreetmap.org/lookup?osm_ids=${type}${id}&format=json`;
+  return `https://nominatim.openstreetmap.org/lookup?osm_ids=${type}${id}&extratags=1&format=json`;
 };
 
 /**
@@ -98,7 +98,10 @@ async function generateLocation(
     );
     const lookupInfo = await lookupResponse.json();
     console.log("lookupInfo", lookupInfo);
-    if (lookupInfo[0].type === "motorway")
+    if (
+      lookupInfo[0].type === "motorway" ||
+      lookupInfo[0]?.extratags?.access === "private"
+    )
       throw new Error("Location is in a forbidden area");
     console.log(newLatitude, "is now", lookupInfo[0].lat);
     console.log(newLongitude, "is now", lookupInfo[0].lon);
