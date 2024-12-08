@@ -32,8 +32,6 @@ import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
 
-export const MARKER_RADIUS = 20;
-
 const MemoizedMap = memo(function MemoizedMap({
   children,
   location,
@@ -127,7 +125,9 @@ const geofenceLocations = async (
   receivedKeys: number,
   receivedReductions: number,
   setCheckedLocations: React.Dispatch<React.SetStateAction<readonly number[]>>,
+  MARKER_RADIUS: number,
 ) => {
+  console.log("MARKER_RADIUS in geofenceLocations", MARKER_RADIUS);
   const geofenceArr = trips.map((trip) => {
     if (receivedKeys >= trip.trip.key_needed) {
       return {
@@ -227,6 +227,7 @@ export default function MapScreen({
   const { client } = useContext(ClientContext);
   const { getSetting } = useContext(SettingsContext);
   const NEAR_ZOOM = getSetting("NEAR_ZOOM", "boolean");
+  const MARKER_RADIUS = getSetting("MARKER_RADIUS", "number");
 
   const [showPopup, setShowPopup] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<null | trip>(null);
@@ -456,6 +457,7 @@ export default function MapScreen({
       keyAmount,
       receivedReductions,
       setCheckedLocations,
+      MARKER_RADIUS,
     );
     if (sessionName && sessionName !== "")
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
@@ -549,6 +551,7 @@ export default function MapScreen({
         receivedKeys,
         receivedReductions,
         setCheckedLocations,
+        MARKER_RADIUS,
       );
     }
   }, [receivedKeys, trips]);

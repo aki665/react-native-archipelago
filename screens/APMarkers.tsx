@@ -1,20 +1,22 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
-import * as Location from "expo-location";
-import React, { memo, useEffect, useRef, useState } from "react";
+import React, { memo, useContext, useEffect, useRef, useState } from "react";
 import { Image, Text, View } from "react-native";
 import { Callout, Circle, Marker } from "react-native-maps";
 
 import { trip } from "./MapScreen";
+import { SettingsContext } from "../components/SettingsContext";
 
 const MemoizedMarker = memo(function APMarker({
   trip,
   receivedKeys,
   handleShowPopup,
+  MARKER_RADIUS,
 }: Readonly<{
   trip: trip;
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
+  MARKER_RADIUS: number;
 }>) {
   const navigation = useNavigation();
   const canCheck = receivedKeys >= trip.trip.key_needed;
@@ -46,7 +48,7 @@ const MemoizedMarker = memo(function APMarker({
     <>
       <Circle
         center={{ latitude: trip.coords.lat, longitude: trip.coords.lon }}
-        radius={20}
+        radius={MARKER_RADIUS - 1}
         strokeColor="blue"
         fillColor="rgba(0,0,0,0)"
         key={`${trip.coords.lat}&${trip.coords.lon}-circle`}
@@ -95,6 +97,10 @@ export default function APMarkers({
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
 }>) {
+  const { getSetting } = useContext(SettingsContext);
+
+  const MARKER_RADIUS = getSetting("MARKER_RADIUS", "number");
+
   return (
     <>
       {trips.map((t: trip | string) => {
@@ -105,6 +111,7 @@ export default function APMarkers({
               key={`${t.name}`}
               receivedKeys={receivedKeys}
               handleShowPopup={handleShowPopup}
+              MARKER_RADIUS={MARKER_RADIUS}
             />
           );
         }

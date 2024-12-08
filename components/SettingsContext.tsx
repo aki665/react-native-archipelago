@@ -73,6 +73,15 @@ const defaultSettings: Settings[] = [
       "\nDefault: false",
     value: false,
   },
+  {
+    name: "MARKER_RADIUS",
+    displayName: "Location radius",
+    description:
+      "Determines the distance from which a location can be collected (in meters). Default is 20. Allowed values are 10 - 100",
+    value: 20,
+    maxValue: 100,
+    minValue: 10,
+  },
 ];
 /**
  *
