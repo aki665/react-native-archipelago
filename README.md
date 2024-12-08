@@ -1,3 +1,4 @@
+
 ## How to play
 1. Download the apworld
 	- Be sure to download the yaml from the release page, as not all the options in the apworld are implemented
@@ -8,13 +9,25 @@
 5. Wait for the app to generate locations and start playing
 
 ## Notable features
+
+### Settings
+Settings can be found and changed in the settings screen (duh). Pressing the ? icon next to the settings name will give a short description of the setting. Bellow is a list of the settings with a longer description.
+| Name | Description |
+|--|--|
+| Connection timeout | Determines how often connection status is checked (in seconds). e.g. if the connection to the archipelago server is lost, it can take **at most** this long for the app to notice. <br>Default value is 120 (2 minutes). Can't be less than 0. Recommended range: 10 - 300 (5 minutes) |
+| Reconnect attempt amount | Determines how many times the app will try to reconnect to the archipelago server, if connection is lost. If the amount is reached (or is set to 0), the user is told that they have disconnected and be taken back to the connection screen. <br>Defaults to 5. Can't be less than 0. Recommended range: 3 - 10 |
+| Allow multiple locations on the same road | If enabled, a road can have multiple locations. For example, imagine a road that has three buildings, Building 1, Building 2 and Building 3. If this setting is disabled, only a single location will be on the road, located usually at the middle point of the road. If enabled, all three buildings can be locations separately. <br>Default is false. Should be turned on, if playing in an area with few roads or with many locations to speed up generation.<br><br> Note: The location generation will selectively act like this setting is enabled, if location a single location takes too many attempts.    |
+
+
+
 ### Connection saving
 When a connection is successfully made to an archipelago server, the app asks if you want to save that connection.
 ![image](https://github.com/user-attachments/assets/7145d75f-ec41-4e5e-9aec-2df8a57ec0ea)
 
-Once a connection is saved, it can be found in the (rather misnamed) settings screen. The two buttons can be used to edit a saved connection or to delete it.
 
-![image](https://github.com/user-attachments/assets/7004a9f5-07a3-4507-b2f2-eea255196748)
+Once a connection is saved, it can be found in the Saved Connections screen. The two buttons can be used to edit a saved connection or to delete it.
+
+![image](https://github.com/user-attachments/assets/8dfa975c-5bc5-4169-9656-00eff2909f74)
 
 The list of generated locations is kept with this information, so if you delete or overwrite it, new locations will be generated on connection.
 
