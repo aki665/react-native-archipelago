@@ -3,7 +3,7 @@ import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-
 import { PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
 import * as Location from "expo-location";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Alert, BackHandler, Platform } from "react-native";
+import { Alert, AppState, BackHandler, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import MapScreen from "./MapScreen";
@@ -42,6 +42,7 @@ export default function Connected({
   const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryCountRef = useRef<number>(0);
   const reconnectingRef = useRef<boolean>(false);
+  const appState = useRef(AppState.currentState);
 
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
@@ -173,7 +174,11 @@ export default function Connected({
 
   const checkConnection = () => {
     console.log("status in checkConnection", client.status);
-    if (client.status === "Disconnected" && retryRef.current === null) {
+    if (
+      client.status === "Disconnected" &&
+      retryRef.current === null &&
+      appState.current === "active" //Only check the status when the app is active
+    ) {
       console.log("disconnected");
       if (AUTO_RETRY_AMOUNT === 0) {
         Alert.alert("Connection Error!", "You have been disconnected", [
@@ -207,7 +212,8 @@ export default function Connected({
   };
 
   const handleReconnection = async () => {
-    if (!reconnectingRef.current) {
+    if (!reconnectingRef.current && client.status !== "Connecting") {
+      console.log(reconnectingRef.current, client.status);
       const info = connectionInfoRef?.current;
       try {
         if (info) {
@@ -295,12 +301,29 @@ export default function Connected({
     }, minTime);
 
     askLocationPermission();
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (
+        appState.current === "active" &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        client.disconnect(); // Explicitly disconnect the client if the app goes into the background state...
+      } else if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        handleReconnection(); //And reconnect once the app is active again.
+      }
+
+      appState.current = nextAppState;
+      console.log("AppState", appState.current);
+    });
 
     return () => {
       console.log("Connected.tsx useEffect cleanup is running...");
       client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
       backHandler.remove();
       clearInterval(connectionCheck);
+      subscription.remove();
     };
   }, []);
 
