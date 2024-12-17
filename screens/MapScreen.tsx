@@ -244,6 +244,7 @@ export default function MapScreen({
     useState<string>("Archipela-Go!");
   const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
   const rerollAllowedRef = useRef<boolean>(true);
+  const rerollTime = useRef<Date>(new Date());
 
   const handleShowPopup = (trip: trip) => {
     setSelectedLocation(trip);
@@ -252,6 +253,14 @@ export default function MapScreen({
   const closePopup = () => {
     setShowPopup(false);
     setSelectedLocation(null);
+  };
+
+  const handleReroll = () => {
+    if (
+      (new Date().getTime() - rerollTime.current.getTime()) / 1000 >
+      REROLL_TIME
+    )
+      rerollAllowedRef.current = true;
   };
 
   const rerollSelectedLocation = async (
@@ -275,9 +284,11 @@ export default function MapScreen({
       if (oldTrip.coords !== coords) {
         filteredTrips.push({ coords, trip, name, id });
         setTrips(filteredTrips);
+        rerollTime.current = new Date();
+        await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
         setTimeout(() => {
           console.log("reroll is allowed again");
-          rerollAllowedRef.current = true;
+          handleReroll();
         }, REROLL_TIME * 1000);
       } else if (loops > 5) {
         Alert.alert(
@@ -409,7 +420,7 @@ export default function MapScreen({
           tracker.theta = Math.random() * 2 * Math.PI; // .. so the theta can be changed when key_needed changes.
         }
         let generatingCoords = true;
-        let coords = { lat: 0, lon: 0 };
+        let coords = { lat: 0, lon: 0, osmID: "0" };
         let loopCount = 0;
 
         while (generatingCoords) {
@@ -563,6 +574,18 @@ export default function MapScreen({
 
   useEffect(() => {
     if (refreshClientListeners) {
+      handleReroll();
+      console.log("trips", trips);
+      if (trips[0] !== "placeholder") {
+        geofenceLocations(
+          trips,
+          client,
+          receivedKeys,
+          receivedReductions,
+          setCheckedLocations,
+          MARKER_RADIUS,
+        );
+      }
       getCoordinatesForLocations();
       try {
         client.removeListener(
