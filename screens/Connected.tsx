@@ -312,6 +312,7 @@ export default function Connected({
         nextAppState === "active"
       ) {
         handleReconnection(); //And reconnect once the app is active again.
+        handleAddListeners();
       }
 
       appState.current = nextAppState;
