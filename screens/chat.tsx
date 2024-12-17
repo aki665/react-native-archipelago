@@ -1,4 +1,5 @@
-import { ITEM_FLAGS, ItemFlags, ValidJSONColorType } from "archipelago.js";
+import { itemClassifications } from "archipelago.js";
+import { ValidJSONColorType } from "archipelago.js/src/api";
 import React, { memo, useContext, useRef, useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
 
@@ -16,7 +17,7 @@ export type messages =
           type: string;
           text: string;
           selfPlayer?: boolean;
-          itemType?: ItemFlags;
+          itemType?: number;
           color?: ValidJSONColorType;
         },
       ],
@@ -35,7 +36,7 @@ const ChatLine = memo(
       type: string;
       text: string;
       selfPlayer?: boolean;
-      itemType?: ItemFlags;
+      itemType?: number;
       color?: ValidJSONColorType;
     }[];
     index: number;
@@ -49,13 +50,13 @@ const ChatLine = memo(
         else style = { ...style, color: Colors.yellow };
         break;
       case "item":
-        if (msgPart.itemType === ITEM_FLAGS.FILLER)
+        if (msgPart.itemType === itemClassifications.none)
           style = { ...style, color: Colors.cyan };
-        else if (msgPart.itemType === ITEM_FLAGS.NEVER_EXCLUDE)
+        else if (msgPart.itemType === itemClassifications.useful)
           style = { ...style, color: Colors.slateblue };
-        else if (msgPart.itemType === ITEM_FLAGS.PROGRESSION)
+        else if (msgPart.itemType === itemClassifications.progression)
           style = { ...style, color: Colors.plum };
-        else if (msgPart.itemType === ITEM_FLAGS.TRAP)
+        else if (msgPart.itemType === itemClassifications.trap)
           style = { ...style, color: Colors.salmon };
         break;
       case "location":
@@ -104,7 +105,7 @@ export default function Chat({
       return;
     }
     try {
-      if (chat !== "") client.say(chat);
+      if (chat !== "") client.messages.say(chat);
     } catch (e) {
       console.log(e);
     }

@@ -1,0 +1,26 @@
+diff --git a/dist/index.js b/dist/index.js
+index 205536caa01432ff4b58bd07e3488ba4a2713846..dcd2174618925e6334ed38f64a630e40569d8b61 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -1181,7 +1181,7 @@ class SocketManager extends EventBasedManager {
+         if (IsomorphousWebSocket === null) {
+           throw new SocketError("Unable to find a suitable WebSocket API in the current runtime.");
+         }
+-        this.#socket = new IsomorphousWebSocket(url);
++        this.#socket = new IsomorphousWebSocket(url.toString());
+         this.#socket.onmessage = this.#parseMessage.bind(this);
+         this.#socket.onclose = () => {
+           this.disconnect();
+diff --git a/src/classes/managers/SocketManager.ts b/src/classes/managers/SocketManager.ts
+index f6599ebefd9b328e2d0be0bcc24b3d27188d0f7f..9f0e48d1d318a3e6c98d083931eb8188723e09a2 100644
+--- a/src/classes/managers/SocketManager.ts
++++ b/src/classes/managers/SocketManager.ts
+@@ -93,7 +93,7 @@ export class SocketManager extends EventBasedManager<SocketEvents> {
+                 }
+ 
+                 // Establish a websocket connection and setup basic handlers.
+-                this.#socket = new IsomorphousWebSocket(url);
++                this.#socket = new IsomorphousWebSocket(url.toString());
+                 this.#socket.onmessage = this.#parseMessage.bind(this);
+                 this.#socket.onclose = () => {
+                     this.disconnect();

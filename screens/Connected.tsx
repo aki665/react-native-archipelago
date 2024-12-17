@@ -1,6 +1,6 @@
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
-import { PrintJSONPacket, SERVER_PACKET_TYPE } from "archipelago.js";
+import { PrintJSONPacket } from "archipelago.js";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { Alert, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,16 +23,11 @@ export default function Connected({
   const { client, connectionInfoRef } = useContext(ClientContext);
 
   const { getSetting } = useContext(SettingsContext);
-  const CHECK_CONNECTION_TIME = getSetting("CHECK_CONNECTION_TIME", "number");
   const AUTO_RETRY_AMOUNT = getSetting("AUTO_RETRY_AMOUNT", "number");
-
-  const minTime = CHECK_CONNECTION_TIME * 1000;
 
   const [messages, setMessages] = useState<messages>([]);
   const insets = useSafeAreaInsets();
-  const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryCountRef = useRef<number>(0);
-  const reconnectingRef = useRef<boolean>(false);
 
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
@@ -49,23 +44,32 @@ export default function Connected({
         case "player_id":
           return {
             type: "player",
-            text: client.players.get(parseInt(object.text, 10))?.alias,
-            selfPlayer: client.data.slot === parseInt(object.text, 10),
+            text: client.players.findPlayer(parseInt(object.text, 10))?.alias,
+            //text: client.players.get(parseInt(object.text, 10))?.alias,
+            selfPlayer:
+              client.players.self.slot ===
+              client.players.findPlayer(parseInt(object.text, 10))?.slot,
+            //selfPlayer: client.data.slot === parseInt(object.text, 10),
           };
         case "item_id":
           return {
             type: "item",
-            text: client.items.name(object.player, parseInt(object.text, 10)),
+            text: client.package.lookupItemName(
+              client.players.findPlayer(object.player)?.game ?? "",
+              parseInt(object.text, 10),
+            ),
+            //text: client.items.name(object.player, parseInt(object.text, 10)),
             itemType: object.flags,
           };
         case "location_id":
           console.log("getting location name");
           return {
             type: "location",
-            text: client.locations.name(
-              object.player,
+            text: client.package.lookupLocationName(
+              client.players.findPlayer(object.player)?.game ?? "",
               parseInt(object.text, 10),
             ),
+            //text: client.locations.name(object.player,parseInt(object.text, 10),),
           };
         case "text":
           return { type: "text", text: object.text };
@@ -89,14 +93,10 @@ export default function Connected({
   };
 
   const handleDisconnect = async () => {
-    client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+    client.socket.off("printJSON", handleMessages);
     console.log("disconnecting...");
-    client.disconnect();
+    client.socket.disconnect();
     setMessages([]);
-    const retry = retryRef.current;
-    if (retry !== null) {
-      clearInterval(retry);
-    }
     navigation.navigate("connect");
   };
 
@@ -105,100 +105,57 @@ export default function Connected({
    */
   const handleAddListeners = () => {
     try {
-      client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+      client.socket.off("printJSON", handleMessages);
     } catch {
       console.log("message listener not initialized yet...");
     }
-    client.addListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
-  };
-
-  const checkConnection = () => {
-    console.log("status in checkConnection", client.status);
-    if (client.status === "Disconnected" && retryRef.current === null) {
-      console.log("disconnected");
-      if (AUTO_RETRY_AMOUNT === 0) {
-        Alert.alert("Connection Error!", "You have been disconnected", [
-          {
-            text: "Disconnect",
-            onPress: () => {
-              handleDisconnect();
-            },
-            style: "cancel",
-          },
-        ]);
-      } else {
-        setMessages((prevState) => [
-          ...prevState,
-          [{ text: "Connection lost. Retrying..." }],
-        ]);
-
-        const retry = setInterval(() => {
-          handleReconnection();
-        }, 1000);
-        retryRef.current = retry;
-      }
-    } else if (client.status === "Connected" && retryRef.current !== null) {
-      const retry = retryRef.current;
-      if (retry !== null) {
-        clearInterval(retry);
-      }
-      retryRef.current = null;
-      retryCountRef.current = 0;
-    }
+    client.socket.on("printJSON", handleMessages);
   };
 
   const handleReconnection = async () => {
-    if (!reconnectingRef.current) {
-      const info = connectionInfoRef?.current;
-      try {
-        if (info) {
-          reconnectingRef.current = true;
-          await client.connect(info);
-          handleAddListeners();
-          setMessages((prevState) => [
-            ...prevState,
-            [
-              {
-                text: "Reconnected successfully",
-              },
-            ],
-          ]);
-          reconnectingRef.current = false;
-        }
-      } catch (e) {
-        retryCountRef.current += 1;
-
-        if (retryCountRef.current === AUTO_RETRY_AMOUNT) {
-          const retry = retryRef.current;
-          if (retry !== null) {
-            clearInterval(retry);
-          }
-          console.log(e);
-          Alert.alert(
-            "Connection Error!",
-            "You have been disconnected, and the automatic attempts to reconnect failed.",
-            [
-              {
-                text: "Disconnect",
-                onPress: () => {
-                  handleDisconnect();
-                },
-                style: "cancel",
-              },
-            ],
-          );
-        } else {
-          setMessages((prevState) => [
-            ...prevState,
-            [
-              {
-                text: "Reconnection failed. Trying again...",
-              },
-            ],
-          ]);
-        }
-        reconnectingRef.current = false;
+    const info = connectionInfoRef?.current;
+    try {
+      if (info) {
+        await client.login(info.url, info.name, info.game, info.connectionInfo);
+        handleAddListeners();
+        setMessages((prevState) => [
+          ...prevState,
+          [
+            {
+              text: "Reconnected successfully",
+            },
+          ],
+        ]);
       }
+    } catch (e) {
+      retryCountRef.current += 1;
+
+      if (retryCountRef.current === AUTO_RETRY_AMOUNT) {
+        console.log(e);
+        Alert.alert(
+          "Connection Error!",
+          "You have been disconnected, and the automatic attempts to reconnect failed.",
+          [
+            {
+              text: "Disconnect",
+              onPress: () => {
+                handleDisconnect();
+              },
+              style: "cancel",
+            },
+          ],
+        );
+      } else {
+        setMessages((prevState) => [
+          ...prevState,
+          [
+            {
+              text: "Reconnection failed. Trying again...",
+            },
+          ],
+        ]);
+      }
+      handleReconnection();
     }
   };
 
@@ -231,15 +188,14 @@ export default function Connected({
       backAction,
     );
 
-    const connectionCheck = setInterval(() => {
-      checkConnection();
-    }, minTime);
+    console.log("messages", client.messages.log);
+    client.socket.on("disconnected", handleReconnection);
 
     return () => {
       console.log("Connected.tsx useEffect cleanup is running...");
-      client.removeListener(SERVER_PACKET_TYPE.PRINT_JSON, handleMessages);
+      client.socket.off("printJSON", handleMessages);
       backHandler.remove();
-      clearInterval(connectionCheck);
+      client.socket.off("disconnected", handleReconnection);
     };
   }, []);
 

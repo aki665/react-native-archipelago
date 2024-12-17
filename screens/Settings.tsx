@@ -1,5 +1,4 @@
 import { AntDesign } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
 import React, { useContext, useState } from "react";
 import { ScrollView, Switch, Text, TextInput, View } from "react-native";
 

@@ -1,5 +1,4 @@
 import { AntDesign } from "@expo/vector-icons";
-import { CONNECTION_ERROR } from "archipelago.js";
 import React, { ReactNode, createContext, useContext, useState } from "react";
 import { Text, View } from "react-native";
 
@@ -23,14 +22,9 @@ export const ErrorContext = createContext<{
  * If any new errors, or weird error messages show up, they should be handled here.
  */
 export const composeError = (error: any) => {
-  if (Object.values(CONNECTION_ERROR).includes(error[0])) {
-    switch (error[0]) {
-      case CONNECTION_ERROR.INVALID_SLOT:
-        return "Invalid slot name";
-      case CONNECTION_ERROR.INVALID_PASSWORD:
-        return "Invalid password";
-    }
-  } else if (typeof error === "string") return error;
+  if (error === "InvalidSlot") return "Invalid slot name";
+  else if (error === "InvalidPassword") return "Invalid password";
+  else if (typeof error === "string") return error;
   else if (error?.message) return error.message;
   else if (error[0]?.message) return error[0]?.message;
   else if (error?.isArray) return error.join(",");

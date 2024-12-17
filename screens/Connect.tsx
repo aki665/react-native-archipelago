@@ -1,12 +1,13 @@
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
-import { ConnectionInformation, ITEMS_HANDLING_FLAGS } from "archipelago.js";
+import { ConnectionOptions, itemsHandlingFlags } from "archipelago.js";
 import React, { useContext, useState } from "react";
 import { Alert, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import "react-native-get-random-values";
 
 import APConnectionInfo, { apInfo } from "../components/APConnectionInfo";
 import Button from "../components/Button";
-import { ClientContext } from "../components/ClientContext";
+import { APInfo, ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
@@ -23,7 +24,7 @@ export default function Connect({
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [sessionName, setSessionName] = useState("");
-  const [infoToSave, setInfoToSave] = useState({});
+  const [infoToSave, setInfoToSave] = useState<APInfo | object>({});
 
   const connect = () => {
     navigation.navigate("connected");
@@ -61,23 +62,37 @@ export default function Connect({
   const connectToAP = async (apInfo: apInfo) => {
     try {
       setLoading(true);
+      const game = "";
       const port = apInfo.port !== 0 ? apInfo.port : 38281;
-      const connectionInfo: ConnectionInformation = {
-        protocol: undefined,
+      const connectionInfo: ConnectionOptions = {
         tags: ["TextOnly"],
-        game: "",
-        items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
-        ...apInfo,
-        port,
+        items: itemsHandlingFlags.all,
+        password: apInfo.password ?? "",
+        slotData: false,
       };
+      const url = apInfo.hostname + ":" + port.toString();
 
-      await client.connect(connectionInfo);
+      console.log(
+        typeof url,
+        typeof apInfo.name,
+        typeof game,
+        typeof connectionInfo,
+      );
+      console.log(url, apInfo.name);
+
+      await client.login(url.toString(), apInfo.name, game, connectionInfo);
+      const connectionOptions = {
+        url,
+        name: apInfo.name,
+        game,
+        connectionInfo,
+      };
       if (connectionInfoRef !== null) {
-        connectionInfoRef.current = connectionInfo;
+        connectionInfoRef.current = connectionOptions;
       }
       setSessionName(`${apInfo.name} @ ${apInfo.hostname}:${port}`);
       setModalVisible(true);
-      setInfoToSave({ ...apInfo, port });
+      setInfoToSave({ ...connectionOptions, apInfo });
       setLoading(false);
       setError("");
     } catch (e) {
@@ -88,7 +103,7 @@ export default function Connect({
   };
 
   const closePopup = () => {
-    client.disconnect();
+    client.socket.disconnect();
     setModalVisible(false);
   };
 
