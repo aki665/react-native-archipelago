@@ -41,6 +41,5 @@
     "react-dom": "18.2.0",
     "react-native-web": "~0.19.6",
     "typescript": "~5.3.3"
-  },
-  "packageManager": "yarn@4.1.1"
+  }
 }
