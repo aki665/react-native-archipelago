@@ -49,11 +49,11 @@ type getSettingTypeNames = "string" | "number" | "boolean";
  */
 const defaultSettings: Settings[] = [
   {
-    name: "CHECK_CONNECTION_TIME",
-    displayName: "Connection timeout",
+    name: "AUTOMATIC_RECONNECTION",
+    displayName: "Automatic reconnection",
     description:
-      "Determines how often connection status is checked (in seconds)\nDefault:120",
-    value: 120,
+      "Determines if the app reconnects to archipelago automatically or not",
+    value: true,
   },
   {
     name: "AUTO_RETRY_AMOUNT",

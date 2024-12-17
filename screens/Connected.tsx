@@ -2,10 +2,11 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { PrintJSONPacket } from "archipelago.js";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Alert, BackHandler } from "react-native";
+import { Alert, BackHandler, RefreshControl, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Chat, { messages } from "./chat";
+import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
 import { SettingsContext } from "../components/SettingsContext";
 
@@ -24,8 +25,14 @@ export default function Connected({
 
   const { getSetting } = useContext(SettingsContext);
   const AUTO_RETRY_AMOUNT = getSetting("AUTO_RETRY_AMOUNT", "number");
+  const AUTOMATIC_RECONNECTION = getSetting(
+    "AUTOMATIC_RECONNECTION",
+    "boolean",
+  );
 
   const [messages, setMessages] = useState<messages>([]);
+  const [disconnected, setDisconnected] = useState<boolean>(false);
+  const [reconnecting, setReconnecting] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
   const retryCountRef = useRef<number>(0);
 
@@ -105,33 +112,57 @@ export default function Connected({
    */
   const handleAddListeners = () => {
     try {
-      client.socket.off("printJSON", handleMessages);
+      //client.socket.off("printJSON", handleMessages);
     } catch {
       console.log("message listener not initialized yet...");
     }
-    client.socket.on("printJSON", handleMessages);
+    //client.socket.on("printJSON", handleMessages);
   };
 
-  const handleReconnection = async () => {
+  const connect = async () => {
     const info = connectionInfoRef?.current;
+    if (info) {
+      await client.login(info.url, info.name, info.game, info.connectionInfo);
+      handleAddListeners();
+      setMessages((prevState) => [
+        ...prevState,
+        [
+          {
+            text: "Reconnected successfully",
+          },
+        ],
+      ]);
+      setDisconnected(false);
+      setReconnecting(false);
+    }
+  };
+
+  const manualReconnection = async () => {
     try {
-      if (info) {
-        await client.login(info.url, info.name, info.game, info.connectionInfo);
-        handleAddListeners();
-        setMessages((prevState) => [
-          ...prevState,
-          [
-            {
-              text: "Reconnected successfully",
-            },
-          ],
-        ]);
-      }
-    } catch (e) {
+      setReconnecting(true);
+      await connect();
+    } catch {
+      retryCountRef.current += 1;
+
+      setMessages((prevState) => [
+        ...prevState,
+        [
+          {
+            text: "Reconnection failed.",
+          },
+        ],
+      ]);
+      setReconnecting(false);
+    }
+  };
+
+  const automaticReconnection = async () => {
+    try {
+      await connect();
+    } catch {
       retryCountRef.current += 1;
 
       if (retryCountRef.current === AUTO_RETRY_AMOUNT) {
-        console.log(e);
         Alert.alert(
           "Connection Error!",
           "You have been disconnected, and the automatic attempts to reconnect failed.",
@@ -155,7 +186,35 @@ export default function Connected({
           ],
         ]);
       }
-      handleReconnection();
+      automaticReconnection();
+    }
+  };
+
+  const onDisconnect = () => {
+    if (AUTOMATIC_RECONNECTION) {
+      if (AUTO_RETRY_AMOUNT === 0) {
+        Alert.alert("Connection Error!", "You have been disconnected", [
+          {
+            text: "Disconnect",
+            onPress: () => {
+              handleDisconnect();
+            },
+            style: "cancel",
+          },
+        ]);
+      } else {
+        setMessages((prevState) => [
+          ...prevState,
+          [{ text: "Connection lost. Retrying..." }],
+        ]);
+        automaticReconnection();
+      }
+    } else {
+      setMessages((prevState) => [
+        ...prevState,
+        [{ text: "Connection lost." }],
+      ]);
+      setDisconnected(true);
     }
   };
 
@@ -189,13 +248,14 @@ export default function Connected({
     );
 
     console.log("messages", client.messages.log);
-    client.socket.on("disconnected", handleReconnection);
+    client.socket.on("disconnected", onDisconnect);
+    client.socket.on("printJSON", handleMessages);
 
     return () => {
       console.log("Connected.tsx useEffect cleanup is running...");
       client.socket.off("printJSON", handleMessages);
       backHandler.remove();
-      client.socket.off("disconnected", handleReconnection);
+      client.socket.off("disconnected", onDisconnect);
     };
   }, []);
 
@@ -203,7 +263,27 @@ export default function Connected({
     <Tab.Navigator initialRouteName="chat" style={{ paddingTop: insets.top }}>
       <Tab.Screen name="chat">
         {(props) => (
-          <Chat {...props} messages={messages} setMessages={setMessages} />
+          <ScrollView
+            refreshControl={<RefreshControl refreshing={reconnecting} />}
+            contentContainerStyle={{ flex: 1 }}
+          >
+            {disconnected && (
+              <Button
+                {...props}
+                buttonStyle={{
+                  marginTop: 5,
+                  width: "95%",
+                  alignSelf: "center",
+                }}
+                onPress={() => {
+                  manualReconnection();
+                }}
+                buttonProps={{ disabled: reconnecting }}
+                text="Reconnect"
+              />
+            )}
+            <Chat {...props} messages={messages} setMessages={setMessages} />
+          </ScrollView>
         )}
       </Tab.Screen>
       <Tab.Screen name="nothing yet" component={Placeholder} />
