@@ -1,12 +1,14 @@
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
+import {
+  createMaterialTopTabNavigator,
+  MaterialTopTabBarProps,
+} from "@react-navigation/material-top-tabs";
 import { PrintJSONPacket } from "archipelago.js";
 import * as Location from "expo-location";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Alert,
-  AppState,
   BackHandler,
+  NativeEventSubscription,
   Platform,
   RefreshControl,
   ScrollView,
@@ -29,7 +31,7 @@ export default function Connected({
   route: {
     params: { sessionName: string; replacedInfo: boolean };
   };
-  navigation: MaterialTopTabNavigationHelpers;
+  navigation: MaterialTopTabBarProps["navigation"];
 }>) {
   const { sessionName, replacedInfo } = route.params;
   const { client, connectionInfoRef } = useContext(ClientContext);
@@ -42,16 +44,12 @@ export default function Connected({
   );
 
   const [messages, setMessages] = useState<messages>([]);
-  const [refreshClientListeners, setRefreshClientListeners] =
-    useState<boolean>(false);
 
   const insets = useSafeAreaInsets();
   const { setError } = useContext(ErrorContext);
   const [allowedLocation, setAllowedLocation] = useState(false);
-  const retryRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const retryCountRef = useRef<number>(0);
-  const reconnectingRef = useRef<boolean>(false);
-  const appState = useRef(AppState.currentState);
+  const backHandler = useRef<NativeEventSubscription | undefined>(undefined);
   const [disconnected, setDisconnected] = useState<boolean>(false);
   const [reconnecting, setReconnecting] = useState<boolean>(false);
 
@@ -168,18 +166,19 @@ export default function Connected({
   };
 
   const handleDisconnect = async () => {
+    backHandler.current?.remove();
+    client.socket.off("disconnected", onDisconnect);
     client.socket.off("printJSON", handleMessages);
     console.log("disconnecting...");
     client.socket.disconnect();
     setMessages([]);
-    navigation.navigate("connect");
+    navigation.reset({ routes: [{ name: "connect" }] });
   };
 
   /**
    * Client listeners are defined here to remake them on reconnect
    */
   const handleAddListeners = () => {
-    setRefreshClientListeners(true);
     try {
       //client.socket.off("printJSON", handleMessages);
     } catch {
@@ -311,45 +310,20 @@ export default function Connected({
       return true;
     };
 
-    const backHandler = BackHandler.addEventListener(
+    backHandler.current = BackHandler.addEventListener(
       "hardwareBackPress",
       backAction,
     );
 
-    console.log("messages", client.messages.log);
     client.socket.on("disconnected", onDisconnect);
     client.socket.on("printJSON", handleMessages);
 
     askLocationPermission();
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (
-        appState.current === "active" &&
-        nextAppState.match(/inactive|background/)
-      ) {
-        client.disconnect(); // Explicitly disconnect the client if the app goes into the background state...
-      } else if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === "active"
-      ) {
-        handleReconnection(); //And reconnect once the app is active again.
-        handleAddListeners();
-      }
-
-      appState.current = nextAppState;
-      console.log("AppState", appState.current);
-    });
-
-    return () => {
-      console.log("Connected.tsx useEffect cleanup is running...");
-      client.socket.off("printJSON", handleMessages);
-      backHandler.remove();
-      client.socket.off("disconnected", onDisconnect);
-    };
   }, []);
 
   return (
-    <Tab.Navigator initialRouteName="chat" style={{ paddingTop: insets.top }}>
-      <Tab.Screen name="chat">
+    <Tab.Navigator initialRouteName="Chat" style={{ paddingTop: insets.top }}>
+      <Tab.Screen name="Chat">
         {(props) => (
           <ScrollView
             refreshControl={<RefreshControl refreshing={reconnecting} />}
@@ -375,13 +349,12 @@ export default function Connected({
         )}
       </Tab.Screen>
       {allowedLocation && (
-        <Tab.Screen name="map">
+        <Tab.Screen name="Map">
           {(props) => (
             <MapScreen
               {...props}
               sessionName={sessionName}
               replacedInfo={replacedInfo}
-              refreshClientListeners={refreshClientListeners}
             />
           )}
         </Tab.Screen>
