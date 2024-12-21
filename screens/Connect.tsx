@@ -1,4 +1,4 @@
-import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import { ConnectionOptions, itemsHandlingFlags } from "archipelago.js";
 import React, { useContext, useState } from "react";
 import { Alert, Text, TextInput, View } from "react-native";
@@ -23,7 +23,7 @@ import {
 export default function Connect({
   navigation,
 }: Readonly<{
-  navigation: MaterialTopTabNavigationHelpers;
+  navigation: MaterialTopTabBarProps["navigation"];
 }>) {
   const { client, connectionInfoRef } = useContext(ClientContext);
   const { setError } = useContext(ErrorContext);
@@ -75,24 +75,15 @@ export default function Connect({
   const connectToAP = async (apInfo: apInfo) => {
     try {
       setLoading(true);
-      const game = "Archipela-Go";
+      const game = "Archipela-Go!";
       const port = apInfo.port !== 0 ? apInfo.port : 38281;
       const connectionInfo: ConnectionOptions = {
-        tags: ["TextOnly"],
         items: itemsHandlingFlags.all,
         password: apInfo.password ?? "",
-        slotData: false,
       };
       const url = apInfo.hostname + ":" + port.toString();
 
-      console.log(
-        typeof url,
-        typeof apInfo.name,
-        typeof game,
-        typeof connectionInfo,
-      );
-      console.log(url, apInfo.name);
-
+      client.options.timeout = 3000;
       await client.login(url.toString(), apInfo.name, game, connectionInfo);
       const connectionOptions = {
         url,
@@ -141,14 +132,6 @@ export default function Connect({
             onPress={() => {
               closePopup();
             }}
-          />
-          <Button
-            text="Connect without saving"
-            onPress={() => {
-              setSessionName("");
-              connect();
-            }}
-            buttonStyle={{ marginLeft: 20 }}
           />
           <Button
             text="Save"
