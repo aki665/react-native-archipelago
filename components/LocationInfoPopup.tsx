@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 import Button from "./Button";
 import Popup from "./Popup";
 import { trip } from "../screens/MapScreen";
+import { MAP_ID_TO_ITEM } from "../utils/handleItems";
 
 /**Time between location rerolls in seconds */
 export const REROLL_TIME = 120;
@@ -20,8 +21,15 @@ type locationInfo = {
   id: number;
 };
 
-type hintInfo = {
+type locationHintInfo = {
   receivingPlayer: string;
+  item: string;
+};
+
+type keyHintInfo = {
+  sendingPlayer: string;
+  location: string;
+  found: boolean;
   item: string;
 };
 
@@ -33,6 +41,7 @@ export default function LocationInfoPopup({
   receivedKeys,
   rerollSelectedLocation,
   rerollAllowed,
+  rerollTime,
 }: Readonly<{
   visible: boolean;
   closePopup: () => void;
@@ -41,11 +50,15 @@ export default function LocationInfoPopup({
   receivedKeys: number;
   rerollSelectedLocation: (id: number, name: string) => Promise<void>;
   rerollAllowed: React.MutableRefObject<boolean>;
+  rerollTime: React.MutableRefObject<Date>;
 }>) {
   const [locationInfo, setLocationInfo] = useState<locationInfo | null>(null);
-  const [hint, setHint] = useState<hintInfo | null>(null);
+  const [locationHint, setLocationHint] = useState<locationHintInfo | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [canHint, setCanHint] = useState<boolean>(false);
+  const [hintedKeys, setHintedKeys] = useState<keyHintInfo[] | []>([]);
 
   const handleReroll = () => {
     if (locationInfo !== null && rerollAllowed.current) {
@@ -72,51 +85,81 @@ export default function LocationInfoPopup({
 
   const handleClosePopup = () => {
     setLocationInfo(null);
-    setHint(null);
+    setLocationHint(null);
     closePopup();
   };
 
-  const handleHint = (hint: Hint | undefined) => {
-    if (hint === undefined) setHint(null);
+  const handleHintMessage = async () => {
+    const hints = client.socket.connected
+      ? await client.players.self.fetchHints()
+      : client.items.hints;
+    const locationHint = hints.find((hint) => {
+      return hint.item.locationId === location?.id;
+    });
+
+    const keyHint = hints.filter((hint) => hint.item.id === MAP_ID_TO_ITEM.KEY);
+
+    handleKeyHints(keyHint);
+    handleLocationHint(locationHint);
+
+    if (client.socket.connected)
+      setCanHint(client.room.hintPoints >= client.room.hintCost);
     else {
-      const receivingPlayer = client.players.alias(hint.receiving_player);
-      const item = client.items.name(hint.receiving_player, hint.item);
-      setHint({ receivingPlayer, item });
+      setCanHint(false);
+    }
+    setLoading(false);
+  };
+
+  const handleLocationHint = (hint: Hint | undefined) => {
+    if (hint === undefined) setLocationHint(null);
+    else {
+      const receivingPlayer = hint.item.receiver.alias;
+      const item = hint.item.name;
+      setLocationHint({ receivingPlayer, item });
+    }
+  };
+
+  const handleKeyHints = (hints: Hint[]) => {
+    if (hints.length === 0) setLocationHint(null);
+    else {
+      const formattedHints = hints.map((hint) => {
+        return {
+          sendingPlayer: hint.item.sender.alias,
+          location: hint.item.locationName,
+          found: hint.found,
+          item: hint.item.toString(),
+        };
+      });
+      setHintedKeys(formattedHints);
     }
   };
 
   const handleHintLocation = () => {
     setLoading(true);
-    client.say(`!hint_location ${locationInfo?.name}`);
-    const hint = client.hints.mine.find(
-      (hint) => hint.location === locationInfo?.id,
-    );
-    handleHint(hint);
+    client.messages.say(`!hint_location ${locationInfo?.name}`);
     setLoading(false);
   };
 
   const handleHintKey = () => {
     setLoading(true);
-    client.say(`!hint Progressive Key`);
-    setCanHint(client.data.hintPoints > client.data.hintCost);
+    client.messages.say(`!hint Progressive Key`);
     setLoading(false);
   };
 
   useEffect(() => {
     if (location !== null) {
+      client.items.on("hintReceived", handleHintMessage);
       setLoading(true);
-      const hint = client.hints.mine.find(
-        (hint) => hint.location === location.id,
-      );
-      handleHint(hint);
-      setCanHint(client.data.hintPoints > client.data.hintCost);
       setLocationInfo({
         coords: location.coords,
         keysNeeded: location.trip.key_needed,
         name: location.name,
         id: location.id,
       });
+      handleHintMessage();
       setLoading(false);
+    } else {
+      client.items.off("hintReceived", handleHintMessage);
     }
   }, [location]);
   return (
@@ -125,6 +168,7 @@ export default function LocationInfoPopup({
       closePopup={handleClosePopup}
       popupStyle={{ paddingTop: 0 }}
     >
+      {(!locationInfo || loading) && <ActivityIndicator />}
       {locationInfo && (
         <View
           style={{
@@ -135,12 +179,33 @@ export default function LocationInfoPopup({
             marginTop: 10,
           }}
         >
-          <Button
-            onPress={handleReroll}
-            text="Reroll"
-            textStyle={{ fontSize: 10 }}
-            buttonStyle={{ paddingVertical: 2, paddingHorizontal: 4 }}
-          />
+          <View>
+            {rerollAllowed.current && (
+              <Button
+                onPress={handleReroll}
+                text="Reroll"
+                textStyle={{ fontSize: 10 }}
+                buttonStyle={{ paddingVertical: 2, paddingHorizontal: 4 }}
+              />
+            )}
+            {!rerollAllowed.current && (
+              <Text
+                style={{
+                  fontSize: 10,
+                  maxWidth: "70%",
+                  color: "gray",
+                }}
+              >
+                Next reroll available in about{" "}
+                {Math.ceil(
+                  REROLL_TIME +
+                    (rerollTime.current.getTime() - new Date().getTime()) /
+                      1000,
+                )}{" "}
+                second(s)
+              </Text>
+            )}
+          </View>
           <Pressable>
             <Text style={{ fontSize: 12, color: "gray", textAlign: "right" }}>
               osm ID:{locationInfo.coords.osmID}
@@ -164,17 +229,18 @@ export default function LocationInfoPopup({
           >
             <Text>{locationInfo.name}</Text>
           </View>
-          {hint && (
+          {locationHint && (
             <Text style={{ marginBottom: 10 }}>
-              {hint.receivingPlayer}'s {hint.item} can be found here.
+              {locationHint.receivingPlayer}'s {locationHint.item} can be found
+              here.
             </Text>
           )}
-          {!hint && (
+          {!locationHint && (
             <>
               <Text style={{ marginBottom: 10 }}>
                 {canHint && "This location can be hinted. "}A hint requires{" "}
-                {client.data.hintCost} hint points. You currently have{" "}
-                {client.data.hintPoints}.
+                {client.room.hintCost} hint points. You currently have{" "}
+                {client.room.hintPoints}.
               </Text>
               {canHint ? (
                 <Button
@@ -187,7 +253,9 @@ export default function LocationInfoPopup({
                 />
               ) : (
                 <Text style={{ marginBottom: 10, color: "gray" }}>
-                  You do not have enough hint points to hint this location
+                  {client.socket.connected
+                    ? "You do not have enough hint points to hint this location"
+                    : "You are not currently connected"}
                 </Text>
               )}
             </>
@@ -198,28 +266,45 @@ export default function LocationInfoPopup({
                 This location requires {locationInfo.keysNeeded} keys, and you
                 currently have {receivedKeys}
               </Text>
-              {locationInfo.keysNeeded > receivedKeys && (
-                <>
-                  {canHint ? (
-                    <Button
-                      onPress={() => handleHintKey()}
-                      text="Hint Key"
-                      buttonProps={{
-                        disabled: !canHint || loading,
-                      }}
-                    />
-                  ) : (
-                    <Text style={{ color: "gray" }}>
-                      You do not have enough hint points to hint a key
-                    </Text>
-                  )}
-                </>
-              )}
+              {locationInfo.keysNeeded > receivedKeys &&
+                hintedKeys.length < locationInfo.keysNeeded && (
+                  <>
+                    {canHint ? (
+                      <Button
+                        onPress={() => handleHintKey()}
+                        text="Hint Key"
+                        buttonStyle={{ marginBottom: 10 }}
+                        buttonProps={{
+                          disabled: loading,
+                        }}
+                      />
+                    ) : (
+                      <Text style={{ marginBottom: 10, color: "gray" }}>
+                        {client.socket.connected
+                          ? "You do not have enough hint points to hint a key"
+                          : "You are not currently connected"}
+                      </Text>
+                    )}
+                  </>
+                )}
+              {hintedKeys.map((hint) => (
+                <Text
+                  key={hint.location}
+                  style={{
+                    marginBottom: 10,
+                    fontSize: 12,
+                    color: hint.found ? "darkgreen" : "darkred",
+                  }}
+                >
+                  {client.players.self.alias}'s {hint.item} is at{" "}
+                  {hint.location} in {hint.sendingPlayer}'s World
+                  {" (" + (hint.found ? "found" : "not found") + ")"}
+                </Text>
+              ))}
             </>
           )}
         </View>
       )}
-      {(!locationInfo || loading) && <ActivityIndicator />}
     </Popup>
   );
 }
