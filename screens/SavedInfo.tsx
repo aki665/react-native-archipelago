@@ -1,8 +1,6 @@
 import { AntDesign } from "@expo/vector-icons";
-import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
-import { clientStatuses } from "archipelago.js";
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, Text, TextInput, TouchableHighlight, View } from "react-native";
 
@@ -20,6 +18,7 @@ import {
   remove,
   save,
 } from "../utils/storageHandler";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 
 const EXTERNAL_EXTRA_DATA: string[] = ["__settings"]; // include extra storage keys you want to handle yourself in this array
 export const EXTRA_DATA: { name: string; type: string }[] = [
@@ -105,7 +104,7 @@ const debugButtons = () => {
 export default function SavedInfo({
   navigation,
 }: Readonly<{
-  navigation: MaterialTopTabNavigationHelpers;
+  navigation: MaterialTopTabBarProps["navigation"];
 }>) {
   const nav = useNavigation();
   const [savedInfo, setSavedInfo] = useState<readonly string[] | undefined>([]);
@@ -227,8 +226,7 @@ export default function SavedInfo({
   };
 
   const deleteSavedInfo = async (storageName: string) => {
-    const status = await client.players.self.fetchStatus();
-    if (status === clientStatuses.disconnected) {
+    if (!client.socket.connected) {
       Alert.alert(
         "Delete saved info",
         `Do you want to delete ${storageName}?`,
