@@ -252,5 +252,6 @@ export default async function getLocations(
     lat: coordinates.newLatitude,
     lon: coordinates.newLongitude,
     osmID: coordinates.osmID,
+    duplicate: false,
   };
 }

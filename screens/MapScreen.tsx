@@ -1,11 +1,10 @@
 import {
-  CLIENT_STATUS,
   Client,
-  NetworkItem,
-  PERMISSION,
-  ReceivedItemsPacket,
+  Hint,
+  JSONRecord,
   RoomUpdatePacket,
-  SERVER_PACKET_TYPE,
+  clientStatuses,
+  permissions,
 } from "archipelago.js";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
@@ -17,7 +16,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, View } from "react-native";
+import { Alert, AppState, View } from "react-native";
 import MapView, { Camera } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
@@ -31,6 +30,37 @@ import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
+
+/**
+ * This class is used to send location ids from the geofencing to the react code
+ */
+class LocationsEmitter {
+  events: Record<string, ((data: any) => void)[]>;
+
+  constructor() {
+    this.events = {};
+  }
+
+  on(event: string, listener: (data?: any) => void) {
+    if (!this.events[event]) {
+      this.events[event] = [];
+    }
+    if (!this.events[event]?.includes(this.events[event][0]))
+      this.events[event]?.push(listener);
+  }
+
+  emit(event: string, data: any) {
+    const listeners = this.events[event];
+    if (listeners) {
+      listeners.forEach((listener) => listener(data));
+    }
+  }
+  off(event: string) {
+    if (this.events[event] != undefined) {
+      this.events[event] = [];
+    }
+  }
+}
 
 const MemoizedMap = memo(function MemoizedMap({
   children,
@@ -72,10 +102,10 @@ const MemoizedMap = memo(function MemoizedMap({
 });
 
 const sendGoal = async (client: Client) => {
-  client.updateStatus(CLIENT_STATUS.GOAL);
+  client.updateStatus(clientStatuses.goal);
   if (
-    client.data.permissions.release === PERMISSION.ENABLED ||
-    client.data.permissions.release === PERMISSION.GOAL
+    client.room.permissions.release === permissions.enabled ||
+    client.room.permissions.release === permissions.goal
   ) {
     await AsyncAlert(
       "Goal Achieved",
@@ -89,15 +119,15 @@ const sendGoal = async (client: Client) => {
         {
           text: "YES",
           onPress: () => {
-            client.say("!release");
+            client.messages.say("!release");
           },
         },
       ],
     );
   }
   if (
-    client.data.permissions.collect === PERMISSION.ENABLED ||
-    client.data.permissions.collect === PERMISSION.GOAL
+    client.room.permissions.collect === permissions.enabled ||
+    client.room.permissions.collect === permissions.goal
   ) {
     await AsyncAlert(
       "Goal Achieved",
@@ -111,7 +141,7 @@ const sendGoal = async (client: Client) => {
         {
           text: "YES",
           onPress: () => {
-            client.say("!collect");
+            client.messages.say("!collect");
           },
         },
       ],
@@ -124,8 +154,8 @@ const geofenceLocations = async (
   client: Client,
   receivedKeys: number,
   receivedReductions: number,
-  setCheckedLocations: React.Dispatch<React.SetStateAction<readonly number[]>>,
   MARKER_RADIUS: number,
+  locationEmitter: LocationsEmitter,
 ) => {
   console.log("MARKER_RADIUS in geofenceLocations", MARKER_RADIUS);
   const geofenceArr = trips.map((trip) => {
@@ -140,11 +170,10 @@ const geofenceLocations = async (
   });
   const filteredGeofenceArr = geofenceArr.filter((_) => _ !== undefined);
 
-  console.log(filteredGeofenceArr);
   if (!TaskManager.isTaskDefined("apgo-geofencing")) {
     TaskManager.defineTask(
       "apgo-geofencing",
-      ({
+      async ({
         data: { eventType, region },
         error,
       }: {
@@ -159,15 +188,9 @@ const geofenceLocations = async (
           return;
         }
         if (eventType === Location.GeofencingEventType.Enter) {
-          console.log("entered location with id", region.identifier);
           if (region.identifier !== undefined) {
             const id = parseInt(region.identifier, 10);
-            setCheckedLocations((prev) => [...prev, id]);
-            try {
-              client.locations.check(id);
-            } catch {
-              console.log("could not send item");
-            }
+            locationEmitter.emit("locationEntered", id);
           }
         }
       },
@@ -204,6 +227,7 @@ export type trip = {
     lat: number;
     lon: number;
     osmID: string;
+    duplicate: boolean;
   };
   trip: {
     amount: number;
@@ -218,16 +242,15 @@ export type trip = {
 export default function MapScreen({
   sessionName,
   replacedInfo,
-  refreshClientListeners,
 }: Readonly<{
   sessionName: string;
   replacedInfo: boolean;
-  refreshClientListeners: boolean;
 }>) {
   const { client } = useContext(ClientContext);
   const { getSetting } = useContext(SettingsContext);
   const NEAR_ZOOM = getSetting("NEAR_ZOOM", "boolean");
   const MARKER_RADIUS = getSetting("MARKER_RADIUS", "number");
+  const LOCATION_RETRIES = getSetting("LOCATION_RETRIES", "number");
 
   const [showPopup, setShowPopup] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<null | trip>(null);
@@ -243,8 +266,12 @@ export default function MapScreen({
   const [macguffinString, setMacguffinString] =
     useState<string>("Archipela-Go!");
   const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
+  const [hintedProgTrips, setHintedProgTrips] = useState<number[]>([0]);
   const rerollAllowedRef = useRef<boolean>(true);
   const rerollTime = useRef<Date>(new Date());
+  const slotData = useRef<JSONRecord | null>(null);
+  const appState = useRef(AppState.currentState);
+  const locationEmitter = useRef(new LocationsEmitter());
 
   const handleShowPopup = (trip: trip) => {
     setSelectedLocation(trip);
@@ -256,11 +283,18 @@ export default function MapScreen({
   };
 
   const handleReroll = () => {
+    console.log(new Date().getTime(), rerollTime.current.getTime());
     if (
       (new Date().getTime() - rerollTime.current.getTime()) / 1000 >
       REROLL_TIME
-    )
+    ) {
       rerollAllowedRef.current = true;
+    }
+  };
+
+  const handleGeofenceEnter = (id: number) => {
+    console.log("handleGeofenceEnter id", id);
+    setCheckedLocations((prev) => [...prev, id]);
   };
 
   const rerollSelectedLocation = async (
@@ -268,19 +302,25 @@ export default function MapScreen({
     name: string,
     loops = 0,
   ) => {
-    if (client.data.slotData.trips !== null && location !== null) {
+    if (slotData.current?.trips !== null && location !== null) {
       rerollAllowedRef.current = false;
       const oldTrip: trip = trips.find((trip: trip) => trip.id === id);
       const filteredTrips = removeCheckedLocations(trips, [id]);
-      const trip = client.data?.slotData?.trips[name];
+      const trip = slotData.current?.trips[name];
       const coords = await getLocations(
         location.coords,
-        parseInt(JSON.stringify(client.data.slotData.maximum_distance), 10),
-        parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
-        parseInt(JSON.stringify(client.data.slotData.speed_requirement), 10),
+        parseInt(JSON.stringify(slotData.current?.maximum_distance), 10),
+        parseInt(JSON.stringify(slotData.current?.minimum_distance), 10),
+        parseInt(JSON.stringify(slotData.current?.speed_requirement), 10),
         trip,
         NEAR_ZOOM,
       );
+      const isDuplicate = trips.some(
+        (value) =>
+          value.coords.lat === coords.lat && value.coords.lon === coords.lon,
+      );
+      coords.duplicate = isDuplicate;
+
       if (oldTrip.coords !== coords) {
         filteredTrips.push({ coords, trip, name, id });
         setTrips(filteredTrips);
@@ -307,7 +347,14 @@ export default function MapScreen({
   };
 
   const handleCheckedLocation = async (checkedLocations: readonly number[]) => {
+    console.log("new checked locations", checkedLocations);
     if (checkedLocations !== null && checkedLocations.length > 0) {
+      console.log("all trips", trips);
+      try {
+        client.check(checkedLocations);
+      } catch (e) {
+        console.log("could not check locations");
+      }
       const filteredTrips = removeCheckedLocations(trips, checkedLocations);
       if (!goalAchieved) handleGoal(client, filteredTrips, macguffinString);
       setTrips(filteredTrips);
@@ -327,10 +374,7 @@ export default function MapScreen({
     remainingTrips: trip[],
     macguffinString = "Archipela-Go!",
   ) => {
-    const goal: number = parseInt(
-      JSON.stringify(client.data.slotData?.goal),
-      10,
-    );
+    const goal: number = parseInt(JSON.stringify(slotData.current?.goal), 10);
     switch (goal) {
       case GOAL_MAP.ALLSANITY:
         if (remainingTrips.length === 0) {
@@ -358,32 +402,9 @@ export default function MapScreen({
         STORAGE_TYPES.OBJECT,
       );
       if (loadedChecks !== null) {
-        setCheckedLocations(loadedChecks);
+        setCheckedLocations((prev) => [...new Set([...prev, ...loadedChecks])]);
       }
     }
-  };
-
-  const handleOfflineItems = async (
-    items: readonly NetworkItem[],
-    sessionName: string,
-    newIndex: number,
-  ) => {
-    let index = -1;
-    try {
-      index = await load(sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
-    } catch {
-      console.log("failed to load index");
-    }
-    const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(items, client, index);
-    if (sessionName && sessionName !== "") {
-      await save(newIndex, sessionName + "_itemIndex", STORAGE_TYPES.NUMBER);
-    }
-
-    setReceivedKeys(keyAmount);
-    setReceivedReductions(distanceReductions);
-
-    setMacguffinString(macguffinString);
   };
 
   const getCoordinatesForLocations = async () => {
@@ -392,6 +413,9 @@ export default function MapScreen({
       return;
     }
     const location = await Location.getCurrentPositionAsync();
+    const data =
+      slotData.current ?? (await client.players.self.fetchSlotData());
+    slotData.current = data;
 
     const loadedTrips: trip[] = await load(
       sessionName + "_trips",
@@ -399,40 +423,32 @@ export default function MapScreen({
     );
     let filteredTrips: trip[];
 
-    if (
-      (loadedTrips?.length === 0 || replacedInfo) &&
-      client.data?.slotData.trips
-    ) {
-      console.log("no saved data found. Generating new coordinates...");
+    if ((loadedTrips?.length === 0 || replacedInfo) && data.trips) {
       const tempTrips: any[] | trip[] = [];
       const tracker = { tripGroup: 0, theta: Math.random() * 2 * Math.PI };
-      for (const [name, trip] of Object.entries(
-        client.data?.slotData?.trips,
-      ).sort((a, b) => a[1].key_needed - b[1].key_needed)) {
-        console.log("Generating trip", name);
+      for (const [name, trip] of Object.entries(data?.trips).sort(
+        (a, b) => a[1].key_needed - b[1].key_needed,
+      )) {
         //Makes the slot data into an array that is sorted by key_needed...
         const id =
-          client.data.package.get("Archipela-Go!")?.location_name_to_id[name];
+          client.package.findPackage("Archipela-Go!")?.locationTable[name];
         if (!id) return;
-        if (client.locations.checked.includes(id)) continue;
+        if (client.room.checkedLocations.includes(id)) continue;
         if (trip.key_needed !== tracker.tripGroup) {
           tracker.tripGroup = trip.key_needed;
           tracker.theta = Math.random() * 2 * Math.PI; // .. so the theta can be changed when key_needed changes.
         }
         let generatingCoords = true;
-        let coords = { lat: 0, lon: 0, osmID: "0" };
+        let coords = { lat: 0, lon: 0, osmID: "0", duplicate: false };
         let loopCount = 0;
 
         while (generatingCoords) {
-          //TODO: Add logic to break out of this loop if in it for too long
+          if (!client.socket.connected) generatingCoords = false;
           coords = await getLocations(
             location.coords,
-            parseInt(JSON.stringify(client.data.slotData.maximum_distance), 10),
-            parseInt(JSON.stringify(client.data.slotData.minimum_distance), 10),
-            parseInt(
-              JSON.stringify(client.data.slotData.speed_requirement),
-              10,
-            ),
+            parseInt(JSON.stringify(data.maximum_distance), 10),
+            parseInt(JSON.stringify(data.minimum_distance), 10),
+            parseInt(JSON.stringify(data.speed_requirement), 10),
             trip,
             NEAR_ZOOM,
           );
@@ -441,8 +457,9 @@ export default function MapScreen({
               value.coords.lat === coords.lat &&
               value.coords.lon === coords.lon,
           );
+          coords.duplicate = generatingCoords;
           console.log("Generated unique coordinates?", !generatingCoords);
-          if (loopCount === 5) generatingCoords = false;
+          if (loopCount === LOCATION_RETRIES) generatingCoords = false;
           loopCount++;
         }
 
@@ -450,16 +467,16 @@ export default function MapScreen({
       }
       filteredTrips = removeCheckedLocations(
         tempTrips,
-        client.locations.checked,
+        client.room.checkedLocations,
       );
     } else {
       filteredTrips = removeCheckedLocations(
         loadedTrips,
-        client.locations.checked,
+        client.room.checkedLocations,
       );
     }
     const keyAmount = client.items.received.map(
-      (item) => item.item === MAP_ID_TO_ITEM.KEY,
+      (item) => item.id === MAP_ID_TO_ITEM.KEY,
     ).length;
     setTrips(filteredTrips);
     geofenceLocations(
@@ -467,8 +484,8 @@ export default function MapScreen({
       client,
       keyAmount,
       receivedReductions,
-      setCheckedLocations,
       MARKER_RADIUS,
+      locationEmitter.current,
     );
     if (sessionName && sessionName !== "")
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
@@ -481,16 +498,15 @@ export default function MapScreen({
   };
 
   const roomUpdateListener = (packet: RoomUpdatePacket) => {
-    console.log("starting room update listener...");
     if (packet.checked_locations !== undefined) {
-      const checkedLocations = packet.checked_locations; //Stops typescript from yelling at me
+      const roomCheckedLocations = packet.checked_locations; //Stops typescript from yelling at me
       setCheckedLocations((prev) => [
-        ...new Set([...prev, ...checkedLocations]),
+        ...new Set([...prev, ...roomCheckedLocations]),
       ]);
     }
   };
 
-  const receivedItemsListener = async (packet: ReceivedItemsPacket) => {
+  const receivedItemsListener = async () => {
     console.log("starting message listener...");
     let index = -1;
     try {
@@ -499,20 +515,19 @@ export default function MapScreen({
     } catch {
       console.log("failed to load index");
     }
+    const goal: number = parseInt(JSON.stringify(slotData.current?.goal), 10);
 
     console.log(
       "handling items, with ",
       client.items.received.length,
-      "recieved and loaded index at",
+      "received and loaded index at",
       index,
-      "and recieved index at ",
-      packet.index,
     );
     const { keyAmount, distanceReductions, macguffinString } =
-      await handleItems(client.items.received, client, index);
+      await handleItems(client.items.received, client, goal, index);
     if (sessionName && sessionName !== "") {
       await save(
-        client.items.index,
+        client.items.count,
         sessionName + "_itemIndex",
         STORAGE_TYPES.NUMBER,
       );
@@ -522,23 +537,84 @@ export default function MapScreen({
     setMacguffinString(macguffinString);
   };
 
-  useEffect(() => {
-    const getLocation = async () => {
-      const location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-    };
-    getLocation();
-    return () => {
-      removeGeofencing();
-      client.removeListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
-      client.removeListener(
-        SERVER_PACKET_TYPE.RECEIVED_ITEMS,
-        receivedItemsListener,
+  const hintsReceivedListener = async (hint: Hint) => {
+    if (hint.item.useful || hint.item.progression)
+      setHintedProgTrips((prevState) => [...prevState, hint.item.locationId]);
+  };
+
+  const handleReconnect = async () => {
+    handleReroll();
+
+    if (trips[0] !== "placeholder") {
+      geofenceLocations(
+        trips,
+        client,
+        receivedKeys,
+        receivedReductions,
+        MARKER_RADIUS,
+        locationEmitter.current,
       );
+    }
+    await getCoordinatesForLocations();
+    await handleOfflineChecks();
+    await receivedItemsListener();
+
+    const hints = client.items.hints;
+    const hintedProgressionLocations = hints
+      .filter(
+        (hint) =>
+          (hint.item.sender.slot === client.players.self.slot &&
+            hint.item.progression) ||
+          hint.item.useful,
+      )
+      .map((hint) => hint.item.locationId);
+    setHintedProgTrips(hintedProgressionLocations);
+    //handleOfflineItems(client.items.received, sessionName, client.items.count);
+    if (!goalAchieved) handleGoal(client, trips, macguffinString);
+  };
+
+  useEffect(() => {
+    Location.getCurrentPositionAsync({})
+      .then((location) => setLocation(location))
+      .catch((e) => console.log(e));
+
+    client.players.self
+      .fetchSlotData()
+      .then((data) => {
+        slotData.current = data;
+      })
+      .catch((e) => console.log(e));
+
+    handleReconnect();
+    client.socket.on("connected", handleReconnect);
+    client.socket.on("roomUpdate", roomUpdateListener);
+    client.socket.on("receivedItems", receivedItemsListener);
+    client.items.on("hintReceived", hintsReceivedListener);
+    locationEmitter.current.on("locationEntered", handleGeofenceEnter);
+
+    console.log(
+      "client.items.received.length",
+      client.items.received.length,
+      client.items.count,
+    );
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        handleReroll(); // Explicitly disconnect the client if the app goes into the background state...
+      }
+      appState.current = nextAppState;
+    });
+    return () => {
+      subscription.remove();
+      removeGeofencing();
+      client.socket.off("connected", handleReconnect);
+      client.socket.off("roomUpdate", roomUpdateListener);
+      client.socket.off("receivedItems", receivedItemsListener);
     };
   }, []);
 
   useEffect(() => {
+    console.log("checkedLocations changed");
     handleCheckedLocation(checkedLocations);
   }, [checkedLocations]);
 
@@ -561,8 +637,8 @@ export default function MapScreen({
         client,
         receivedKeys,
         receivedReductions,
-        setCheckedLocations,
         MARKER_RADIUS,
+        locationEmitter.current,
       );
     }
   }, [receivedKeys, trips]);
@@ -572,47 +648,6 @@ export default function MapScreen({
     if (!goalAchieved) handleGoal(client, trips, macguffinString);
   }, [macguffinString]);
 
-  useEffect(() => {
-    if (refreshClientListeners) {
-      handleReroll();
-      console.log("trips", trips);
-      if (trips[0] !== "placeholder") {
-        geofenceLocations(
-          trips,
-          client,
-          receivedKeys,
-          receivedReductions,
-          setCheckedLocations,
-          MARKER_RADIUS,
-        );
-      }
-      getCoordinatesForLocations();
-      try {
-        client.removeListener(
-          SERVER_PACKET_TYPE.ROOM_UPDATE,
-          roomUpdateListener,
-        );
-        client.removeListener(
-          SERVER_PACKET_TYPE.RECEIVED_ITEMS,
-          receivedItemsListener,
-        );
-      } catch {
-        console.log("client listeners did not exist");
-      }
-      client.addListener(SERVER_PACKET_TYPE.ROOM_UPDATE, roomUpdateListener);
-      client.addListener(
-        SERVER_PACKET_TYPE.RECEIVED_ITEMS,
-        receivedItemsListener,
-      );
-      handleOfflineChecks();
-      handleOfflineItems(
-        client.items.received,
-        sessionName,
-        client.items.index,
-      );
-      if (!goalAchieved) handleGoal(client, trips, macguffinString);
-    }
-  }, [refreshClientListeners]);
   return (
     <View style={mapStyles.container}>
       <LocationInfoPopup
@@ -623,12 +658,14 @@ export default function MapScreen({
         receivedKeys={receivedKeys}
         rerollSelectedLocation={rerollSelectedLocation}
         rerollAllowed={rerollAllowedRef}
+        rerollTime={rerollTime}
       />
       <MemoizedMap location={location}>
         <APMarkers
           trips={trips}
           receivedKeys={receivedKeys}
           handleShowPopup={handleShowPopup}
+          hintedProgTrips={hintedProgTrips}
         />
       </MemoizedMap>
     </View>

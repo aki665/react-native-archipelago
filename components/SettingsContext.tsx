@@ -82,6 +82,16 @@ const defaultSettings: Settings[] = [
     maxValue: 100,
     minValue: 10,
   },
+  {
+    name: "LOCATION_RETRIES",
+    displayName: "Retry location amount",
+    description:
+      "Determines how many times the app should try generating unique trips before continuing." +
+      "\nIf set to zero, locations are not checked for uniqueness, causing multiple checks to be in the same location." +
+      "\nShould be lower if playing in an area with few roads or with many locations." +
+      "\nDefault: 5",
+    value: 5,
+  },
 ];
 /**
  *
