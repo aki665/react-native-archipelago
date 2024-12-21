@@ -1,8 +1,17 @@
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
+import {
+  createMaterialTopTabNavigator,
+  MaterialTopTabBarProps,
+} from "@react-navigation/material-top-tabs";
 import { PrintJSONPacket } from "archipelago.js";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { Alert, BackHandler, RefreshControl, ScrollView } from "react-native";
+import {
+  Alert,
+  BackHandler,
+  NativeEventSubscription,
+  Platform,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Chat, { messages } from "./chat";
@@ -19,7 +28,7 @@ function Placeholder() {
 export default function Connected({
   navigation,
 }: Readonly<{
-  navigation: MaterialTopTabNavigationHelpers;
+  navigation: MaterialTopTabBarProps["navigation"];
 }>) {
   const { client, connectionInfoRef } = useContext(ClientContext);
 
@@ -31,10 +40,12 @@ export default function Connected({
   );
 
   const [messages, setMessages] = useState<messages>([]);
-  const [disconnected, setDisconnected] = useState<boolean>(false);
-  const [reconnecting, setReconnecting] = useState<boolean>(false);
+
   const insets = useSafeAreaInsets();
   const retryCountRef = useRef<number>(0);
+  const backHandler = useRef<NativeEventSubscription | undefined>(undefined);
+  const [disconnected, setDisconnected] = useState<boolean>(false);
+  const [reconnecting, setReconnecting] = useState<boolean>(false);
 
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
@@ -100,11 +111,13 @@ export default function Connected({
   };
 
   const handleDisconnect = async () => {
+    backHandler.current?.remove();
+    client.socket.off("disconnected", onDisconnect);
     client.socket.off("printJSON", handleMessages);
     console.log("disconnecting...");
     client.socket.disconnect();
     setMessages([]);
-    navigation.navigate("connect");
+    navigation.reset({ routes: [{ name: "connect" }] });
   };
 
   /**
@@ -242,26 +255,18 @@ export default function Connected({
       return true;
     };
 
-    const backHandler = BackHandler.addEventListener(
+    backHandler.current = BackHandler.addEventListener(
       "hardwareBackPress",
       backAction,
     );
 
-    console.log("messages", client.messages.log);
     client.socket.on("disconnected", onDisconnect);
     client.socket.on("printJSON", handleMessages);
-
-    return () => {
-      console.log("Connected.tsx useEffect cleanup is running...");
-      client.socket.off("printJSON", handleMessages);
-      backHandler.remove();
-      client.socket.off("disconnected", onDisconnect);
-    };
   }, []);
 
   return (
-    <Tab.Navigator initialRouteName="chat" style={{ paddingTop: insets.top }}>
-      <Tab.Screen name="chat">
+    <Tab.Navigator initialRouteName="Chat" style={{ paddingTop: insets.top }}>
+      <Tab.Screen name="Chat">
         {(props) => (
           <ScrollView
             refreshControl={<RefreshControl refreshing={reconnecting} />}

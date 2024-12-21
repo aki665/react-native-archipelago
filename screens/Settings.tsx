@@ -46,18 +46,23 @@ function SettingItem({
             //don't change the setting if it is not a number
           } else if (newValue < min) {
             onChange(min, setting.name);
-            setSettingState(min);
           } else if (newValue > max) {
             onChange(max, setting.name);
-            setSettingState(max);
           } else {
             onChange(newValue, setting.name);
           }
         }}
         onEndEditing={(e) => {
-          console.log("onEndEditing", e.nativeEvent.text === "");
-          if (e.nativeEvent.text === "")
-            setSettingState(setting.value.toString());
+          const min = setting.minValue ?? 0;
+          const max = setting.maxValue ?? Infinity;
+          const newValue = parseInt(e.nativeEvent.text, 10);
+          if (e.nativeEvent.text === "" || isNaN(newValue))
+            setSettingState(setting.value);
+          else if (newValue < min) {
+            setSettingState(min);
+          } else if (newValue > max) {
+            setSettingState(max);
+          }
         }}
       />
     );
@@ -72,6 +77,7 @@ function SettingItem({
           onChange(value, setting.name);
         }}
         value={settingState}
+        style={{ margin: 12 }}
       />
     );
   }
@@ -126,7 +132,7 @@ export default function SettingsScreen() {
                 <Text
                   style={{
                     flex: 10,
-                    marginTop: 10,
+                    marginVertical: 10,
                     marginLeft: 10,
                     fontSize: 25,
                   }}

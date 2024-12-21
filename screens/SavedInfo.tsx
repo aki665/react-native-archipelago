@@ -1,7 +1,6 @@
 import { AntDesign } from "@expo/vector-icons";
-import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
+import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
-import { clientStatuses } from "archipelago.js";
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, Text, TextInput, TouchableHighlight, View } from "react-native";
 
@@ -19,10 +18,15 @@ import {
   remove,
   save,
 } from "../utils/storageHandler";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 
 const EXTERNAL_EXTRA_DATA: string[] = ["__settings"]; // include extra storage keys you want to handle yourself in this array
-const EXTRA_DATA: string[] = []; // include any extra storage keys in this array
-const hiddenData: string[] = [...EXTERNAL_EXTRA_DATA, ...EXTRA_DATA]; // these values are hidden from the loadable list of connections
+export const EXTRA_DATA: { name: string; type: string }[] = [
+  { name: "_trips", type: STORAGE_TYPES.OBJECT },
+  { name: "_itemIndex", type: STORAGE_TYPES.NUMBER },
+  { name: "_checked", type: STORAGE_TYPES.OBJECT },
+]; // include any extra storage keys in this array
+const hiddenData: any[] = [...EXTERNAL_EXTRA_DATA, ...EXTRA_DATA]; // these values are hidden from the loadable list of connections
 
 const ListItem = ({
   item,
@@ -100,8 +104,9 @@ const debugButtons = () => {
 export default function SavedInfo({
   navigation,
 }: Readonly<{
-  navigation: MaterialTopTabNavigationHelpers;
+  navigation: MaterialTopTabBarProps["navigation"];
 }>) {
+  const nav = useNavigation();
   const [savedInfo, setSavedInfo] = useState<readonly string[] | undefined>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -121,7 +126,7 @@ export default function SavedInfo({
   const filterStorage = (item: string) => {
     let res = true;
     hiddenData.forEach((string) => {
-      if (item.includes(string)) res = false;
+      if (item.includes(string) || item.includes(string?.name)) res = false;
     });
     return res;
   };
@@ -170,7 +175,10 @@ export default function SavedInfo({
         if (connectionInfoRef !== null) {
           connectionInfoRef.current = apInfo;
         }
-        navigation.navigate("connected");
+        //client.say("connected to the server from react-native!");
+        navigation.navigate("connected", {
+          sessionName: storageName,
+        });
         setLoading(false);
       }
     } catch (e) {
@@ -200,11 +208,11 @@ export default function SavedInfo({
         if (EXTRA_DATA.length > 0) {
           EXTRA_DATA.forEach(async (item) => {
             const data = await load(
-              editingName.originalName + item,
-              STORAGE_TYPES.OBJECT,
+              editingName.originalName + item.name,
+              item.type,
             );
-            await save(data, editingName.newName + item, STORAGE_TYPES.OBJECT);
-            await remove(editingName.originalName + item);
+            await save(data, editingName.newName + item.name, item.type);
+            await remove(editingName.originalName + item.name);
           });
         }
       }
@@ -218,8 +226,7 @@ export default function SavedInfo({
   };
 
   const deleteSavedInfo = async (storageName: string) => {
-    const status = await client.players.self.fetchStatus();
-    if (status === clientStatuses.disconnected) {
+    if (!client.socket.connected) {
       Alert.alert(
         "Delete saved info",
         `Do you want to delete ${storageName}?`,
@@ -236,7 +243,7 @@ export default function SavedInfo({
                 remove(storageName);
                 if (EXTRA_DATA.length > 0) {
                   EXTRA_DATA.forEach(async (item) => {
-                    await remove(storageName + item);
+                    await remove(storageName + item.name);
                   });
                 }
                 fetchStorage();
@@ -252,6 +259,14 @@ export default function SavedInfo({
       );
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = nav.addListener("focus", () => {
+      fetchStorage();
+    });
+
+    return unsubscribe;
+  }, [nav]);
 
   //const editInfo = async();
   useEffect(() => {

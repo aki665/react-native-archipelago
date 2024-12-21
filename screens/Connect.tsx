@@ -1,4 +1,4 @@
-import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import { ConnectionOptions, itemsHandlingFlags } from "archipelago.js";
 import React, { useContext, useState } from "react";
 import { Alert, Text, TextInput, View } from "react-native";
@@ -17,7 +17,7 @@ import { STORAGE_TYPES, getAllNames, save } from "../utils/storageHandler";
 export default function Connect({
   navigation,
 }: Readonly<{
-  navigation: MaterialTopTabNavigationHelpers;
+  navigation: MaterialTopTabBarProps["navigation"];
 }>) {
   const { client, connectionInfoRef } = useContext(ClientContext);
   const { setError } = useContext(ErrorContext);
@@ -34,6 +34,7 @@ export default function Connect({
     await save(infoToSave, sessionName, STORAGE_TYPES.OBJECT);
     connect();
   };
+
   const handleSaveConnectionInfo = async () => {
     const existingNames = await getAllNames();
     if (existingNames?.some((value: string) => value === sessionName)) {
@@ -72,14 +73,7 @@ export default function Connect({
       };
       const url = apInfo.hostname + ":" + port.toString();
 
-      console.log(
-        typeof url,
-        typeof apInfo.name,
-        typeof game,
-        typeof connectionInfo,
-      );
-      console.log(url, apInfo.name);
-
+      client.options.timeout = 3000;
       await client.login(url.toString(), apInfo.name, game, connectionInfo);
       const connectionOptions = {
         url,

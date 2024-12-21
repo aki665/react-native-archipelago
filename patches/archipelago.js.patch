@@ -1,5 +1,18 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index 27751cb6faf5083f19d58c0f5fdc10e28bcba9ff..f32e8aaf741b6bb608a5fe582b142adcaf015831 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -2660,7 +2660,7 @@ export declare class Client {
+ 	 * @throws {@link UnauthenticatedError} if attempting to check locations while not authenticated.
+ 	 * @remarks Locations that do not exist or have already been checked in the multi-world are ignored.
+ 	 */
+-	check(...locations: number[]): void;
++	check(locations: number[]): void;
+ 	/**
+ 	 * Scout a list of locations for their containing items.
+ 	 * @param locations A list of location ids to scout.
 diff --git a/dist/index.js b/dist/index.js
-index 205536caa01432ff4b58bd07e3488ba4a2713846..dcd2174618925e6334ed38f64a630e40569d8b61 100644
+index 205536caa01432ff4b58bd07e3488ba4a2713846..756a2785f51477e8a1d1de6f85b529ecaa238d42 100644
 --- a/dist/index.js
 +++ b/dist/index.js
 @@ -1181,7 +1181,7 @@ class SocketManager extends EventBasedManager {
@@ -11,16 +24,12 @@ index 205536caa01432ff4b58bd07e3488ba4a2713846..dcd2174618925e6334ed38f64a630e40
          this.#socket.onmessage = this.#parseMessage.bind(this);
          this.#socket.onclose = () => {
            this.disconnect();
-diff --git a/src/classes/managers/SocketManager.ts b/src/classes/managers/SocketManager.ts
-index f6599ebefd9b328e2d0be0bcc24b3d27188d0f7f..9f0e48d1d318a3e6c98d083931eb8188723e09a2 100644
---- a/src/classes/managers/SocketManager.ts
-+++ b/src/classes/managers/SocketManager.ts
-@@ -93,7 +93,7 @@ export class SocketManager extends EventBasedManager<SocketEvents> {
-                 }
- 
-                 // Establish a websocket connection and setup basic handlers.
--                this.#socket = new IsomorphousWebSocket(url);
-+                this.#socket = new IsomorphousWebSocket(url.toString());
-                 this.#socket.onmessage = this.#parseMessage.bind(this);
-                 this.#socket.onclose = () => {
-                     this.disconnect();
+@@ -1394,7 +1394,7 @@ class Client {
+     }
+     this.socket.send({ cmd: "ConnectUpdate", tags: this.arguments.tags, items_handling: items });
+   }
+-  check(...locations) {
++  check(locations) {
+     if (!this.authenticated) {
+       throw new UnauthenticatedError("Cannot check locations while not connected and authenticated.");
+     }
