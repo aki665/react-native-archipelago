@@ -423,7 +423,7 @@ export default function MapScreen({
     );
     let filteredTrips: trip[];
 
-    if ((loadedTrips?.length === 0 || replacedInfo) && data.trips) {
+    if (loadedTrips === null && data.trips) {
       const tempTrips: any[] | trip[] = [];
       const tracker = { tripGroup: 0, theta: Math.random() * 2 * Math.PI };
       for (const [name, trip] of Object.entries(data?.trips).sort(
