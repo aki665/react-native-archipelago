@@ -12,6 +12,7 @@ import ErrorContextProvider, { ErrorMessage } from "./components/ErrorContext";
 import SettingsContextProvider from "./components/SettingsContext";
 import ConnectTabs from "./screens/ConnectTabs";
 import Connected from "./screens/Connected";
+import { StatusBar } from "expo-status-bar";
 require("react-native-get-random-values");
 
 const Stack = createNativeStackNavigator();
@@ -25,6 +26,7 @@ function App() {
         <ClientContextProvider>
           <SettingsContextProvider>
             <View style={{ flex: 15 }}>
+              <StatusBar style="dark" />
               <NavigationContainer>
                 <Stack.Navigator
                   initialRouteName="connect"
