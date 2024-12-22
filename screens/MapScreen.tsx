@@ -351,7 +351,7 @@ export default function MapScreen({
     if (checkedLocations !== null && checkedLocations.length > 0) {
       console.log("all trips", trips);
       try {
-        client.check(checkedLocations);
+        client.check([...checkedLocations]);
       } catch (e) {
         console.log("could not check locations");
       }
