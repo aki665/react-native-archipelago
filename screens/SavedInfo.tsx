@@ -19,6 +19,7 @@ import {
   save,
 } from "../utils/storageHandler";
 import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
+import { itemsHandlingFlags } from "archipelago.js";
 
 const EXTERNAL_EXTRA_DATA: string[] = ["__settings"]; // include extra storage keys you want to handle yourself in this array
 export const EXTRA_DATA: { name: string; type: string }[] = [
@@ -86,6 +87,15 @@ const debugButtons = () => {
       );
     });
   };
+  const oldSaveData: apInfo = {
+    hostname: "10.0.2.2",
+    port: 38281,
+    name: "Player1",
+  };
+  const addOldSave = async () => {
+    await save(oldSaveData, "old save data", STORAGE_TYPES.OBJECT);
+  };
+
   const deleteAllData = async () => {
     const infoNames = await getAllNames();
     infoNames?.forEach((item) => {
@@ -96,9 +106,26 @@ const debugButtons = () => {
   return (
     <View>
       <Button onPress={makeMockSaves} text="create junk data" />
+      <Button onPress={addOldSave} text="create old save data" />
       <Button onPress={deleteAllData} text="delete all saved data" />
     </View>
   );
+};
+
+const migrateData = (apInfo: apInfo): APInfo => {
+  return {
+    game: "Archipela-Go!",
+    url: apInfo.hostname + ":" + apInfo.port.toString(),
+    name: apInfo.name,
+    connectionInfo: {
+      items: itemsHandlingFlags.all,
+      password: apInfo.password ?? "",
+    },
+  };
+};
+
+const isOldSaveFormat = (data: apInfo | APInfo): data is apInfo => {
+  return (data as apInfo).hostname !== undefined;
 };
 
 export default function SavedInfo({
@@ -150,7 +177,12 @@ export default function SavedInfo({
     try {
       if (!client.socket.connected) {
         setLoading(true);
-        const savedInfo: APInfo = await load(storageName, STORAGE_TYPES.OBJECT);
+        let savedInfo: APInfo | apInfo = await load(
+          storageName,
+          STORAGE_TYPES.OBJECT,
+        );
+        if (isOldSaveFormat(savedInfo)) savedInfo = migrateData(savedInfo);
+
         setEditingValues(savedInfo);
         setEditingName({ originalName: storageName, newName: storageName });
         setLoading(false);
@@ -165,7 +197,11 @@ export default function SavedInfo({
     try {
       if (!client.socket.connected) {
         setLoading(true);
-        const apInfo: APInfo = await load(storageName, STORAGE_TYPES.OBJECT);
+        let apInfo: APInfo | apInfo = await load(
+          storageName,
+          STORAGE_TYPES.OBJECT,
+        );
+        if (isOldSaveFormat(apInfo)) apInfo = migrateData(apInfo);
         await client.login(
           apInfo.url,
           apInfo.name,
