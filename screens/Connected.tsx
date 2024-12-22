@@ -8,7 +8,6 @@ import {
   Alert,
   BackHandler,
   NativeEventSubscription,
-  Platform,
   RefreshControl,
   ScrollView,
 } from "react-native";
