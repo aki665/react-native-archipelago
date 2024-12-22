@@ -33,7 +33,7 @@ function App() {
         <ClientContextProvider>
           <SettingsContextProvider>
             <View style={{ flex: 15 }}>
-              <StatusBar style="auto" />
+              <StatusBar style="dark" />
               <NavigationContainer>
                 <Stack.Navigator
                   initialRouteName="connect"
