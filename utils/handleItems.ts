@@ -1,7 +1,10 @@
-import { Client, ITEM_FLAGS, NetworkItem } from "archipelago.js";
-import { Alert } from "react-native";
-
-import { STORAGE_TYPES, load, save } from "./storageHandler";
+import {
+  Client,
+  Item,
+  itemClassifications,
+  JSONSerializable,
+} from "archipelago.js";
+import AsyncAlert from "../components/AsyncAlert";
 
 export const ITEM_ID_OFFSET = 8902301100000;
 export const MAP_ID_TO_ITEM = {
@@ -42,32 +45,33 @@ export const GOAL_MAP = {
   LONG_MACGUFFIN: 3,
 };
 
-async function handleTrap(item: NetworkItem) {}
+async function handleTrap(item: Item) {}
 
 export default async function handleItems(
-  items: readonly NetworkItem[],
+  items: readonly Item[],
   client: Client,
+  goal?: JSONSerializable,
   index = -1,
 ) {
   const itemPackage =
-    client.data.package.get("Archipela-Go!")?.item_id_to_name || {};
-  const goal: number = parseInt(JSON.stringify(client.data.slotData?.goal), 10);
+    client.package.findPackage("Archipela-Go!")?.reverseItemTable || {};
+  const goalNumber = parseInt(JSON.stringify(goal), 10);
   let keyAmount = 0;
   let distanceReductions = 0;
 
   let macguffinString = "Archipela-Go";
 
-  console.log("goal:", goal);
-  if (goal === GOAL_MAP.SHORT_MACGUFFIN) macguffinString = "Ap-Go!";
-  if (goal === GOAL_MAP.LONG_MACGUFFIN) macguffinString = "Archipela-Go!";
-  const newItems: NetworkItem[] = [];
+  console.log("goal:", goalNumber);
+  if (goalNumber === GOAL_MAP.SHORT_MACGUFFIN) macguffinString = "Ap-Go!";
+  if (goalNumber === GOAL_MAP.LONG_MACGUFFIN) macguffinString = "Archipela-Go!";
+  const newItems: Item[] = [];
 
   items.forEach(async (item, i) => {
-    if (item.item === MAP_ID_TO_ITEM.KEY) keyAmount++;
-    if (item.item === MAP_ID_TO_ITEM.COLLECTION_DISTANCE) distanceReductions++;
+    if (item.id === MAP_ID_TO_ITEM.KEY) keyAmount++;
+    if (item.id === MAP_ID_TO_ITEM.COLLECTION_DISTANCE) distanceReductions++;
     console.log("macguffinString =", macguffinString);
     if (macguffinString) {
-      switch (item.item) {
+      switch (item.id) {
         case MAP_ID_TO_ITEM.MACGUFFIN_A:
           macguffinString = macguffinString.replace("A", "");
           break;
@@ -123,23 +127,23 @@ export default async function handleItems(
       // Do nothing if item is already handled
     } else {
       newItems.push(item);
-      if (item.flags === ITEM_FLAGS.TRAP) {
+      if (item.flags === itemClassifications.trap) {
         await handleTrap(item);
-      } else if (item.flags === ITEM_FLAGS.PROGRESSION) {
+      } else if (item.flags === itemClassifications.progression) {
       }
     }
   });
   if (newItems.length > 0) {
     let itemString = "";
-    newItems.forEach((item: NetworkItem) => {
-      const itemName = itemPackage[item.item] || "";
-      if (item.player === client.data.slot) {
+    newItems.forEach((item: Item) => {
+      const itemName = itemPackage[item.id] || "";
+      if (item.receiver.slot === client.players.self.slot) {
         itemString += `Found your own ${itemName}\n`;
       } else {
-        itemString += `Received ${itemName} from ${client.players.name(item.player)}\n`;
+        itemString += `Received ${itemName} from ${item.sender.alias}\n`;
       }
     });
-    Alert.alert("Items received!", itemString, [
+    await AsyncAlert("Items received!", itemString, [
       {
         text: "OK",
         onPress: () => null,

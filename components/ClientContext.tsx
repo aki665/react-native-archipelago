@@ -1,4 +1,4 @@
-import { Client, ConnectionInformation } from "archipelago.js";
+import { ConnectionOptions, Client } from "archipelago.js";
 import React, {
   MutableRefObject,
   ReactNode,
@@ -7,12 +7,22 @@ import React, {
   useRef,
 } from "react";
 
+import { apInfo } from "./APConnectionInfo";
+
+export type APInfo = {
+  url: string | URL;
+  name: string;
+  game: string;
+  connectionInfo: ConnectionOptions;
+  apInfo?: apInfo;
+};
+
 /**
  * Used to get the client from the context using useContext(ClientContext)
  */
 export const ClientContext = createContext<{
   client: Client;
-  connectionInfoRef: MutableRefObject<ConnectionInformation | null> | null;
+  connectionInfoRef: MutableRefObject<APInfo | null> | null;
 }>({
   client: new Client(),
   connectionInfoRef: null,
@@ -28,8 +38,8 @@ export default function ClientContextProvider({
   children?: ReactNode | ReactNode[];
 }>) {
   const client = useMemo(() => new Client(), []);
-  const connectionInfoRef = useRef<ConnectionInformation | null>(null);
-  const contextValue = useMemo(() => ({ client, connectionInfoRef }), []);
+  const connectionInfoRef = useRef<APInfo | null>(null);
+  const contextValue = useMemo(() => ({ client, connectionInfoRef }), [client]);
   return (
     <ClientContext.Provider value={contextValue}>
       {children}

@@ -49,11 +49,11 @@ type getSettingTypeNames = "string" | "number" | "boolean";
  */
 const defaultSettings: Settings[] = [
   {
-    name: "CHECK_CONNECTION_TIME",
-    displayName: "Connection timeout",
+    name: "AUTOMATIC_RECONNECTION",
+    displayName: "Automatic reconnection",
     description:
-      "Determines how often connection status is checked (in seconds)\nDefault: 120",
-    value: 120,
+      "Determines if the app reconnects to archipelago automatically or not",
+    value: true,
   },
   {
     name: "AUTO_RETRY_AMOUNT",
@@ -81,6 +81,16 @@ const defaultSettings: Settings[] = [
     value: 20,
     maxValue: 100,
     minValue: 10,
+  },
+  {
+    name: "LOCATION_RETRIES",
+    displayName: "Retry location amount",
+    description:
+      "Determines how many times the app should try generating unique trips before continuing." +
+      "\nIf set to zero, locations are not checked for uniqueness, causing multiple checks to be in the same location." +
+      "\nShould be lower if playing in an area with few roads or with many locations." +
+      "\nDefault: 5",
+    value: 5,
   },
 ];
 /**

@@ -77,6 +77,7 @@ function SettingItem({
           onChange(value, setting.name);
         }}
         value={settingState}
+        style={{ margin: 12 }}
       />
     );
   }
@@ -131,7 +132,7 @@ export default function SettingsScreen() {
                 <Text
                   style={{
                     flex: 10,
-                    marginTop: 10,
+                    marginVertical: 10,
                     marginLeft: 10,
                     fontSize: 25,
                   }}

@@ -7,21 +7,38 @@ import { Callout, Circle, Marker } from "react-native-maps";
 import { trip } from "./MapScreen";
 import { SettingsContext } from "../components/SettingsContext";
 
+const getMarker = (canCheck: boolean, hinted: boolean) => {
+  if (canCheck && hinted) return require("../assets/APMarker_Hint.png");
+  else if (canCheck) return require("../assets/APMarker_blue.png");
+  else if (hinted) return require("../assets/APMarker_Hint_gray.png");
+  else return require("../assets/APMarker_gray.png");
+};
+
 const MemoizedMarker = memo(function APMarker({
   trip,
   receivedKeys,
   handleShowPopup,
   MARKER_RADIUS,
+  hinted,
 }: Readonly<{
   trip: trip;
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
   MARKER_RADIUS: number;
+  hinted: boolean;
 }>) {
   const navigation = useNavigation();
   const canCheck = receivedKeys >= trip.trip.key_needed;
+  const coordinates = useRef({
+    latitude: trip.coords.duplicate
+      ? trip.coords.lat + (Math.random() - 0.5) / 8300
+      : trip.coords.lat,
+    longitude: trip.coords.duplicate
+      ? trip.coords.lon + (Math.random() - 0.5) / 8300
+      : trip.coords.lon,
+  });
   const firstRenderDone = useRef(false);
-  console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`);
+  //console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`);
   const [tracksViewChanges, setTracksViewChanges] = useState(true);
   useEffect(() => {
     setTracksViewChanges(true);
@@ -29,6 +46,7 @@ const MemoizedMarker = memo(function APMarker({
       setTracksViewChanges(false);
     }, 200);
   }, [receivedKeys]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       if (!firstRenderDone.current) {
@@ -44,6 +62,13 @@ const MemoizedMarker = memo(function APMarker({
     return unsubscribe;
   }, [navigation]);
 
+  useEffect(() => {
+    setTracksViewChanges(true);
+    setTimeout(() => {
+      setTracksViewChanges(false);
+    }, 200);
+  }, [hinted]);
+
   return (
     <>
       <Circle
@@ -54,16 +79,12 @@ const MemoizedMarker = memo(function APMarker({
         key={`${trip.coords.lat}&${trip.coords.lon}-circle`}
       />
       <Marker
-        coordinate={{ latitude: trip.coords.lat, longitude: trip.coords.lon }}
+        coordinate={coordinates.current}
         key={`${trip.coords.lat}&${trip.coords.lon}-marker`}
         tracksViewChanges={tracksViewChanges} //android only
       >
         <Image
-          source={
-            canCheck
-              ? require("../assets/APMarker_blue.png")
-              : require("../assets/APMarker_gray.png")
-          }
+          source={getMarker(canCheck, hinted)}
           style={{ width: 50, height: 50 }}
           resizeMode="center"
           resizeMethod="resize"
@@ -92,10 +113,12 @@ export default function APMarkers({
   trips,
   receivedKeys,
   handleShowPopup,
+  hintedProgTrips,
 }: Readonly<{
   trips: any[] | trip[];
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
+  hintedProgTrips: number[];
 }>) {
   const { getSetting } = useContext(SettingsContext);
 
@@ -112,6 +135,7 @@ export default function APMarkers({
               receivedKeys={receivedKeys}
               handleShowPopup={handleShowPopup}
               MARKER_RADIUS={MARKER_RADIUS}
+              hinted={hintedProgTrips.includes(t.id)}
             />
           );
         }

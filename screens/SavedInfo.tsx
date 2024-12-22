@@ -1,14 +1,12 @@
 import { AntDesign } from "@expo/vector-icons";
-import { MaterialTopTabNavigationHelpers } from "@react-navigation/material-top-tabs/lib/typescript/src/types";
 import { useNavigation } from "@react-navigation/native";
 import { FlashList } from "@shopify/flash-list";
-import { ConnectionInformation, ITEMS_HANDLING_FLAGS } from "archipelago.js";
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, Text, TextInput, TouchableHighlight, View } from "react-native";
 
 import APConnectionInfo, { apInfo } from "../components/APConnectionInfo";
 import Button from "../components/Button";
-import { ClientContext } from "../components/ClientContext";
+import { APInfo, ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
 import Popup from "../components/Popup";
 import commonStyles from "../styles/CommonStyles";
@@ -20,6 +18,8 @@ import {
   remove,
   save,
 } from "../utils/storageHandler";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
+import { itemsHandlingFlags } from "archipelago.js";
 
 const EXTERNAL_EXTRA_DATA: string[] = ["__settings"]; // include extra storage keys you want to handle yourself in this array
 export const EXTRA_DATA: { name: string; type: string }[] = [
@@ -87,6 +87,15 @@ const debugButtons = () => {
       );
     });
   };
+  const oldSaveData: apInfo = {
+    hostname: "10.0.2.2",
+    port: 38281,
+    name: "Player1",
+  };
+  const addOldSave = async () => {
+    await save(oldSaveData, "old save data", STORAGE_TYPES.OBJECT);
+  };
+
   const deleteAllData = async () => {
     const infoNames = await getAllNames();
     infoNames?.forEach((item) => {
@@ -97,21 +106,38 @@ const debugButtons = () => {
   return (
     <View>
       <Button onPress={makeMockSaves} text="create junk data" />
+      <Button onPress={addOldSave} text="create old save data" />
       <Button onPress={deleteAllData} text="delete all saved data" />
     </View>
   );
 };
 
+const migrateData = (apInfo: apInfo): APInfo => {
+  return {
+    game: "Archipela-Go!",
+    url: apInfo.hostname + ":" + apInfo.port.toString(),
+    name: apInfo.name,
+    connectionInfo: {
+      items: itemsHandlingFlags.all,
+      password: apInfo.password ?? "",
+    },
+  };
+};
+
+const isOldSaveFormat = (data: apInfo | APInfo): data is apInfo => {
+  return (data as apInfo).hostname !== undefined;
+};
+
 export default function SavedInfo({
   navigation,
 }: Readonly<{
-  navigation: MaterialTopTabNavigationHelpers;
+  navigation: MaterialTopTabBarProps["navigation"];
 }>) {
   const nav = useNavigation();
   const [savedInfo, setSavedInfo] = useState<readonly string[] | undefined>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-  const [editingValues, setEditingValues] = useState<undefined | apInfo>(
+  const [editingValues, setEditingValues] = useState<undefined | APInfo>(
     undefined,
   );
   const [editingName, setEditingName] = useState<{
@@ -149,10 +175,15 @@ export default function SavedInfo({
 
   const editInfo = async (storageName: string) => {
     try {
-      if (client.status === "Disconnected") {
+      if (!client.socket.connected) {
         setLoading(true);
-        const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
-        setEditingValues(apInfo);
+        let savedInfo: APInfo | apInfo = await load(
+          storageName,
+          STORAGE_TYPES.OBJECT,
+        );
+        if (isOldSaveFormat(savedInfo)) savedInfo = migrateData(savedInfo);
+
+        setEditingValues(savedInfo);
         setEditingName({ originalName: storageName, newName: storageName });
         setLoading(false);
         setModalVisible(true);
@@ -164,17 +195,21 @@ export default function SavedInfo({
 
   const connectToAP = async (storageName: string) => {
     try {
-      if (client.status === "Disconnected") {
+      if (!client.socket.connected) {
         setLoading(true);
-        const apInfo: apInfo = await load(storageName, STORAGE_TYPES.OBJECT);
-        const connectionInfo: ConnectionInformation = {
-          game: "Archipela-Go!",
-          items_handling: ITEMS_HANDLING_FLAGS.REMOTE_ALL,
-          ...apInfo,
-        };
-        await client.connect(connectionInfo);
-        if (connectionInfoRef) {
-          connectionInfoRef.current = connectionInfo;
+        let apInfo: APInfo | apInfo = await load(
+          storageName,
+          STORAGE_TYPES.OBJECT,
+        );
+        if (isOldSaveFormat(apInfo)) apInfo = migrateData(apInfo);
+        await client.login(
+          apInfo.url,
+          apInfo.name,
+          apInfo.game,
+          apInfo.connectionInfo,
+        );
+        if (connectionInfoRef !== null) {
+          connectionInfoRef.current = apInfo;
         }
         //client.say("connected to the server from react-native!");
         navigation.navigate("connected", {
@@ -191,8 +226,19 @@ export default function SavedInfo({
 
   const saveEditedInfo = async (apInfo: apInfo) => {
     try {
+      if (editingValues === undefined)
+        throw new TypeError("Editing value is not of type APInfo");
       setLoading(true);
-      await save(apInfo, editingName.newName, STORAGE_TYPES.OBJECT);
+      const newInfo: APInfo = {
+        ...editingValues,
+        url: apInfo.hostname + ":" + apInfo.port.toString(),
+        name: apInfo.name,
+        connectionInfo: {
+          ...editingValues.connectionInfo,
+          password: apInfo.password,
+        },
+      };
+      await save(newInfo, editingName.newName, STORAGE_TYPES.OBJECT);
       if (editingName.originalName !== editingName.newName) {
         await remove(editingName.originalName);
         if (EXTRA_DATA.length > 0) {
@@ -216,7 +262,7 @@ export default function SavedInfo({
   };
 
   const deleteSavedInfo = async (storageName: string) => {
-    if (client.status === "Disconnected") {
+    if (!client.socket.connected) {
       Alert.alert(
         "Delete saved info",
         `Do you want to delete ${storageName}?`,
@@ -305,7 +351,7 @@ export default function SavedInfo({
           onPress={saveEditedInfo}
           buttonText="Save"
           loading={loading}
-          savedInfo={editingValues}
+          savedInfo={editingValues?.apInfo}
         />
       </Popup>
       <View style={{ width: "98%", height: "100%" }}>
