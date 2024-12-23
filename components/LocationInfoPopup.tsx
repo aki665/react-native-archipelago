@@ -287,20 +287,24 @@ export default function LocationInfoPopup({
                     )}
                   </>
                 )}
-              {hintedKeys.map((hint) => (
-                <Text
-                  key={hint.location}
-                  style={{
-                    marginBottom: 10,
-                    fontSize: 12,
-                    color: hint.found ? "darkgreen" : "darkred",
-                  }}
-                >
-                  {client.players.self.alias}'s {hint.item} is at{" "}
-                  {hint.location} in {hint.sendingPlayer}'s World
-                  {" (" + (hint.found ? "found" : "not found") + ")"}
-                </Text>
-              ))}
+              {locationInfo.keysNeeded > receivedKeys && (
+                <>
+                  {hintedKeys.map((hint) => (
+                    <Text
+                      key={hint.location}
+                      style={{
+                        marginBottom: 10,
+                        fontSize: 12,
+                        color: hint.found ? "darkgreen" : "darkred",
+                      }}
+                    >
+                      {client.players.self.alias}'s {hint.item} is at{" "}
+                      {hint.location} in {hint.sendingPlayer}'s World
+                      {" (" + (hint.found ? "found" : "not found") + ")"}
+                    </Text>
+                  ))}
+                </>
+              )}
             </>
           )}
         </View>
