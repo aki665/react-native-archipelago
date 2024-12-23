@@ -45,7 +45,7 @@ const MemoizedMarker = memo(function APMarker({
     setTimeout(() => {
       setTracksViewChanges(false);
     }, 200);
-  }, [receivedKeys]);
+  }, [receivedKeys, trip]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -123,7 +123,10 @@ export default function APMarkers({
   const { getSetting } = useContext(SettingsContext);
 
   const MARKER_RADIUS = getSetting("MARKER_RADIUS", "number");
-
+  const [hintedTrips, setHintedTrips] = useState(hintedProgTrips);
+  useEffect(() => {
+    setHintedTrips(hintedProgTrips);
+  }, [hintedProgTrips]);
   return (
     <>
       {trips.map((t: trip | string) => {
@@ -135,7 +138,7 @@ export default function APMarkers({
               receivedKeys={receivedKeys}
               handleShowPopup={handleShowPopup}
               MARKER_RADIUS={MARKER_RADIUS}
-              hinted={hintedProgTrips.includes(t.id)}
+              hinted={hintedTrips.includes(t.id)}
             />
           );
         }
