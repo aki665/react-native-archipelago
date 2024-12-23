@@ -60,7 +60,8 @@ const defaultSettings: Settings[] = [
     displayName: "Reconnect attempt amount",
     description:
       "Determines how many times the app should try automatic reconnection before " +
-      "notifying the user and disconnecting.\nDefault: 5",
+      "notifying the user and disconnecting.\nDefault: 5" +
+      "\nNot used if automatic reconnection is turned off.",
     value: 5,
   },
   {
