@@ -14,16 +14,17 @@
 Settings can be found and changed in the settings screen (duh). Pressing the ? icon next to the settings name will give a short description of the setting. Bellow is a list of the settings with a longer description.
 | Name | Description |
 |--|--|
-| Connection timeout | Determines how often connection status is checked (in seconds). e.g. if the connection to the archipelago server is lost, it can take **at most** this long for the app to notice. <br>Default value is 120 (2 minutes). Can't be less than 0. Recommended range: 10 - 300 (5 minutes) |
-| Reconnect attempt amount | Determines how many times the app will try to reconnect to the archipelago server, if connection is lost. If the amount is reached (or is set to 0), the user is told that they have disconnected and be taken back to the connection screen. <br>Defaults to 5. Can't be less than 0. Recommended range: 3 - 10 |
-| Allow multiple locations on the same road | If enabled, a road can have multiple locations. For example, imagine a road that has three buildings, Building 1, Building 2 and Building 3. If this setting is disabled, only a single location will be on the road, located usually at the middle point of the road. If enabled, all three buildings can be locations separately. <br>Default is false. Should be turned on, if playing in an area with few roads or with many locations to speed up generation.<br><br> Note: The location generation will selectively act like this setting is enabled, if location a single location takes too many attempts.    |
+| Automatic reconnection | Determines if the app reconnects to archipelago automatically or not. e.g. if the connection to the archipelago server is lost, should connection be retriedf automatically <br>Default value is on. If you know that you will have a very weak and spotty connection or no connection at all, you should toggle this off. |
+| Reconnect attempt amount | Determines how many times the app will try to reconnect to the archipelago server, if connection is lost. If the amount is reached (or is set to 0), the user is told that they have disconnected and be taken back to the connection screen. <br>Defaults to 5. Can't be less than 0. Recommended range: 3 - 10<br><br>Note: This setting is ignored if automatic reconnection is turned off. |
+| Allow multiple locations on the same road | If enabled, a road can have multiple locations. For example, imagine a road that has three buildings, Building 1, Building 2 and Building 3. If this setting is disabled, only a single location will be on the road, located usually at the middle point of the road. If enabled, all three buildings can be locations separately. <br>Default is off. Should be turned on, if playing in an area with few roads or with many locations to speed up generation.<br><br> Note: The location generation will selectively act like this setting is enabled, if location a single location takes too many attempts.    |
 | Location radius | Determines the distance from which a location can be collected (in meters). Because of the variance in locations, you should determine the best value for your area. Allowed values are 10 - 100. Default is 20.     |
 
 
 
 ### Connection saving
 When a connection is successfully made to an archipelago server, the app asks if you want to save that connection.
-![image](https://github.com/user-attachments/assets/7145d75f-ec41-4e5e-9aec-2df8a57ec0ea)
+
+![Screenshot_1734939273](https://github.com/user-attachments/assets/40caab98-cd08-4134-9c72-815228512031)
 
 
 Once a connection is saved, it can be found in the Saved Connections screen. The two buttons can be used to edit a saved connection or to delete it.
@@ -32,10 +33,13 @@ Once a connection is saved, it can be found in the Saved Connections screen. The
 
 The list of generated locations is kept with this information, so if you delete or overwrite it, new locations will be generated on connection.
 
-If you decide to not save the connection, no info for the slot will be save locally. Automatic reconnection will still function.
-
 ### Location information
-By tapping on an archipelago marker, a callout will be shown displaying that markers archipelago name.
+
+If a location is hinted and it contains either a progression item or an useful item, the marker will be different
+
+![Screenshot_1734939909](https://github.com/user-attachments/assets/04c7f325-548c-4255-864f-d701699ac4c9)
+
+By tapping on a marker, a callout will be shown displaying that location's archipelago name.
 
 ![image](https://github.com/user-attachments/assets/85c73182-8f2b-4209-8ba0-f0de7e793c59)
 
@@ -59,6 +63,11 @@ If the location is locked, displayed with a greyed out icon, the pop up will sho
 ![image](https://github.com/user-attachments/assets/5eb0ac17-14ce-4954-ae42-06160b2d1195) 
 
 ![image](https://github.com/user-attachments/assets/0776165c-5b58-4514-9257-2aa9f59732a6)
+
+If keys have been hinted, the hints will be shown. The hint key button will be hidden, if enough keys have been hinted
+
+![image](https://github.com/user-attachments/assets/f10d2161-89fd-4017-8518-1240fe614a47)
+
 
 The pop up also contains a button than can be used to re-roll the location. This does have a cooldown, currently set to 2 minutes.
 
