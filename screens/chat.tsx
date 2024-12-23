@@ -27,57 +27,76 @@ export type messages =
  * Breaks a single message into parts and then renders them with the correct colors. Memoized to improve performance.
  * @returns A text element that has the chat line split into parts and colorized.
  */
-const ChatLine = memo(
-  ({
-    message,
-    index,
-  }: {
-    message: {
-      type: string;
-      text: string;
-      selfPlayer?: boolean;
-      itemType?: number;
-      color?: ValidJSONColorType;
-    }[];
-    index: number;
-  }) => {
-    const msgPart = message[0];
-    const restOfMessage = message.slice(1);
-    let style = chatStyles.message;
-    switch (msgPart.type) {
-      case "player":
-        if (msgPart.selfPlayer) style = { ...style, color: Colors.magenta };
-        else style = { ...style, color: Colors.yellow };
-        break;
-      case "item":
-        if (msgPart.itemType === itemClassifications.none)
-          style = { ...style, color: Colors.cyan };
-        else if (msgPart.itemType === itemClassifications.useful)
-          style = { ...style, color: Colors.slateblue };
-        else if (msgPart.itemType === itemClassifications.progression)
-          style = { ...style, color: Colors.plum };
-        else if (msgPart.itemType === itemClassifications.trap)
-          style = { ...style, color: Colors.salmon };
-        break;
-      case "location":
-        style = { ...style, color: Colors.green };
-        break;
-      case "color":
-        style = { ...style, color: msgPart.color ? msgPart.color : "black" };
-        break;
-      default:
-        break;
-    }
-    return (
-      <Text style={style} key={`${index}-${msgPart.type}`}>
-        {msgPart.text}
-        {restOfMessage.length > 0 && (
-          <ChatLine message={restOfMessage} index={index} />
-        )}
-      </Text>
-    );
-  },
-);
+const ChatLine = memo(function chatLine({
+  message,
+  index,
+}: {
+  message: {
+    type: string;
+    text: string;
+    selfPlayer?: boolean;
+    itemType?: number;
+    color?: ValidJSONColorType;
+  }[];
+  index: number;
+}) {
+  const msgPart = message[0];
+  const restOfMessage = message.slice(1);
+  let style = chatStyles.message;
+  switch (msgPart.type) {
+    case "player":
+      if (msgPart.selfPlayer) style = { ...style, color: Colors.magenta };
+      else style = { ...style, color: Colors.yellow };
+      break;
+    case "item":
+      if (msgPart.itemType === itemClassifications.useful)
+        style = { ...style, color: Colors.useful };
+      else if (msgPart.itemType === itemClassifications.progression)
+        style = { ...style, color: Colors.progression };
+      else if (msgPart.itemType === itemClassifications.trap)
+        style = { ...style, color: Colors.trap };
+      else if (
+        msgPart.itemType ===
+        itemClassifications.progression + itemClassifications.useful
+      )
+        style = { ...style, color: Colors.progUseful };
+      else if (
+        msgPart.itemType ===
+        itemClassifications.progression + itemClassifications.trap
+      )
+        style = { ...style, color: Colors.progTrap };
+      else if (
+        msgPart.itemType ===
+        itemClassifications.useful + itemClassifications.trap
+      )
+        style = { ...style, color: Colors.usefulTrap };
+      else if (
+        msgPart.itemType ===
+        itemClassifications.useful +
+          itemClassifications.trap +
+          itemClassifications.progression
+      )
+        style = { ...style, color: Colors.progUsefulTrap };
+      else style = { ...style, color: Colors.filler };
+      break;
+    case "location":
+      style = { ...style, color: Colors.green };
+      break;
+    case "color":
+      style = { ...style, color: msgPart.color ? msgPart.color : "black" };
+      break;
+    default:
+      break;
+  }
+  return (
+    <Text style={style} key={`${index}-${msgPart.type}`}>
+      {msgPart.text}
+      {restOfMessage.length > 0 && (
+        <ChatLine message={restOfMessage} index={index} />
+      )}
+    </Text>
+  );
+});
 
 export default function Chat({
   messages,
