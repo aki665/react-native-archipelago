@@ -118,6 +118,7 @@ export default function Chat({
         onContentSizeChange={(contentWidth, contentHeight) => {
           chatBoxRef?.current?.scrollToEnd({ animated: false });
         }}
+        nestedScrollEnabled
       >
         {messages.map((message, index) => (
           <ChatLine message={message} index={index} key={`message-${index}`} />

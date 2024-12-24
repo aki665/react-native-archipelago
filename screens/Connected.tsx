@@ -268,8 +268,11 @@ export default function Connected({
       <Tab.Screen name="Chat">
         {(props) => (
           <ScrollView
-            refreshControl={<RefreshControl refreshing={reconnecting} />}
+            refreshControl={
+              <RefreshControl refreshing={reconnecting} enabled={false} />
+            }
             contentContainerStyle={{ flex: 1 }}
+            nestedScrollEnabled
           >
             {disconnected && (
               <Button
