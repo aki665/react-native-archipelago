@@ -17,6 +17,7 @@ import Chat, { messages } from "./chat";
 import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
 import { SettingsContext } from "../components/SettingsContext";
+import HintsScreen from "./HintsScreen";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -293,7 +294,7 @@ export default function Connected({
           </ScrollView>
         )}
       </Tab.Screen>
-      <Tab.Screen name="nothing yet" component={Placeholder} />
+      <Tab.Screen name="Hints" component={HintsScreen} />
     </Tab.Navigator>
   );
 }

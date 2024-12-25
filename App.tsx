@@ -13,7 +13,12 @@ import SettingsContextProvider from "./components/SettingsContext";
 import ConnectTabs from "./screens/ConnectTabs";
 import Connected from "./screens/Connected";
 import { StatusBar } from "expo-status-bar";
+import structuredClone from "@ungap/structured-clone";
 require("react-native-get-random-values");
+
+if (!("structuredClone" in globalThis)) {
+  globalThis.structuredClone = structuredClone;
+}
 
 const Stack = createNativeStackNavigator();
 

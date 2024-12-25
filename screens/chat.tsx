@@ -45,8 +45,8 @@ const ChatLine = memo(function chatLine({
   let style = chatStyles.message;
   switch (msgPart.type) {
     case "player":
-      if (msgPart.selfPlayer) style = { ...style, color: Colors.magenta };
-      else style = { ...style, color: Colors.yellow };
+      if (msgPart.selfPlayer) style = { ...style, color: Colors.playerSelf };
+      else style = { ...style, color: Colors.playerOther };
       break;
     case "item":
       if (msgPart.itemType === itemClassifications.useful)

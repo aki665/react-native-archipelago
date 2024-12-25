@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@coligo/react-native-table':
+    hash: oq7bxt2wntbl643c6njp2y7mq4
+    path: patches/@coligo__react-native-table.patch
   archipelago.js:
     hash: ento7v4udzeeq2m66mfickcnxi
     path: patches/archipelago.js.patch
@@ -13,6 +16,9 @@ importers:
 
   .:
     dependencies:
+      '@coligo/react-native-table':
+        specifier: ^1.0.2
+        version: 1.0.2(patch_hash=oq7bxt2wntbl643c6njp2y7mq4)(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@react-native-community/cli-server-api@13.6.9)(@types/react@18.3.17)(react@18.3.1))(react@18.3.1)
       '@expo/vector-icons':
         specifier: ^14.0.4
         version: 14.0.4
@@ -829,6 +835,12 @@ packages:
   '@babel/types@7.26.3':
     resolution: {integrity: sha512-vN5p+1kl59GVKMvTHt55NzzmYVxprfJD+ql7U9NFIfKCBkYE55LYtS+WtPlaYOyzydrKI8Nezd+aZextrd+FMA==}
     engines: {node: '>=6.9.0'}
+
+  '@coligo/react-native-table@1.0.2':
+    resolution: {integrity: sha512-P3NIH03V+iomIYjEhlfUYULn1XApJPIU3CvYsqSa7+ISOgm+YvYlHgpCtIJ5s9efUv1cDD3A1QtNLY7ZbF+egg==}
+    peerDependencies:
+      react: '*'
+      react-native: '*'
 
   '@egjs/hammerjs@2.0.17':
     resolution: {integrity: sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==}
@@ -5611,6 +5623,11 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
+
+  '@coligo/react-native-table@1.0.2(patch_hash=oq7bxt2wntbl643c6njp2y7mq4)(react-native@0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@react-native-community/cli-server-api@13.6.9)(@types/react@18.3.17)(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      react: 18.3.1
+      react-native: 0.76.5(@babel/core@7.26.0)(@babel/preset-env@7.26.0(@babel/core@7.26.0))(@react-native-community/cli-server-api@13.6.9)(@types/react@18.3.17)(react@18.3.1)
 
   '@egjs/hammerjs@2.0.17':
     dependencies:

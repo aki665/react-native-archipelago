@@ -12,6 +12,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@coligo/react-native-table": "^1.0.2",
     "@expo/vector-icons": "^14.0.4",
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-navigation/material-top-tabs": "^7.1.0",
@@ -47,7 +48,8 @@
   },
   "pnpm": {
     "patchedDependencies": {
-      "archipelago.js": "patches/archipelago.js.patch"
+      "archipelago.js": "patches/archipelago.js.patch",
+      "@coligo/react-native-table": "patches/@coligo__react-native-table.patch"
     }
   }
 }
