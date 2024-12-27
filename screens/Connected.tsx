@@ -21,6 +21,7 @@ import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
 import { SettingsContext } from "../components/SettingsContext";
+import HintsScreen from "./HintsScreen";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -362,6 +363,7 @@ export default function Connected({
           )}
         </Tab.Screen>
       )}
+      <Tab.Screen name="Hints" component={HintsScreen} />
     </Tab.Navigator>
   );
 }

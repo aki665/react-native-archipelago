@@ -45,8 +45,8 @@ const ChatLine = memo(function chatLine({
   let style = chatStyles.message;
   switch (msgPart.type) {
     case "player":
-      if (msgPart.selfPlayer) style = { ...style, color: Colors.magenta };
-      else style = { ...style, color: Colors.yellow };
+      if (msgPart.selfPlayer) style = { ...style, color: Colors.playerSelf };
+      else style = { ...style, color: Colors.playerOther };
       break;
     case "item":
       if (msgPart.itemType === itemClassifications.useful)
@@ -108,19 +108,106 @@ export default function Chat({
   const [chat, setChat] = useState("");
   const { client } = useContext(ClientContext);
   const chatBoxRef = useRef<ScrollView>(null);
+
+  /**
+/help 
+    Returns the help listing
+/license 
+    Returns the licensing information
+/exit 
+    Close connections and client
+/connect [address] 
+    Connect to a MultiWorld Server
+/disconnect 
+    Disconnect from a MultiWorld Server
+/received 
+    List all received items
+/missing [filter_text] 
+    List all missing location checks, from your local game state.
+        Can be given text, which will be used as filter.
+/items 
+    List all item names for the currently running game.
+/item_groups 
+    List all item group names for the currently running game.
+/locations 
+    List all location names for the currently running game.
+/location_groups 
+    List all location group names for the currently running game.
+/ready 
+    Send ready status to server.
+ */
+
+  const commands = {
+    "/received": {
+      command: client.items.received.map(
+        (
+          item,
+        ): {
+          type: string;
+          text: string;
+          selfPlayer?: boolean;
+          itemType?: number;
+          color?: ValidJSONColorType;
+        }[] => {
+          return [
+            {
+              type: "item",
+              text: item.name,
+              itemType: item.flags,
+            },
+            { type: "text", text: " from " },
+            { type: "location", text: item.locationName },
+            { type: "text", text: " by " },
+            {
+              type: "player",
+              text: item.sender.alias,
+              selfPlayer: item.sender.slot === item.receiver.slot,
+            },
+          ];
+        },
+      ),
+      description: "List all received items",
+    },
+    "/help": {
+      command: undefined,
+      description: "Returns the help listing",
+    },
+  };
+
+  const getCommands = () => {
+    return Object.entries(commands).map(([key, command]) => {
+      return [{ type: "text", text: key + "\n" + command.description }];
+    });
+    //const [name, command] = Object.entries(commands).map();
+  };
+
   const sendMessage = () => {
     console.log("handling message", chat);
     if (chat.startsWith("/")) {
-      setMessages((prevState) => [
-        ...prevState,
-        [
-          {
-            text: "This client does not implement local commands",
-            type: "color",
-            color: "red",
-          },
-        ],
-      ]);
+      if (chat === "/help") {
+        const commandDescriptions = getCommands();
+        console.log(commandDescriptions);
+        setMessages((prevState) => [...prevState, ...commandDescriptions]);
+      } else {
+        const res = commands[chat]?.command;
+        console.log(res);
+        if (res === undefined) {
+          setMessages((prevState) => [
+            ...prevState,
+            [
+              {
+                text: "Command not found",
+                type: "color",
+                color: "red",
+              },
+            ],
+          ]);
+          setChat("");
+          return;
+        }
+        setMessages((prevState) => [...prevState, ...res]);
+      }
+      setChat("");
       return;
     }
     try {
@@ -140,7 +227,20 @@ export default function Chat({
         nestedScrollEnabled
       >
         {messages.map((message, index) => (
-          <ChatLine message={message} index={index} key={`message-${index}`} />
+          <>
+            {index !== 0 && (
+              <View
+                style={{
+                  borderBottomWidth: 0.3,
+                }}
+              ></View>
+            )}
+            <ChatLine
+              message={message}
+              index={index}
+              key={`message-${index}`}
+            />
+          </>
         ))}
       </ScrollView>
       <View style={chatStyles.chatInputBox}>

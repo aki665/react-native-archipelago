@@ -1,0 +1,442 @@
+diff --git a/lib/commonjs/components/HorizontalSeparator.js.map b/lib/commonjs/components/HorizontalSeparator.js.map
+index 412cc3920c149cf13e097d95b4c4320cd63b3714..f3ec3f6a600b041435d9c3d0b6ba693952264c49 100644
+--- a/lib/commonjs/components/HorizontalSeparator.js.map
++++ b/lib/commonjs/components/HorizontalSeparator.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_reactNative","require","_jsxRuntime","HorizontalSeparator","borderStyle","showHorizontalBody","undefined","jsx","View","style","height","borderWidth","backgroundColor","borderColor","exports"],"sourceRoot":"../../../src","sources":["components/HorizontalSeparator.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAAoC,IAAAC,WAAA,GAAAD,OAAA;AAQ7B,MAAME,mBAAiD,GAAGA,CAAC;EAChEC;AACF,CAAC,KAAK;EACJ,IAAI,CAACA,WAAW,EAAEC,kBAAkB,EAAE;IACpC,OAAOC,SAAS;EAClB;EAEA,oBACE,IAAAJ,WAAA,CAAAK,GAAA,EAACP,YAAA,CAAAQ,IAAI;IACHC,KAAK,EAAE;MACLC,MAAM,EAAEN,WAAW,EAAEO,WAAW,IAAI,CAAC;MACrCC,eAAe,EAAER,WAAW,EAAES,WAAW,IAAI;IAC/C;EAAE,CACH,CAAC;AAEN,CAAC;AAACC,OAAA,CAAAX,mBAAA,GAAAA,mBAAA","ignoreList":[]}
++{"version":3,"names":["_reactNative","require","_jsxRuntime","HorizontalSeparator","borderStyle","showHorizontalBody","undefined","jsx","View","style","height","borderWidth","backgroundColor","borderColor","exports"],"sourceRoot":"..\\..\\..\\src","sources":["components/HorizontalSeparator.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAAoC,IAAAC,WAAA,GAAAD,OAAA;AAQ7B,MAAME,mBAAiD,GAAGA,CAAC;EAChEC;AACF,CAAC,KAAK;EACJ,IAAI,CAACA,WAAW,EAAEC,kBAAkB,EAAE;IACpC,OAAOC,SAAS;EAClB;EAEA,oBACE,IAAAJ,WAAA,CAAAK,GAAA,EAACP,YAAA,CAAAQ,IAAI;IACHC,KAAK,EAAE;MACLC,MAAM,EAAEN,WAAW,EAAEO,WAAW,IAAI,CAAC;MACrCC,eAAe,EAAER,WAAW,EAAES,WAAW,IAAI;IAC/C;EAAE,CACH,CAAC;AAEN,CAAC;AAACC,OAAA,CAAAX,mBAAA,GAAAA,mBAAA","ignoreList":[]}
+diff --git a/lib/commonjs/components/Table.js b/lib/commonjs/components/Table.js
+index cef89a9cbe20932263af1a4db26802fc697f3a77..02a1cbf4b5d1da07efc7b526d17981eb6b3b5282 100644
+--- a/lib/commonjs/components/Table.js
++++ b/lib/commonjs/components/Table.js
+@@ -10,6 +10,7 @@ var _TableHeader = require("./TableHeader.js");
+ var _TableRow = require("./TableRow.js");
+ var _sorting = require("../utils/sorting.js");
+ var _HorizontalSeparator = require("./HorizontalSeparator.js");
++var _flashList = require("@shopify/flash-list");
+ var _jsxRuntime = require("react/jsx-runtime");
+ const Table = ({
+   data,
+@@ -22,7 +23,8 @@ const Table = ({
+   stickyHeader,
+   headerBackground,
+   rowHeader,
+-  rowFooter
++  rowFooter,
++  estimatedItemSize
+ }) => {
+   const [sortedData, setSortedData] = (0, _react.useState)(data);
+   const [sortConfig, setSortConfig] = (0, _react.useState)({
+@@ -45,11 +47,22 @@ const Table = ({
+   (0, _react.useEffect)(() => {
+     setSortedData((0, _sorting.sortData)(data, sortConfig.key, sortConfig.direction));
+   }, [data, sortConfig]);
+-  return /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.View, {
+-    style: style,
+-    children: /*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.FlatList, {
++  return /*#__PURE__*/(0, _jsxRuntime.jsxs)(_reactNative.View, {
++    style: [{
++      width: '100%',
++      height: '100%'
++    }, style],
++    children: [stickyHeader && /*#__PURE__*/(0, _jsxRuntime.jsx)(_TableHeader.TableHeader, {
++      columns: columns,
++      sortConfig: sortConfig,
++      cellPadding: cellPadding,
++      sortingIcons: sortingIcons,
++      borderStyle: borderStyle,
++      headerBackground: headerBackground,
++      onSort: handleSort
++    }), /*#__PURE__*/(0, _jsxRuntime.jsx)(_flashList.FlashList, {
+       data: sortedData,
+-      ListHeaderComponent: /*#__PURE__*/(0, _jsxRuntime.jsx)(_TableHeader.TableHeader, {
++      ListHeaderComponent: !stickyHeader ? /*#__PURE__*/(0, _jsxRuntime.jsx)(_TableHeader.TableHeader, {
+         columns: columns,
+         sortConfig: sortConfig,
+         cellPadding: cellPadding,
+@@ -57,8 +70,8 @@ const Table = ({
+         borderStyle: borderStyle,
+         headerBackground: headerBackground,
+         onSort: handleSort
+-      }),
+-      stickyHeaderIndices: stickyHeader ? [0] : undefined,
++      }) : null,
++      estimatedItemSize: estimatedItemSize,
+       renderItem: ({
+         item
+       }) => /*#__PURE__*/(0, _jsxRuntime.jsx)(_TableRow.TableRow, {
+@@ -71,7 +84,7 @@ const Table = ({
+       }),
+       ItemSeparatorComponent: renderSeparator,
+       keyExtractor: rowData => String(rowData[keyExtractor])
+-    })
++    })]
+   });
+ };
+ exports.Table = Table;
+diff --git a/lib/commonjs/components/Table.js.map b/lib/commonjs/components/Table.js.map
+index 18c763434c03d0b10ca7103a104b2e30045534a1..540a2fd1143d083075d65a14b7e2e14ba912f5b9 100644
+--- a/lib/commonjs/components/Table.js.map
++++ b/lib/commonjs/components/Table.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_react","require","_reactNative","_TableHeader","_TableRow","_sorting","_HorizontalSeparator","_jsxRuntime","Table","data","columns","keyExtractor","cellPadding","sortingIcons","borderStyle","style","stickyHeader","headerBackground","rowHeader","rowFooter","sortedData","setSortedData","useState","sortConfig","setSortConfig","key","find","c","sortable","direction","handleSort","sortData","renderSeparator","jsx","HorizontalSeparator","useEffect","View","children","FlatList","ListHeaderComponent","TableHeader","onSort","stickyHeaderIndices","undefined","renderItem","item","TableRow","ItemSeparatorComponent","rowData","String","exports"],"sourceRoot":"../../../src","sources":["components/Table.tsx"],"mappings":"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","ignoreList":[]}
++{"version":3,"names":["_react","require","_reactNative","_TableHeader","_TableRow","_sorting","_HorizontalSeparator","_flashList","_jsxRuntime","Table","data","columns","keyExtractor","cellPadding","sortingIcons","borderStyle","style","stickyHeader","headerBackground","rowHeader","rowFooter","estimatedItemSize","sortedData","setSortedData","useState","sortConfig","setSortConfig","key","find","c","sortable","direction","handleSort","sortData","renderSeparator","jsx","HorizontalSeparator","useEffect","jsxs","View","width","height","children","TableHeader","onSort","FlashList","ListHeaderComponent","renderItem","item","TableRow","ItemSeparatorComponent","rowData","String","exports"],"sourceRoot":"..\\..\\..\\src","sources":["components/Table.tsx"],"mappings":"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","ignoreList":[]}
+diff --git a/lib/commonjs/components/TableCell.js.map b/lib/commonjs/components/TableCell.js.map
+index b44dc43aa4548a421044d37eee049c4ce264722a..4bb4dfb77cc549834695faa2fbf619395d5fdf09 100644
+--- a/lib/commonjs/components/TableCell.js.map
++++ b/lib/commonjs/components/TableCell.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_reactNative","require","_jsxRuntime","TableCell","column","item","cellPadding","borderStyle","jsx","View","style","width","flex","showVertical","borderRightWidth","borderWidth","borderColor","undefined","children","render","key","Text","String","exports"],"sourceRoot":"../../../src","sources":["components/TableCell.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAA0C,IAAAC,WAAA,GAAAD,OAAA;AAWnC,MAAME,SAAS,GAAGA,CAAmB;EAC1CC,MAAM;EACNC,IAAI;EACJC,WAAW;EACXC;AACiB,CAAC,kBAClB,IAAAL,WAAA,CAAAM,GAAA,EAACR,YAAA,CAAAS,IAAI;EACHC,KAAK,EAAE,CACLN,MAAM,CAACO,KAAK,GAAG;IAAEA,KAAK,EAAEP,MAAM,CAACO;EAAM,CAAC,GAAG;IAAEC,IAAI,EAAER,MAAM,CAACQ,IAAI,IAAI;EAAE,CAAC,EACnE;IAAE,GAAGN;EAAY,CAAC,EAClBC,WAAW,EAAEM,YAAY,GACrB;IACEC,gBAAgB,EAAEP,WAAW,CAACQ,WAAW,IAAI,CAAC;IAC9CC,WAAW,EAAET,WAAW,CAACS,WAAW,IAAI;EAC1C,CAAC,GACDC,SAAS,CACb;EAAAC,QAAA,EAEDd,MAAM,CAACe,MAAM,GACZf,MAAM,CAACe,MAAM,CAACd,IAAI,CAACD,MAAM,CAACgB,GAAG,CAAC,EAAEf,IAAI,CAAC,gBAErC,IAAAH,WAAA,CAAAM,GAAA,EAACR,YAAA,CAAAqB,IAAI;IAAAH,QAAA,EAAEI,MAAM,CAACjB,IAAI,CAACD,MAAM,CAACgB,GAAG,CAAC;EAAC,CAAO;AACvC,CACG,CACP;AAACG,OAAA,CAAApB,SAAA,GAAAA,SAAA","ignoreList":[]}
++{"version":3,"names":["_reactNative","require","_jsxRuntime","TableCell","column","item","cellPadding","borderStyle","jsx","View","style","width","flex","showVertical","borderRightWidth","borderWidth","borderColor","undefined","children","render","key","Text","String","exports"],"sourceRoot":"..\\..\\..\\src","sources":["components/TableCell.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAA0C,IAAAC,WAAA,GAAAD,OAAA;AAWnC,MAAME,SAAS,GAAGA,CAAmB;EAC1CC,MAAM;EACNC,IAAI;EACJC,WAAW;EACXC;AACiB,CAAC,kBAClB,IAAAL,WAAA,CAAAM,GAAA,EAACR,YAAA,CAAAS,IAAI;EACHC,KAAK,EAAE,CACLN,MAAM,CAACO,KAAK,GAAG;IAAEA,KAAK,EAAEP,MAAM,CAACO;EAAM,CAAC,GAAG;IAAEC,IAAI,EAAER,MAAM,CAACQ,IAAI,IAAI;EAAE,CAAC,EACnE;IAAE,GAAGN;EAAY,CAAC,EAClBC,WAAW,EAAEM,YAAY,GACrB;IACEC,gBAAgB,EAAEP,WAAW,CAACQ,WAAW,IAAI,CAAC;IAC9CC,WAAW,EAAET,WAAW,CAACS,WAAW,IAAI;EAC1C,CAAC,GACDC,SAAS,CACb;EAAAC,QAAA,EAEDd,MAAM,CAACe,MAAM,GACZf,MAAM,CAACe,MAAM,CAACd,IAAI,CAACD,MAAM,CAACgB,GAAG,CAAC,EAAEf,IAAI,CAAC,gBAErC,IAAAH,WAAA,CAAAM,GAAA,EAACR,YAAA,CAAAqB,IAAI;IAAAH,QAAA,EAAEI,MAAM,CAACjB,IAAI,CAACD,MAAM,CAACgB,GAAG,CAAC;EAAC,CAAO;AACvC,CACG,CACP;AAACG,OAAA,CAAApB,SAAA,GAAAA,SAAA","ignoreList":[]}
+diff --git a/lib/commonjs/components/TableHeader.js.map b/lib/commonjs/components/TableHeader.js.map
+index 12b5df324e38baac046edffede6616535896ecda..120dcc7096eb36f5d3205a8f0489d6ce4696f5cc 100644
+--- a/lib/commonjs/components/TableHeader.js.map
++++ b/lib/commonjs/components/TableHeader.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_reactNative","require","_jsxRuntime","TableHeader","columns","sortConfig","cellPadding","sortingIcons","borderStyle","headerBackground","onSort","seenKeys","Set","forEach","column","identifier","id","String","key","has","Error","add","jsx","View","style","styles","row","backgroundColor","children","map","index","width","flex","borderColor","showVertical","length","borderRightWidth","borderWidth","undefined","showHorizontalHeader","borderBottomWidth","jsxs","TouchableOpacity","onPress","sortable","disabled","header","label","Text","text","direction","asc","desc","sorting","exports","StyleSheet","create","flexDirection","fontWeight","marginLeft"],"sourceRoot":"../../../src","sources":["components/TableHeader.tsx"],"mappings":"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","ignoreList":[]}
++{"version":3,"names":["_reactNative","require","_jsxRuntime","TableHeader","columns","sortConfig","cellPadding","sortingIcons","borderStyle","headerBackground","onSort","seenKeys","Set","forEach","column","identifier","id","String","key","has","Error","add","jsx","View","style","styles","row","backgroundColor","children","map","index","width","flex","borderColor","showVertical","length","borderRightWidth","borderWidth","undefined","showHorizontalHeader","borderBottomWidth","jsxs","TouchableOpacity","onPress","sortable","disabled","header","label","Text","text","direction","asc","desc","sorting","exports","StyleSheet","create","flexDirection","fontWeight","marginLeft"],"sourceRoot":"..\\..\\..\\src","sources":["components/TableHeader.tsx"],"mappings":"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","ignoreList":[]}
+diff --git a/lib/commonjs/components/TableRow.js.map b/lib/commonjs/components/TableRow.js.map
+index 109e11df7898e19e1254c34db505583803572251..0cbc1c21682ce8cb206d12a9a916be4b138227b3 100644
+--- a/lib/commonjs/components/TableRow.js.map
++++ b/lib/commonjs/components/TableRow.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_reactNative","require","_TableCell","_jsxRuntime","TableRow","item","columns","cellPadding","borderStyle","rowHeader","rowFooter","jsxs","View","children","jsx","style","styles","row","map","column","index","TableCell","length","undefined","exports","StyleSheet","create","flexDirection"],"sourceRoot":"../../../src","sources":["components/TableRow.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAGA,IAAAC,UAAA,GAAAD,OAAA;AAAwC,IAAAE,WAAA,GAAAF,OAAA;AAWjC,MAAMG,QAAQ,GAAGA,CAAmB;EACzCC,IAAI;EACJC,OAAO;EACPC,WAAW;EACXC,WAAW;EACXC,SAAS;EACTC;AACgB,CAAC,kBACjB,IAAAP,WAAA,CAAAQ,IAAA,EAACX,YAAA,CAAAY,IAAI;EAAAC,QAAA,GACFJ,SAAS,GAAGA,SAAS,CAACJ,IAAI,CAAC,GAAG,IAAI,eACnC,IAAAF,WAAA,CAAAW,GAAA,EAACd,YAAA,CAAAY,IAAI;IAACG,KAAK,EAAEC,MAAM,CAACC,GAAI;IAAAJ,QAAA,EACrBP,OAAO,CAACY,GAAG,CAAC,CAACC,MAAM,EAAEC,KAAK,kBACzB,IAAAjB,WAAA,CAAAW,GAAA,EAACZ,UAAA,CAAAmB,SAAS;MAERF,MAAM,EAAEA,MAAO;MACfd,IAAI,EAAEA,IAAK;MACXE,WAAW,EAAEA,WAAY;MACzBC,WAAW,EAAEY,KAAK,KAAKd,OAAO,CAACgB,MAAM,GAAG,CAAC,GAAGd,WAAW,GAAGe;IAAU,GAJ/DH,KAKN,CACF;EAAC,CACE,CAAC,EACNV,SAAS,GAAGA,SAAS,CAACL,IAAI,CAAC,GAAG,IAAI;AAAA,CAC/B,CACP;AAACmB,OAAA,CAAApB,QAAA,GAAAA,QAAA;AAEF,MAAMY,MAAM,GAAGS,uBAAU,CAACC,MAAM,CAAC;EAC/BT,GAAG,EAAE;IAAEU,aAAa,EAAE;EAAM;AAC9B,CAAC,CAAC","ignoreList":[]}
++{"version":3,"names":["_reactNative","require","_TableCell","_jsxRuntime","TableRow","item","columns","cellPadding","borderStyle","rowHeader","rowFooter","jsxs","View","children","jsx","style","styles","row","map","column","index","TableCell","length","undefined","exports","StyleSheet","create","flexDirection"],"sourceRoot":"..\\..\\..\\src","sources":["components/TableRow.tsx"],"mappings":";;;;;;AAAA,IAAAA,YAAA,GAAAC,OAAA;AAGA,IAAAC,UAAA,GAAAD,OAAA;AAAwC,IAAAE,WAAA,GAAAF,OAAA;AAWjC,MAAMG,QAAQ,GAAGA,CAAmB;EACzCC,IAAI;EACJC,OAAO;EACPC,WAAW;EACXC,WAAW;EACXC,SAAS;EACTC;AACgB,CAAC,kBACjB,IAAAP,WAAA,CAAAQ,IAAA,EAACX,YAAA,CAAAY,IAAI;EAAAC,QAAA,GACFJ,SAAS,GAAGA,SAAS,CAACJ,IAAI,CAAC,GAAG,IAAI,eACnC,IAAAF,WAAA,CAAAW,GAAA,EAACd,YAAA,CAAAY,IAAI;IAACG,KAAK,EAAEC,MAAM,CAACC,GAAI;IAAAJ,QAAA,EACrBP,OAAO,CAACY,GAAG,CAAC,CAACC,MAAM,EAAEC,KAAK,kBACzB,IAAAjB,WAAA,CAAAW,GAAA,EAACZ,UAAA,CAAAmB,SAAS;MAERF,MAAM,EAAEA,MAAO;MACfd,IAAI,EAAEA,IAAK;MACXE,WAAW,EAAEA,WAAY;MACzBC,WAAW,EAAEY,KAAK,KAAKd,OAAO,CAACgB,MAAM,GAAG,CAAC,GAAGd,WAAW,GAAGe;IAAU,GAJ/DH,KAKN,CACF;EAAC,CACE,CAAC,EACNV,SAAS,GAAGA,SAAS,CAACL,IAAI,CAAC,GAAG,IAAI;AAAA,CAC/B,CACP;AAACmB,OAAA,CAAApB,QAAA,GAAAA,QAAA;AAEF,MAAMY,MAAM,GAAGS,uBAAU,CAACC,MAAM,CAAC;EAC/BT,GAAG,EAAE;IAAEU,aAAa,EAAE;EAAM;AAC9B,CAAC,CAAC","ignoreList":[]}
+diff --git a/lib/commonjs/index.js.map b/lib/commonjs/index.js.map
+index d3b8da9124b8698fa5a647159cf12705909d8a92..8364a665d05ff62347fdbe7c4833d40d0704c62a 100644
+--- a/lib/commonjs/index.js.map
++++ b/lib/commonjs/index.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["_Table","require"],"sourceRoot":"../../src","sources":["index.tsx"],"mappings":";;;;;;;;;;;AAAA,IAAAA,MAAA,GAAAC,OAAA","ignoreList":[]}
++{"version":3,"names":["_Table","require"],"sourceRoot":"..\\..\\src","sources":["index.tsx"],"mappings":";;;;;;;;;;;AAAA,IAAAA,MAAA,GAAAC,OAAA","ignoreList":[]}
+diff --git a/lib/commonjs/utils/sorting.js.map b/lib/commonjs/utils/sorting.js.map
+index 4cc6a42b84cfd7be6911310467b4218afd3863b2..d4e53b824d7ce071b3113d88ead81a3114d5ba9d 100644
+--- a/lib/commonjs/utils/sorting.js.map
++++ b/lib/commonjs/utils/sorting.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["sortData","data","key","direction","sort","a","b","aValue","bValue","localeCompare","Date","getTime"],"sourceRoot":"../../../src","sources":["utils/sorting.ts"],"mappings":";;;;;;AAAO,SAASA,QAAQA,CACtBC,IAAS,EACTC,GAAmB,EACnBC,SAAyB,EACpB;EACL,IAAI,CAACD,GAAG,EAAE,OAAOD,IAAI;EAErB,OAAO,CAAC,GAAGA,IAAI,CAAC,CAACG,IAAI,CAAC,CAACC,CAAC,EAAEC,CAAC,KAAK;IAC9B,MAAMC,MAAM,GAAGF,CAAC,CAACH,GAAG,CAAC;IACrB,MAAMM,MAAM,GAAGF,CAAC,CAACJ,GAAG,CAAC;IAErB,IAAI,OAAOK,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MAC5D,OAAOL,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACE,aAAa,CAACD,MAAM,CAAC,GAC5BA,MAAM,CAACC,aAAa,CAACF,MAAM,CAAC;IAClC,CAAC,MAAM,IAAI,OAAOA,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MACnE,OAAOL,SAAS,KAAK,KAAK,GAAGI,MAAM,GAAGC,MAAM,GAAGA,MAAM,GAAGD,MAAM;IAChE,CAAC,MAAM,IAAIA,MAAM,YAAYG,IAAI,IAAIF,MAAM,YAAYE,IAAI,EAAE;MAC3D,OAAOP,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACI,OAAO,CAAC,CAAC,GAAGH,MAAM,CAACG,OAAO,CAAC,CAAC,GACnCH,MAAM,CAACG,OAAO,CAAC,CAAC,GAAGJ,MAAM,CAACI,OAAO,CAAC,CAAC;IACzC;IAEA,OAAO,CAAC;EACV,CAAC,CAAC;AACJ","ignoreList":[]}
++{"version":3,"names":["sortData","data","key","direction","sort","a","b","aValue","bValue","localeCompare","Date","getTime"],"sourceRoot":"..\\..\\..\\src","sources":["utils/sorting.ts"],"mappings":";;;;;;AAAO,SAASA,QAAQA,CACtBC,IAAS,EACTC,GAAmB,EACnBC,SAAyB,EACpB;EACL,IAAI,CAACD,GAAG,EAAE,OAAOD,IAAI;EAErB,OAAO,CAAC,GAAGA,IAAI,CAAC,CAACG,IAAI,CAAC,CAACC,CAAC,EAAEC,CAAC,KAAK;IAC9B,MAAMC,MAAM,GAAGF,CAAC,CAACH,GAAG,CAAC;IACrB,MAAMM,MAAM,GAAGF,CAAC,CAACJ,GAAG,CAAC;IAErB,IAAI,OAAOK,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MAC5D,OAAOL,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACE,aAAa,CAACD,MAAM,CAAC,GAC5BA,MAAM,CAACC,aAAa,CAACF,MAAM,CAAC;IAClC,CAAC,MAAM,IAAI,OAAOA,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MACnE,OAAOL,SAAS,KAAK,KAAK,GAAGI,MAAM,GAAGC,MAAM,GAAGA,MAAM,GAAGD,MAAM;IAChE,CAAC,MAAM,IAAIA,MAAM,YAAYG,IAAI,IAAIF,MAAM,YAAYE,IAAI,EAAE;MAC3D,OAAOP,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACI,OAAO,CAAC,CAAC,GAAGH,MAAM,CAACG,OAAO,CAAC,CAAC,GACnCH,MAAM,CAACG,OAAO,CAAC,CAAC,GAAGJ,MAAM,CAACI,OAAO,CAAC,CAAC;IACzC;IAEA,OAAO,CAAC;EACV,CAAC,CAAC;AACJ","ignoreList":[]}
+diff --git a/lib/commonjs/utils/types.js.map b/lib/commonjs/utils/types.js.map
+index 9ad140a04f7b36d2534e8a7c5abb3ac9fa848404..1bdb65fc9e3011958ae76404429f5e622d083555 100644
+--- a/lib/commonjs/utils/types.js.map
++++ b/lib/commonjs/utils/types.js.map
+@@ -1 +1 @@
+-{"version":3,"names":[],"sourceRoot":"../../../src","sources":["utils/types.ts"],"mappings":"","ignoreList":[]}
++{"version":3,"names":[],"sourceRoot":"..\\..\\..\\src","sources":["utils/types.ts"],"mappings":"","ignoreList":[]}
+diff --git a/lib/module/components/HorizontalSeparator.js.map b/lib/module/components/HorizontalSeparator.js.map
+index a6bc8ba48eaa1b1d8d762d1ade3986f0fcd6da24..683441640a06f7001ea4c1a5dd5cb0997fea0b79 100644
+--- a/lib/module/components/HorizontalSeparator.js.map
++++ b/lib/module/components/HorizontalSeparator.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["View","jsx","_jsx","HorizontalSeparator","borderStyle","showHorizontalBody","undefined","style","height","borderWidth","backgroundColor","borderColor"],"sourceRoot":"../../../src","sources":["components/HorizontalSeparator.tsx"],"mappings":";;AAAA,SAASA,IAAI,QAAQ,cAAc;AAAC,SAAAC,GAAA,IAAAC,IAAA;AAQpC,OAAO,MAAMC,mBAAiD,GAAGA,CAAC;EAChEC;AACF,CAAC,KAAK;EACJ,IAAI,CAACA,WAAW,EAAEC,kBAAkB,EAAE;IACpC,OAAOC,SAAS;EAClB;EAEA,oBACEJ,IAAA,CAACF,IAAI;IACHO,KAAK,EAAE;MACLC,MAAM,EAAEJ,WAAW,EAAEK,WAAW,IAAI,CAAC;MACrCC,eAAe,EAAEN,WAAW,EAAEO,WAAW,IAAI;IAC/C;EAAE,CACH,CAAC;AAEN,CAAC","ignoreList":[]}
++{"version":3,"names":["View","jsx","_jsx","HorizontalSeparator","borderStyle","showHorizontalBody","undefined","style","height","borderWidth","backgroundColor","borderColor"],"sourceRoot":"..\\..\\..\\src","sources":["components/HorizontalSeparator.tsx"],"mappings":";;AAAA,SAASA,IAAI,QAAQ,cAAc;AAAC,SAAAC,GAAA,IAAAC,IAAA;AAQpC,OAAO,MAAMC,mBAAiD,GAAGA,CAAC;EAChEC;AACF,CAAC,KAAK;EACJ,IAAI,CAACA,WAAW,EAAEC,kBAAkB,EAAE;IACpC,OAAOC,SAAS;EAClB;EAEA,oBACEJ,IAAA,CAACF,IAAI;IACHO,KAAK,EAAE;MACLC,MAAM,EAAEJ,WAAW,EAAEK,WAAW,IAAI,CAAC;MACrCC,eAAe,EAAEN,WAAW,EAAEO,WAAW,IAAI;IAC/C;EAAE,CACH,CAAC;AAEN,CAAC","ignoreList":[]}
+diff --git a/lib/module/components/Table.js b/lib/module/components/Table.js
+index 61790b01a4c62c3146dad6bd522c21c3528a1cb1..c2536fe332526c99da2edee916e1b4ad994d181b 100644
+--- a/lib/module/components/Table.js
++++ b/lib/module/components/Table.js
+@@ -1,12 +1,13 @@
+ "use strict";
+ 
+ import { useEffect, useState } from 'react';
+-import { View, FlatList } from 'react-native';
++import { View } from 'react-native';
+ import { TableHeader } from "./TableHeader.js";
+ import { TableRow } from "./TableRow.js";
+ import { sortData } from "../utils/sorting.js";
+ import { HorizontalSeparator } from "./HorizontalSeparator.js";
+-import { jsx as _jsx } from "react/jsx-runtime";
++import { FlashList } from '@shopify/flash-list';
++import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+ export const Table = ({
+   data,
+   columns,
+@@ -18,7 +19,8 @@ export const Table = ({
+   stickyHeader,
+   headerBackground,
+   rowHeader,
+-  rowFooter
++  rowFooter,
++  estimatedItemSize
+ }) => {
+   const [sortedData, setSortedData] = useState(data);
+   const [sortConfig, setSortConfig] = useState({
+@@ -41,11 +43,22 @@ export const Table = ({
+   useEffect(() => {
+     setSortedData(sortData(data, sortConfig.key, sortConfig.direction));
+   }, [data, sortConfig]);
+-  return /*#__PURE__*/_jsx(View, {
+-    style: style,
+-    children: /*#__PURE__*/_jsx(FlatList, {
++  return /*#__PURE__*/_jsxs(View, {
++    style: [{
++      width: '100%',
++      height: '100%'
++    }, style],
++    children: [stickyHeader && /*#__PURE__*/_jsx(TableHeader, {
++      columns: columns,
++      sortConfig: sortConfig,
++      cellPadding: cellPadding,
++      sortingIcons: sortingIcons,
++      borderStyle: borderStyle,
++      headerBackground: headerBackground,
++      onSort: handleSort
++    }), /*#__PURE__*/_jsx(FlashList, {
+       data: sortedData,
+-      ListHeaderComponent: /*#__PURE__*/_jsx(TableHeader, {
++      ListHeaderComponent: !stickyHeader ? /*#__PURE__*/_jsx(TableHeader, {
+         columns: columns,
+         sortConfig: sortConfig,
+         cellPadding: cellPadding,
+@@ -53,8 +66,8 @@ export const Table = ({
+         borderStyle: borderStyle,
+         headerBackground: headerBackground,
+         onSort: handleSort
+-      }),
+-      stickyHeaderIndices: stickyHeader ? [0] : undefined,
++      }) : null,
++      estimatedItemSize: estimatedItemSize,
+       renderItem: ({
+         item
+       }) => /*#__PURE__*/_jsx(TableRow, {
+@@ -67,7 +80,7 @@ export const Table = ({
+       }),
+       ItemSeparatorComponent: renderSeparator,
+       keyExtractor: rowData => String(rowData[keyExtractor])
+-    })
++    })]
+   });
+ };
+ //# sourceMappingURL=Table.js.map
+\ No newline at end of file
+diff --git a/lib/module/components/Table.js.map b/lib/module/components/Table.js.map
+index c6496c8e95987a5016972ff3240d23e782bc5d86..bb5d6010692b7115eb44a89079fd14dce8fc866a 100644
+--- a/lib/module/components/Table.js.map
++++ b/lib/module/components/Table.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["useEffect","useState","View","FlatList","TableHeader","TableRow","sortData","HorizontalSeparator","jsx","_jsx","Table","data","columns","keyExtractor","cellPadding","sortingIcons","borderStyle","style","stickyHeader","headerBackground","rowHeader","rowFooter","sortedData","setSortedData","sortConfig","setSortConfig","key","find","c","sortable","direction","handleSort","renderSeparator","children","ListHeaderComponent","onSort","stickyHeaderIndices","undefined","renderItem","item","ItemSeparatorComponent","rowData","String"],"sourceRoot":"../../../src","sources":["components/Table.tsx"],"mappings":";;AAAA,SAASA,SAAS,EAAEC,QAAQ,QAAQ,OAAO;AAC3C,SAASC,IAAI,EAAEC,QAAQ,QAAQ,cAAc;AAE7C,SAASC,WAAW,QAAQ,kBAAe;AAC3C,SAASC,QAAQ,QAAQ,eAAY;AAErC,SAASC,QAAQ,QAAQ,qBAAkB;AAC3C,SAASC,mBAAmB,QAAQ,0BAAuB;AAAC,SAAAC,GAAA,IAAAC,IAAA;AAE5D,OAAO,MAAMC,KAAK,GAAGA,CAAmB;EACtCC,IAAI;EACJC,OAAO;EACPC,YAAY;EACZC,WAAW;EACXC,YAAY;EACZC,WAAW;EACXC,KAAK;EACLC,YAAY;EACZC,gBAAgB;EAChBC,SAAS;EACTC;AACa,CAAC,KAAK;EACnB,MAAM,CAACC,UAAU,EAAEC,aAAa,CAAC,GAAGtB,QAAQ,CAAMU,IAAI,CAAC;EACvD,MAAM,CAACa,UAAU,EAAEC,aAAa,CAAC,GAAGxB,QAAQ,CAGzC;IACDyB,GAAG,EAAEd,OAAO,CAACe,IAAI,CAAEC,CAAC,IAAKA,CAAC,CAACC,QAAQ,CAAC,EAAEH,GAAG,IAAI,IAAI;IACjDI,SAAS,EAAE;EACb,CAAC,CAAC;EAEF,MAAMC,UAAU,GAAIL,GAAY,IAAK;IACnC,MAAMI,SAAS,GACbN,UAAU,CAACE,GAAG,KAAKA,GAAG,IAAIF,UAAU,CAACM,SAAS,KAAK,KAAK,GAAG,MAAM,GAAG,KAAK;IAC3EL,aAAa,CAAC;MAAEC,GAAG;MAAEI;IAAU,CAAC,CAAC;IACjCP,aAAa,CAACjB,QAAQ,CAACgB,UAAU,EAAEI,GAAG,EAAEI,SAAS,CAAC,CAAC;EACrD,CAAC;EAED,MAAME,eAAe,GAAGA,CAAA,KAAM;IAC5B,oBAAOvB,IAAA,CAACF,mBAAmB;MAACS,WAAW,EAAEA;IAAY,CAAE,CAAC;EAC1D,CAAC;EAEDhB,SAAS,CAAC,MAAM;IACduB,aAAa,CAACjB,QAAQ,CAACK,IAAI,EAAEa,UAAU,CAACE,GAAG,EAAEF,UAAU,CAACM,SAAS,CAAC,CAAC;EACrE,CAAC,EAAE,CAACnB,IAAI,EAAEa,UAAU,CAAC,CAAC;EAEtB,oBACEf,IAAA,CAACP,IAAI;IAACe,KAAK,EAAEA,KAAM;IAAAgB,QAAA,eACjBxB,IAAA,CAACN,QAAQ;MACPQ,IAAI,EAAEW,UAAW;MACjBY,mBAAmB,eACjBzB,IAAA,CAACL,WAAW;QACVQ,OAAO,EAAEA,OAAQ;QACjBY,UAAU,EAAEA,UAAW;QACvBV,WAAW,EAAEA,WAAY;QACzBC,YAAY,EAAEA,YAAa;QAC3BC,WAAW,EAAEA,WAAY;QACzBG,gBAAgB,EAAEA,gBAAiB;QACnCgB,MAAM,EAAEJ;MAAW,CACpB,CACF;MACDK,mBAAmB,EAAElB,YAAY,GAAG,CAAC,CAAC,CAAC,GAAGmB,SAAU;MACpDC,UAAU,EAAEA,CAAC;QAAEC;MAAK,CAAC,kBACnB9B,IAAA,CAACJ,QAAQ;QACPkC,IAAI,EAAEA,IAAK;QACX3B,OAAO,EAAEA,OAAQ;QACjBE,WAAW,EAAEA,WAAY;QACzBE,WAAW,EAAEA,WAAY;QACzBI,SAAS,EAAEA,SAAU;QACrBC,SAAS,EAAEA;MAAU,CACtB,CACD;MACFmB,sBAAsB,EAAER,eAAgB;MACxCnB,YAAY,EAAG4B,OAAO,IAAKC,MAAM,CAACD,OAAO,CAAC5B,YAAY,CAAC;IAAE,CAC1D;EAAC,CACE,CAAC;AAEX,CAAC","ignoreList":[]}
++{"version":3,"names":["useEffect","useState","View","TableHeader","TableRow","sortData","HorizontalSeparator","FlashList","jsx","_jsx","jsxs","_jsxs","Table","data","columns","keyExtractor","cellPadding","sortingIcons","borderStyle","style","stickyHeader","headerBackground","rowHeader","rowFooter","estimatedItemSize","sortedData","setSortedData","sortConfig","setSortConfig","key","find","c","sortable","direction","handleSort","renderSeparator","width","height","children","onSort","ListHeaderComponent","renderItem","item","ItemSeparatorComponent","rowData","String"],"sourceRoot":"..\\..\\..\\src","sources":["components/Table.tsx"],"mappings":"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","ignoreList":[]}
+diff --git a/lib/module/components/TableCell.js.map b/lib/module/components/TableCell.js.map
+index 98198c8d37bec5c187627f9af26a13cfa5d0adb1..2c2db7b614a6e829f316d20e1b3f55af4297d487 100644
+--- a/lib/module/components/TableCell.js.map
++++ b/lib/module/components/TableCell.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["View","Text","jsx","_jsx","TableCell","column","item","cellPadding","borderStyle","style","width","flex","showVertical","borderRightWidth","borderWidth","borderColor","undefined","children","render","key","String"],"sourceRoot":"../../../src","sources":["components/TableCell.tsx"],"mappings":";;AAAA,SAASA,IAAI,EAAEC,IAAI,QAAQ,cAAc;AAAC,SAAAC,GAAA,IAAAC,IAAA;AAW1C,OAAO,MAAMC,SAAS,GAAGA,CAAmB;EAC1CC,MAAM;EACNC,IAAI;EACJC,WAAW;EACXC;AACiB,CAAC,kBAClBL,IAAA,CAACH,IAAI;EACHS,KAAK,EAAE,CACLJ,MAAM,CAACK,KAAK,GAAG;IAAEA,KAAK,EAAEL,MAAM,CAACK;EAAM,CAAC,GAAG;IAAEC,IAAI,EAAEN,MAAM,CAACM,IAAI,IAAI;EAAE,CAAC,EACnE;IAAE,GAAGJ;EAAY,CAAC,EAClBC,WAAW,EAAEI,YAAY,GACrB;IACEC,gBAAgB,EAAEL,WAAW,CAACM,WAAW,IAAI,CAAC;IAC9CC,WAAW,EAAEP,WAAW,CAACO,WAAW,IAAI;EAC1C,CAAC,GACDC,SAAS,CACb;EAAAC,QAAA,EAEDZ,MAAM,CAACa,MAAM,GACZb,MAAM,CAACa,MAAM,CAACZ,IAAI,CAACD,MAAM,CAACc,GAAG,CAAC,EAAEb,IAAI,CAAC,gBAErCH,IAAA,CAACF,IAAI;IAAAgB,QAAA,EAAEG,MAAM,CAACd,IAAI,CAACD,MAAM,CAACc,GAAG,CAAC;EAAC,CAAO;AACvC,CACG,CACP","ignoreList":[]}
++{"version":3,"names":["View","Text","jsx","_jsx","TableCell","column","item","cellPadding","borderStyle","style","width","flex","showVertical","borderRightWidth","borderWidth","borderColor","undefined","children","render","key","String"],"sourceRoot":"..\\..\\..\\src","sources":["components/TableCell.tsx"],"mappings":";;AAAA,SAASA,IAAI,EAAEC,IAAI,QAAQ,cAAc;AAAC,SAAAC,GAAA,IAAAC,IAAA;AAW1C,OAAO,MAAMC,SAAS,GAAGA,CAAmB;EAC1CC,MAAM;EACNC,IAAI;EACJC,WAAW;EACXC;AACiB,CAAC,kBAClBL,IAAA,CAACH,IAAI;EACHS,KAAK,EAAE,CACLJ,MAAM,CAACK,KAAK,GAAG;IAAEA,KAAK,EAAEL,MAAM,CAACK;EAAM,CAAC,GAAG;IAAEC,IAAI,EAAEN,MAAM,CAACM,IAAI,IAAI;EAAE,CAAC,EACnE;IAAE,GAAGJ;EAAY,CAAC,EAClBC,WAAW,EAAEI,YAAY,GACrB;IACEC,gBAAgB,EAAEL,WAAW,CAACM,WAAW,IAAI,CAAC;IAC9CC,WAAW,EAAEP,WAAW,CAACO,WAAW,IAAI;EAC1C,CAAC,GACDC,SAAS,CACb;EAAAC,QAAA,EAEDZ,MAAM,CAACa,MAAM,GACZb,MAAM,CAACa,MAAM,CAACZ,IAAI,CAACD,MAAM,CAACc,GAAG,CAAC,EAAEb,IAAI,CAAC,gBAErCH,IAAA,CAACF,IAAI;IAAAgB,QAAA,EAAEG,MAAM,CAACd,IAAI,CAACD,MAAM,CAACc,GAAG,CAAC;EAAC,CAAO;AACvC,CACG,CACP","ignoreList":[]}
+diff --git a/lib/module/components/TableHeader.js.map b/lib/module/components/TableHeader.js.map
+index 27fe0e23d365e3295b635d341f13fde8b596fbe5..dfd5d6bbc66662b9b0e18c48bf920e4ed8023034 100644
+--- a/lib/module/components/TableHeader.js.map
++++ b/lib/module/components/TableHeader.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["View","TouchableOpacity","Text","StyleSheet","jsx","_jsx","jsxs","_jsxs","TableHeader","columns","sortConfig","cellPadding","sortingIcons","borderStyle","headerBackground","onSort","seenKeys","Set","forEach","column","identifier","id","String","key","has","Error","add","style","styles","row","backgroundColor","children","map","index","width","flex","borderColor","showVertical","length","borderRightWidth","borderWidth","undefined","showHorizontalHeader","borderBottomWidth","onPress","sortable","disabled","header","label","text","direction","asc","desc","sorting","create","flexDirection","fontWeight","marginLeft"],"sourceRoot":"../../../src","sources":["components/TableHeader.tsx"],"mappings":";;AAAA,SACEA,IAAI,EACJC,gBAAgB,EAChBC,IAAI,EACJC,UAAU,QAEL,cAAc;AAAC,SAAAC,GAAA,IAAAC,IAAA,EAAAC,IAAA,IAAAC,KAAA;AAmBtB,OAAO,MAAMC,WAAW,GAAGA,CAAmB;EAC5CC,OAAO;EACPC,UAAU;EACVC,WAAW;EACXC,YAAY;EACZC,WAAW;EACXC,gBAAgB,GAAG,OAAO;EAC1BC;AACmB,CAAC,KAAK;EACzB,MAAMC,QAAQ,GAAG,IAAIC,GAAG,CAAmB,CAAC;EAC5CR,OAAO,CAACS,OAAO,CAAEC,MAAM,IAAK;IAC1B,MAAMC,UAAU,GAAGD,MAAM,CAACE,EAAE,IAAIC,MAAM,CAACH,MAAM,CAACI,GAAG,CAAC;IAClD,IAAIP,QAAQ,CAACQ,GAAG,CAACJ,UAAU,CAAC,EAAE;MAC5B,MAAM,IAAIK,KAAK,CACb,iDAAiDH,MAAM,CAACH,MAAM,CAACI,GAAG,CAAC,+CACrE,CAAC;IACH;IACAP,QAAQ,CAACU,GAAG,CAACN,UAAU,CAAC;EAC1B,CAAC,CAAC;EAEF,oBACEf,IAAA,CAACL,IAAI;IAAC2B,KAAK,EAAE,CAACC,MAAM,CAACC,GAAG,EAAE;MAAEC,eAAe,EAAEhB;IAAiB,CAAC,CAAE;IAAAiB,QAAA,EAC9DtB,OAAO,CAACuB,GAAG,CAAC,CAACb,MAAM,EAAEc,KAAK,kBACzB5B,IAAA,CAACL,IAAI;MAEH2B,KAAK,EAAE,CACL;QAAE,GAAGhB;MAAY,CAAC,EAClBQ,MAAM,CAACe,KAAK,GAAG;QAAEA,KAAK,EAAEf,MAAM,CAACe;MAAM,CAAC,GAAG;QAAEC,IAAI,EAAEhB,MAAM,CAACgB,IAAI,IAAI;MAAE,CAAC,EACnE;QAAEC,WAAW,EAAEvB,WAAW,EAAEuB,WAAW,IAAI;MAAQ,CAAC,EACpDvB,WAAW,EAAEwB,YAAY,IAAI5B,OAAO,CAAC6B,MAAM,GAAG,CAAC,KAAKL,KAAK,GACrD;QACEM,gBAAgB,EAAE1B,WAAW,CAAC2B,WAAW,IAAI;MAC/C,CAAC,GACDC,SAAS,EACb5B,WAAW,EAAE6B,oBAAoB,GAC7B;QACEC,iBAAiB,EAAE9B,WAAW,CAAC2B,WAAW,IAAI;MAChD,CAAC,GACDC,SAAS,CACb;MAAAV,QAAA,eAEFxB,KAAA,CAACN,gBAAgB;QACf2C,OAAO,EAAEA,CAAA,KAAMzB,MAAM,CAAC0B,QAAQ,IAAI9B,MAAM,CAACI,MAAM,CAACI,GAAG,CAAE;QACrDI,KAAK,EAAE,CAACC,MAAM,CAACC,GAAG,CAAE;QACpBiB,QAAQ,EAAE,CAAC3B,MAAM,CAAC0B,QAAS;QAAAd,QAAA,GAE1BZ,MAAM,CAAC4B,MAAM,GACZ5B,MAAM,CAAC4B,MAAM,CAAC5B,MAAM,CAAC6B,KAAK,CAAC,gBAE3B3C,IAAA,CAACH,IAAI;UAACyB,KAAK,EAAEC,MAAM,CAACqB,IAAK;UAAAlB,QAAA,EAAEZ,MAAM,CAAC6B;QAAK,CAAO,CAC/C,EACA7B,MAAM,CAAC0B,QAAQ,IAAInC,UAAU,CAACa,GAAG,KAAKJ,MAAM,CAACI,GAAG,GAC/CX,YAAY,GACVF,UAAU,CAACwC,SAAS,KAAK,KAAK,GAC5BtC,YAAY,CAACuC,GAAG,GAEhBvC,YAAY,CAACwC,IACd,gBAED/C,IAAA,CAACH,IAAI;UAACyB,KAAK,EAAE,CAACC,MAAM,CAACqB,IAAI,EAAErB,MAAM,CAACyB,OAAO,CAAE;UAAAtB,QAAA,EACxCrB,UAAU,CAACwC,SAAS,KAAK,KAAK,GAAG,GAAG,GAAG;QAAG,CACvC,CACP,GACC,IAAI;MAAA,CACQ;IAAC,GAxCd/B,MAAM,CAACE,EAAE,IAAIC,MAAM,CAACH,MAAM,CAACI,GAAG,CAyC/B,CACP;EAAC,CACE,CAAC;AAEX,CAAC;AAED,MAAMK,MAAM,GAAGzB,UAAU,CAACmD,MAAM,CAAC;EAC/BzB,GAAG,EAAE;IAAE0B,aAAa,EAAE;EAAM,CAAC;EAC7BN,IAAI,EAAE;IAAEO,UAAU,EAAE;EAAO,CAAC;EAC5BH,OAAO,EAAE;IAAEI,UAAU,EAAE;EAAE;AAC3B,CAAC,CAAC","ignoreList":[]}
++{"version":3,"names":["View","TouchableOpacity","Text","StyleSheet","jsx","_jsx","jsxs","_jsxs","TableHeader","columns","sortConfig","cellPadding","sortingIcons","borderStyle","headerBackground","onSort","seenKeys","Set","forEach","column","identifier","id","String","key","has","Error","add","style","styles","row","backgroundColor","children","map","index","width","flex","borderColor","showVertical","length","borderRightWidth","borderWidth","undefined","showHorizontalHeader","borderBottomWidth","onPress","sortable","disabled","header","label","text","direction","asc","desc","sorting","create","flexDirection","fontWeight","marginLeft"],"sourceRoot":"..\\..\\..\\src","sources":["components/TableHeader.tsx"],"mappings":"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","ignoreList":[]}
+diff --git a/lib/module/components/TableRow.js.map b/lib/module/components/TableRow.js.map
+index aad5514bdffbd7bc8c57cae0dd392da0b785758c..7c6caee2aab448f759c2ff6596cf590a725c070d 100644
+--- a/lib/module/components/TableRow.js.map
++++ b/lib/module/components/TableRow.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["StyleSheet","View","TableCell","jsx","_jsx","jsxs","_jsxs","TableRow","item","columns","cellPadding","borderStyle","rowHeader","rowFooter","children","style","styles","row","map","column","index","length","undefined","create","flexDirection"],"sourceRoot":"../../../src","sources":["components/TableRow.tsx"],"mappings":";;AAAA,SAASA,UAAU,EAAEC,IAAI,QAAQ,cAAc;AAG/C,SAASC,SAAS,QAAQ,gBAAa;AAAC,SAAAC,GAAA,IAAAC,IAAA,EAAAC,IAAA,IAAAC,KAAA;AAWxC,OAAO,MAAMC,QAAQ,GAAGA,CAAmB;EACzCC,IAAI;EACJC,OAAO;EACPC,WAAW;EACXC,WAAW;EACXC,SAAS;EACTC;AACgB,CAAC,kBACjBP,KAAA,CAACL,IAAI;EAAAa,QAAA,GACFF,SAAS,GAAGA,SAAS,CAACJ,IAAI,CAAC,GAAG,IAAI,eACnCJ,IAAA,CAACH,IAAI;IAACc,KAAK,EAAEC,MAAM,CAACC,GAAI;IAAAH,QAAA,EACrBL,OAAO,CAACS,GAAG,CAAC,CAACC,MAAM,EAAEC,KAAK,kBACzBhB,IAAA,CAACF,SAAS;MAERiB,MAAM,EAAEA,MAAO;MACfX,IAAI,EAAEA,IAAK;MACXE,WAAW,EAAEA,WAAY;MACzBC,WAAW,EAAES,KAAK,KAAKX,OAAO,CAACY,MAAM,GAAG,CAAC,GAAGV,WAAW,GAAGW;IAAU,GAJ/DF,KAKN,CACF;EAAC,CACE,CAAC,EACNP,SAAS,GAAGA,SAAS,CAACL,IAAI,CAAC,GAAG,IAAI;AAAA,CAC/B,CACP;AAED,MAAMQ,MAAM,GAAGhB,UAAU,CAACuB,MAAM,CAAC;EAC/BN,GAAG,EAAE;IAAEO,aAAa,EAAE;EAAM;AAC9B,CAAC,CAAC","ignoreList":[]}
++{"version":3,"names":["StyleSheet","View","TableCell","jsx","_jsx","jsxs","_jsxs","TableRow","item","columns","cellPadding","borderStyle","rowHeader","rowFooter","children","style","styles","row","map","column","index","length","undefined","create","flexDirection"],"sourceRoot":"..\\..\\..\\src","sources":["components/TableRow.tsx"],"mappings":";;AAAA,SAASA,UAAU,EAAEC,IAAI,QAAQ,cAAc;AAG/C,SAASC,SAAS,QAAQ,gBAAa;AAAC,SAAAC,GAAA,IAAAC,IAAA,EAAAC,IAAA,IAAAC,KAAA;AAWxC,OAAO,MAAMC,QAAQ,GAAGA,CAAmB;EACzCC,IAAI;EACJC,OAAO;EACPC,WAAW;EACXC,WAAW;EACXC,SAAS;EACTC;AACgB,CAAC,kBACjBP,KAAA,CAACL,IAAI;EAAAa,QAAA,GACFF,SAAS,GAAGA,SAAS,CAACJ,IAAI,CAAC,GAAG,IAAI,eACnCJ,IAAA,CAACH,IAAI;IAACc,KAAK,EAAEC,MAAM,CAACC,GAAI;IAAAH,QAAA,EACrBL,OAAO,CAACS,GAAG,CAAC,CAACC,MAAM,EAAEC,KAAK,kBACzBhB,IAAA,CAACF,SAAS;MAERiB,MAAM,EAAEA,MAAO;MACfX,IAAI,EAAEA,IAAK;MACXE,WAAW,EAAEA,WAAY;MACzBC,WAAW,EAAES,KAAK,KAAKX,OAAO,CAACY,MAAM,GAAG,CAAC,GAAGV,WAAW,GAAGW;IAAU,GAJ/DF,KAKN,CACF;EAAC,CACE,CAAC,EACNP,SAAS,GAAGA,SAAS,CAACL,IAAI,CAAC,GAAG,IAAI;AAAA,CAC/B,CACP;AAED,MAAMQ,MAAM,GAAGhB,UAAU,CAACuB,MAAM,CAAC;EAC/BN,GAAG,EAAE;IAAEO,aAAa,EAAE;EAAM;AAC9B,CAAC,CAAC","ignoreList":[]}
+diff --git a/lib/module/index.js.map b/lib/module/index.js.map
+index d28a908ee8ad2535c221b2397def301a4e10d649..f13b90cb1eda9e77b503e50812b7239c3777e483 100644
+--- a/lib/module/index.js.map
++++ b/lib/module/index.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["Table"],"sourceRoot":"../../src","sources":["index.tsx"],"mappings":";;AAAA,SAASA,KAAK,QAAQ,uBAAoB","ignoreList":[]}
++{"version":3,"names":["Table"],"sourceRoot":"..\\..\\src","sources":["index.tsx"],"mappings":";;AAAA,SAASA,KAAK,QAAQ,uBAAoB","ignoreList":[]}
+diff --git a/lib/module/utils/sorting.js.map b/lib/module/utils/sorting.js.map
+index 1c4fb17b75c8c963b203da8ee79557a924f8d27b..97360497e3786252f5d59551d0fdaaef9b35af5b 100644
+--- a/lib/module/utils/sorting.js.map
++++ b/lib/module/utils/sorting.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["sortData","data","key","direction","sort","a","b","aValue","bValue","localeCompare","Date","getTime"],"sourceRoot":"../../../src","sources":["utils/sorting.ts"],"mappings":";;AAAA,OAAO,SAASA,QAAQA,CACtBC,IAAS,EACTC,GAAmB,EACnBC,SAAyB,EACpB;EACL,IAAI,CAACD,GAAG,EAAE,OAAOD,IAAI;EAErB,OAAO,CAAC,GAAGA,IAAI,CAAC,CAACG,IAAI,CAAC,CAACC,CAAC,EAAEC,CAAC,KAAK;IAC9B,MAAMC,MAAM,GAAGF,CAAC,CAACH,GAAG,CAAC;IACrB,MAAMM,MAAM,GAAGF,CAAC,CAACJ,GAAG,CAAC;IAErB,IAAI,OAAOK,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MAC5D,OAAOL,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACE,aAAa,CAACD,MAAM,CAAC,GAC5BA,MAAM,CAACC,aAAa,CAACF,MAAM,CAAC;IAClC,CAAC,MAAM,IAAI,OAAOA,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MACnE,OAAOL,SAAS,KAAK,KAAK,GAAGI,MAAM,GAAGC,MAAM,GAAGA,MAAM,GAAGD,MAAM;IAChE,CAAC,MAAM,IAAIA,MAAM,YAAYG,IAAI,IAAIF,MAAM,YAAYE,IAAI,EAAE;MAC3D,OAAOP,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACI,OAAO,CAAC,CAAC,GAAGH,MAAM,CAACG,OAAO,CAAC,CAAC,GACnCH,MAAM,CAACG,OAAO,CAAC,CAAC,GAAGJ,MAAM,CAACI,OAAO,CAAC,CAAC;IACzC;IAEA,OAAO,CAAC;EACV,CAAC,CAAC;AACJ","ignoreList":[]}
++{"version":3,"names":["sortData","data","key","direction","sort","a","b","aValue","bValue","localeCompare","Date","getTime"],"sourceRoot":"..\\..\\..\\src","sources":["utils/sorting.ts"],"mappings":";;AAAA,OAAO,SAASA,QAAQA,CACtBC,IAAS,EACTC,GAAmB,EACnBC,SAAyB,EACpB;EACL,IAAI,CAACD,GAAG,EAAE,OAAOD,IAAI;EAErB,OAAO,CAAC,GAAGA,IAAI,CAAC,CAACG,IAAI,CAAC,CAACC,CAAC,EAAEC,CAAC,KAAK;IAC9B,MAAMC,MAAM,GAAGF,CAAC,CAACH,GAAG,CAAC;IACrB,MAAMM,MAAM,GAAGF,CAAC,CAACJ,GAAG,CAAC;IAErB,IAAI,OAAOK,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MAC5D,OAAOL,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACE,aAAa,CAACD,MAAM,CAAC,GAC5BA,MAAM,CAACC,aAAa,CAACF,MAAM,CAAC;IAClC,CAAC,MAAM,IAAI,OAAOA,MAAM,KAAK,QAAQ,IAAI,OAAOC,MAAM,KAAK,QAAQ,EAAE;MACnE,OAAOL,SAAS,KAAK,KAAK,GAAGI,MAAM,GAAGC,MAAM,GAAGA,MAAM,GAAGD,MAAM;IAChE,CAAC,MAAM,IAAIA,MAAM,YAAYG,IAAI,IAAIF,MAAM,YAAYE,IAAI,EAAE;MAC3D,OAAOP,SAAS,KAAK,KAAK,GACtBI,MAAM,CAACI,OAAO,CAAC,CAAC,GAAGH,MAAM,CAACG,OAAO,CAAC,CAAC,GACnCH,MAAM,CAACG,OAAO,CAAC,CAAC,GAAGJ,MAAM,CAACI,OAAO,CAAC,CAAC;IACzC;IAEA,OAAO,CAAC;EACV,CAAC,CAAC;AACJ","ignoreList":[]}
+diff --git a/lib/module/utils/types.js.map b/lib/module/utils/types.js.map
+index 9ad140a04f7b36d2534e8a7c5abb3ac9fa848404..1bdb65fc9e3011958ae76404429f5e622d083555 100644
+--- a/lib/module/utils/types.js.map
++++ b/lib/module/utils/types.js.map
+@@ -1 +1 @@
+-{"version":3,"names":[],"sourceRoot":"../../../src","sources":["utils/types.ts"],"mappings":"","ignoreList":[]}
++{"version":3,"names":[],"sourceRoot":"..\\..\\..\\src","sources":["utils/types.ts"],"mappings":"","ignoreList":[]}
+diff --git a/lib/typescript/commonjs/src/components/Table.d.ts b/lib/typescript/commonjs/src/components/Table.d.ts
+index 1b0ec58f85874d3a1f43175f58ddedbc6baa4882..dd6f691994cf92b5905f83d793c0f3f90cfe50ad 100644
+--- a/lib/typescript/commonjs/src/components/Table.d.ts
++++ b/lib/typescript/commonjs/src/components/Table.d.ts
+@@ -1,3 +1,3 @@
+ import type { TableProps } from '../utils/types';
+-export declare const Table: <T extends object>({ data, columns, keyExtractor, cellPadding, sortingIcons, borderStyle, style, stickyHeader, headerBackground, rowHeader, rowFooter, }: TableProps<T>) => import("react/jsx-runtime").JSX.Element;
++export declare const Table: <T extends object>({ data, columns, keyExtractor, cellPadding, sortingIcons, borderStyle, style, stickyHeader, headerBackground, rowHeader, rowFooter, estimatedItemSize, }: TableProps<T>) => import("react/jsx-runtime").JSX.Element;
+ //# sourceMappingURL=Table.d.ts.map
+\ No newline at end of file
+diff --git a/lib/typescript/commonjs/src/components/Table.d.ts.map b/lib/typescript/commonjs/src/components/Table.d.ts.map
+index cac31ed48cfbdcbfbf3ef7e331bc40dc2c624a24..515c5f4f3f60047c44a2dd55babcd9a8f8153a32 100644
+--- a/lib/typescript/commonjs/src/components/Table.d.ts.map
++++ b/lib/typescript/commonjs/src/components/Table.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"Table.d.ts","sourceRoot":"","sources":["../../../../../src/components/Table.tsx"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,gBAAgB,CAAC;AAIjD,eAAO,MAAM,KAAK,GAAI,CAAC,SAAS,MAAM,yIAYnC,UAAU,CAAC,CAAC,CAAC,4CAwDf,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"Table.d.ts","sourceRoot":"","sources":["../../../../../src/components/Table.tsx"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,gBAAgB,CAAC;AAKjD,eAAO,MAAM,KAAK,GAAI,CAAC,SAAS,MAAM,4JAanC,UAAU,CAAC,CAAC,CAAC,4CAqEf,CAAC"}
+\ No newline at end of file
+diff --git a/lib/typescript/commonjs/src/utils/types.d.ts b/lib/typescript/commonjs/src/utils/types.d.ts
+index d3df671e5e47fc5a8301dbf1d6e82d00d8a4453d..6277f7eda3e7755d70bc07b405bca4a81323e79a 100644
+--- a/lib/typescript/commonjs/src/utils/types.d.ts
++++ b/lib/typescript/commonjs/src/utils/types.d.ts
+@@ -38,5 +38,6 @@ export type TableProps<T> = {
+     headerBackground?: ColorValue;
+     rowHeader?: (rowData: T) => React.ReactNode;
+     rowFooter?: (rowData: T) => React.ReactNode;
++    estimatedItemSize?: number;
+ };
+ //# sourceMappingURL=types.d.ts.map
+\ No newline at end of file
+diff --git a/lib/typescript/commonjs/src/utils/types.d.ts.map b/lib/typescript/commonjs/src/utils/types.d.ts.map
+index 298c6806e113f43bc3ee03be6f83eddadb064a06..70a167e218fe8e286c5ee0c80f84256300c32484 100644
+--- a/lib/typescript/commonjs/src/utils/types.d.ts.map
++++ b/lib/typescript/commonjs/src/utils/types.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../../../src/utils/types.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AACvC,OAAO,KAAK,EAAE,UAAU,EAAE,SAAS,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AAErE,MAAM,MAAM,MAAM,CAAC,CAAC,IAAI;IACtB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,EAAE,MAAM,CAAC,CAAC;IACb,EAAE,CAAC,EAAE,MAAM,CAAC;IACZ,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,MAAM,CAAC,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,MAAM,CAAC,EAAE,CAAC,IAAI,EAAE,CAAC,CAAC,MAAM,CAAC,CAAC,EAAE,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;CAC5D,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,oBAAoB,CAAC,EAAE,OAAO,CAAC;IAC/B,kBAAkB,CAAC,EAAE,OAAO,CAAC;IAC7B,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,WAAW,CAAC,EAAE,MAAM,CAAC;CACtB,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,iBAAiB,CAAC,EAAE,MAAM,CAAC;IAC3B,eAAe,CAAC,EAAE,MAAM,CAAC;CAC1B,CAAC;AAEF,MAAM,MAAM,YAAY,GAAG;IACzB,GAAG,EAAE,SAAS,CAAC;IACf,IAAI,EAAE,SAAS,CAAC;CACjB,CAAC;AAEF,MAAM,MAAM,UAAU,CAAC,CAAC,IAAI;IAC1B,IAAI,EAAE,CAAC,EAAE,CAAC;IACV,OAAO,EAAE,MAAM,CAAC,CAAC,CAAC,EAAE,CAAC;IACrB,YAAY,EAAE,MAAM,CAAC,CAAC;IACtB,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,YAAY,CAAC,EAAE,YAAY,CAAC;IAC5B,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,KAAK,CAAC,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;IAC7B,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,gBAAgB,CAAC,EAAE,UAAU,CAAC;IAC9B,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;CAC7C,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../../../src/utils/types.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AACvC,OAAO,KAAK,EAAE,UAAU,EAAE,SAAS,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AAErE,MAAM,MAAM,MAAM,CAAC,CAAC,IAAI;IACtB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,EAAE,MAAM,CAAC,CAAC;IACb,EAAE,CAAC,EAAE,MAAM,CAAC;IACZ,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,MAAM,CAAC,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,MAAM,CAAC,EAAE,CAAC,IAAI,EAAE,CAAC,CAAC,MAAM,CAAC,CAAC,EAAE,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;CAC5D,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,oBAAoB,CAAC,EAAE,OAAO,CAAC;IAC/B,kBAAkB,CAAC,EAAE,OAAO,CAAC;IAC7B,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,WAAW,CAAC,EAAE,MAAM,CAAC;CACtB,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,iBAAiB,CAAC,EAAE,MAAM,CAAC;IAC3B,eAAe,CAAC,EAAE,MAAM,CAAC;CAC1B,CAAC;AAEF,MAAM,MAAM,YAAY,GAAG;IACzB,GAAG,EAAE,SAAS,CAAC;IACf,IAAI,EAAE,SAAS,CAAC;CACjB,CAAC;AAEF,MAAM,MAAM,UAAU,CAAC,CAAC,IAAI;IAC1B,IAAI,EAAE,CAAC,EAAE,CAAC;IACV,OAAO,EAAE,MAAM,CAAC,CAAC,CAAC,EAAE,CAAC;IACrB,YAAY,EAAE,MAAM,CAAC,CAAC;IACtB,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,YAAY,CAAC,EAAE,YAAY,CAAC;IAC5B,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,KAAK,CAAC,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;IAC7B,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,gBAAgB,CAAC,EAAE,UAAU,CAAC;IAC9B,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,iBAAiB,CAAC,EAAE,MAAM,CAAA;CAC3B,CAAC"}
+\ No newline at end of file
+diff --git a/lib/typescript/module/src/components/Table.d.ts b/lib/typescript/module/src/components/Table.d.ts
+index 1b0ec58f85874d3a1f43175f58ddedbc6baa4882..dd6f691994cf92b5905f83d793c0f3f90cfe50ad 100644
+--- a/lib/typescript/module/src/components/Table.d.ts
++++ b/lib/typescript/module/src/components/Table.d.ts
+@@ -1,3 +1,3 @@
+ import type { TableProps } from '../utils/types';
+-export declare const Table: <T extends object>({ data, columns, keyExtractor, cellPadding, sortingIcons, borderStyle, style, stickyHeader, headerBackground, rowHeader, rowFooter, }: TableProps<T>) => import("react/jsx-runtime").JSX.Element;
++export declare const Table: <T extends object>({ data, columns, keyExtractor, cellPadding, sortingIcons, borderStyle, style, stickyHeader, headerBackground, rowHeader, rowFooter, estimatedItemSize, }: TableProps<T>) => import("react/jsx-runtime").JSX.Element;
+ //# sourceMappingURL=Table.d.ts.map
+\ No newline at end of file
+diff --git a/lib/typescript/module/src/components/Table.d.ts.map b/lib/typescript/module/src/components/Table.d.ts.map
+index cac31ed48cfbdcbfbf3ef7e331bc40dc2c624a24..515c5f4f3f60047c44a2dd55babcd9a8f8153a32 100644
+--- a/lib/typescript/module/src/components/Table.d.ts.map
++++ b/lib/typescript/module/src/components/Table.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"Table.d.ts","sourceRoot":"","sources":["../../../../../src/components/Table.tsx"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,gBAAgB,CAAC;AAIjD,eAAO,MAAM,KAAK,GAAI,CAAC,SAAS,MAAM,yIAYnC,UAAU,CAAC,CAAC,CAAC,4CAwDf,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"Table.d.ts","sourceRoot":"","sources":["../../../../../src/components/Table.tsx"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAE,UAAU,EAAE,MAAM,gBAAgB,CAAC;AAKjD,eAAO,MAAM,KAAK,GAAI,CAAC,SAAS,MAAM,4JAanC,UAAU,CAAC,CAAC,CAAC,4CAqEf,CAAC"}
+\ No newline at end of file
+diff --git a/lib/typescript/module/src/utils/types.d.ts b/lib/typescript/module/src/utils/types.d.ts
+index d3df671e5e47fc5a8301dbf1d6e82d00d8a4453d..6277f7eda3e7755d70bc07b405bca4a81323e79a 100644
+--- a/lib/typescript/module/src/utils/types.d.ts
++++ b/lib/typescript/module/src/utils/types.d.ts
+@@ -38,5 +38,6 @@ export type TableProps<T> = {
+     headerBackground?: ColorValue;
+     rowHeader?: (rowData: T) => React.ReactNode;
+     rowFooter?: (rowData: T) => React.ReactNode;
++    estimatedItemSize?: number;
+ };
+ //# sourceMappingURL=types.d.ts.map
+\ No newline at end of file
+diff --git a/lib/typescript/module/src/utils/types.d.ts.map b/lib/typescript/module/src/utils/types.d.ts.map
+index 298c6806e113f43bc3ee03be6f83eddadb064a06..70a167e218fe8e286c5ee0c80f84256300c32484 100644
+--- a/lib/typescript/module/src/utils/types.d.ts.map
++++ b/lib/typescript/module/src/utils/types.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../../../src/utils/types.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AACvC,OAAO,KAAK,EAAE,UAAU,EAAE,SAAS,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AAErE,MAAM,MAAM,MAAM,CAAC,CAAC,IAAI;IACtB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,EAAE,MAAM,CAAC,CAAC;IACb,EAAE,CAAC,EAAE,MAAM,CAAC;IACZ,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,MAAM,CAAC,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,MAAM,CAAC,EAAE,CAAC,IAAI,EAAE,CAAC,CAAC,MAAM,CAAC,CAAC,EAAE,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;CAC5D,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,oBAAoB,CAAC,EAAE,OAAO,CAAC;IAC/B,kBAAkB,CAAC,EAAE,OAAO,CAAC;IAC7B,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,WAAW,CAAC,EAAE,MAAM,CAAC;CACtB,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,iBAAiB,CAAC,EAAE,MAAM,CAAC;IAC3B,eAAe,CAAC,EAAE,MAAM,CAAC;CAC1B,CAAC;AAEF,MAAM,MAAM,YAAY,GAAG;IACzB,GAAG,EAAE,SAAS,CAAC;IACf,IAAI,EAAE,SAAS,CAAC;CACjB,CAAC;AAEF,MAAM,MAAM,UAAU,CAAC,CAAC,IAAI;IAC1B,IAAI,EAAE,CAAC,EAAE,CAAC;IACV,OAAO,EAAE,MAAM,CAAC,CAAC,CAAC,EAAE,CAAC;IACrB,YAAY,EAAE,MAAM,CAAC,CAAC;IACtB,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,YAAY,CAAC,EAAE,YAAY,CAAC;IAC5B,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,KAAK,CAAC,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;IAC7B,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,gBAAgB,CAAC,EAAE,UAAU,CAAC;IAC9B,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;CAC7C,CAAC"}
+\ No newline at end of file
++{"version":3,"file":"types.d.ts","sourceRoot":"","sources":["../../../../../src/utils/types.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,OAAO,CAAC;AACvC,OAAO,KAAK,EAAE,UAAU,EAAE,SAAS,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AAErE,MAAM,MAAM,MAAM,CAAC,CAAC,IAAI;IACtB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,EAAE,MAAM,CAAC,CAAC;IACb,EAAE,CAAC,EAAE,MAAM,CAAC;IACZ,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,MAAM,CAAC,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,MAAM,CAAC,EAAE,CAAC,IAAI,EAAE,CAAC,CAAC,MAAM,CAAC,CAAC,EAAE,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;CAC5D,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,oBAAoB,CAAC,EAAE,OAAO,CAAC;IAC/B,kBAAkB,CAAC,EAAE,OAAO,CAAC;IAC7B,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,WAAW,CAAC,EAAE,MAAM,CAAC;CACtB,CAAC;AAEF,MAAM,MAAM,WAAW,GAAG;IACxB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,iBAAiB,CAAC,EAAE,MAAM,CAAC;IAC3B,eAAe,CAAC,EAAE,MAAM,CAAC;CAC1B,CAAC;AAEF,MAAM,MAAM,YAAY,GAAG;IACzB,GAAG,EAAE,SAAS,CAAC;IACf,IAAI,EAAE,SAAS,CAAC;CACjB,CAAC;AAEF,MAAM,MAAM,UAAU,CAAC,CAAC,IAAI;IAC1B,IAAI,EAAE,CAAC,EAAE,CAAC;IACV,OAAO,EAAE,MAAM,CAAC,CAAC,CAAC,EAAE,CAAC;IACrB,YAAY,EAAE,MAAM,CAAC,CAAC;IACtB,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,YAAY,CAAC,EAAE,YAAY,CAAC;IAC5B,WAAW,CAAC,EAAE,WAAW,CAAC;IAC1B,KAAK,CAAC,EAAE,SAAS,CAAC,SAAS,CAAC,CAAC;IAC7B,YAAY,CAAC,EAAE,OAAO,CAAC;IACvB,gBAAgB,CAAC,EAAE,UAAU,CAAC;IAC9B,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,SAAS,CAAC,EAAE,CAAC,OAAO,EAAE,CAAC,KAAK,KAAK,CAAC,SAAS,CAAC;IAC5C,iBAAiB,CAAC,EAAE,MAAM,CAAA;CAC3B,CAAC"}
+\ No newline at end of file
+diff --git a/package.json b/package.json
+index 362e6c04d20dc00d8abf8554d35e48bb1320a97b..d7779b0eb9f3bdf53a15a58065664a791d6d0095 100644
+--- a/package.json
++++ b/package.json
+@@ -69,6 +69,7 @@
+     "@evilmartians/lefthook": "^1.5.0",
+     "@react-native/eslint-config": "^0.73.1",
+     "@release-it/conventional-changelog": "^5.0.0",
++    "@shopify/flash-list": "^1.7.2",
+     "@types/jest": "^29.5.5",
+     "@types/react": "^18.2.44",
+     "commitlint": "^17.0.2",
+@@ -88,6 +89,7 @@
+     "@types/react": "^18.2.44"
+   },
+   "peerDependencies": {
++    "@shopify/flash-list": "*",
+     "react": "*",
+     "react-native": "*"
+   },
+diff --git a/src/components/Table.tsx b/src/components/Table.tsx
+index c3e68ffe7166513d9cac0743938dbe617ce2d54c..5ba5fd3124c8fa975a7a6303b46673a1e728dddd 100644
+--- a/src/components/Table.tsx
++++ b/src/components/Table.tsx
+@@ -1,11 +1,12 @@
+ import { useEffect, useState } from 'react';
+-import { View, FlatList } from 'react-native';
++import { View } from 'react-native';
+ 
+ import { TableHeader } from './TableHeader';
+ import { TableRow } from './TableRow';
+ import type { TableProps } from '../utils/types';
+ import { sortData } from '../utils/sorting';
+ import { HorizontalSeparator } from './HorizontalSeparator';
++import { FlashList } from '@shopify/flash-list';
+ 
+ export const Table = <T extends object>({
+   data,
+@@ -19,6 +20,7 @@ export const Table = <T extends object>({
+   headerBackground,
+   rowHeader,
+   rowFooter,
++  estimatedItemSize,
+ }: TableProps<T>) => {
+   const [sortedData, setSortedData] = useState<T[]>(data);
+   const [sortConfig, setSortConfig] = useState<{
+@@ -45,21 +47,34 @@ export const Table = <T extends object>({
+   }, [data, sortConfig]);
+ 
+   return (
+-    <View style={style}>
+-      <FlatList
++    <View style={[{ width: '100%', height: '100%' }, style]}>
++      {stickyHeader && (
++        <TableHeader
++          columns={columns}
++          sortConfig={sortConfig}
++          cellPadding={cellPadding}
++          sortingIcons={sortingIcons}
++          borderStyle={borderStyle}
++          headerBackground={headerBackground}
++          onSort={handleSort}
++        />
++      )}
++      <FlashList
+         data={sortedData}
+         ListHeaderComponent={
+-          <TableHeader
+-            columns={columns}
+-            sortConfig={sortConfig}
+-            cellPadding={cellPadding}
+-            sortingIcons={sortingIcons}
+-            borderStyle={borderStyle}
+-            headerBackground={headerBackground}
+-            onSort={handleSort}
+-          />
++          !stickyHeader ? (
++            <TableHeader
++              columns={columns}
++              sortConfig={sortConfig}
++              cellPadding={cellPadding}
++              sortingIcons={sortingIcons}
++              borderStyle={borderStyle}
++              headerBackground={headerBackground}
++              onSort={handleSort}
++            />
++          ) : null
+         }
+-        stickyHeaderIndices={stickyHeader ? [0] : undefined}
++        estimatedItemSize={estimatedItemSize}
+         renderItem={({ item }) => (
+           <TableRow
+             item={item}
+diff --git a/src/utils/types.ts b/src/utils/types.ts
+index 891979f8f30eecdd543e33295b9b50369006d7e0..6ea3fd27a56926aca808ed4d5e6de90635dd7563 100644
+--- a/src/utils/types.ts
++++ b/src/utils/types.ts
+@@ -43,4 +43,5 @@ export type TableProps<T> = {
+   headerBackground?: ColorValue;
+   rowHeader?: (rowData: T) => React.ReactNode;
+   rowFooter?: (rowData: T) => React.ReactNode;
++  estimatedItemSize?: number
+ };
