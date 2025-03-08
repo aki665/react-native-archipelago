@@ -83,7 +83,7 @@ If a location is inaccessible, see [A location is in an inaccessible area](#a-lo
 | Showing connection / other errors to the user| ✔️ |
 | Receiving and sending messages| ✔️ |
 | Handling poor connection situations| ❓<sup>1</sup> |
-| Showing hinted items, e.g. Text clients hints tab| ❌ |
+| Showing hinted items, e.g. Text clients hints tab| ✔️ |
 <sub>1. The app has not been tested in low connectivity situations </sub> 
 
 ### Game
