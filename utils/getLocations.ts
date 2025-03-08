@@ -103,7 +103,7 @@ async function generateLocation(
 
     newLatitude = parseFloat(lookupInfo.lat);
     newLongitude = parseFloat(lookupInfo.lon);
-    const osmID = lookupInfo.osm_type.toUpperCase() + lookupInfo.osm_id;
+    const osmID = lookupInfo.osm_type[0].toUpperCase() + lookupInfo.osm_id;
     const distance = getDistanceFromLatLonInKm(
       latitude,
       longitude,
