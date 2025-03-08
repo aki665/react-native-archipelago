@@ -61,6 +61,27 @@ export default function LocationInfoPopup({
   const [hintedKeys, setHintedKeys] = useState<keyHintInfo[] | []>([]);
 
   const handleReroll = () => {
+    if (locationInfo !== null && locationInfo.coords.osmID === "0") {
+      Alert.alert(
+        "Do you want to reroll this location?",
+        "This location seems to be invalid. Reroll will not be on cooldown.",
+        [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel",
+          },
+          {
+            text: "Reroll",
+            onPress: () => {
+              rerollSelectedLocation(locationInfo?.id, locationInfo.name);
+              rerollAllowed.current = true;
+              handleClosePopup();
+            },
+          },
+        ],
+      );
+    }
     if (locationInfo !== null && rerollAllowed.current) {
       Alert.alert(
         "Do you want to reroll this location?",
