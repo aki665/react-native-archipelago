@@ -139,33 +139,41 @@ export default function Chat({
 
   const commands = {
     "/received": {
-      command: client.items.received.map(
-        (
-          item,
-        ): {
-          type: string;
-          text: string;
-          selfPlayer?: boolean;
-          itemType?: number;
-          color?: ValidJSONColorType;
-        }[] => {
-          return [
-            {
-              type: "item",
-              text: item.name,
-              itemType: item.flags,
-            },
-            { type: "text", text: " from " },
-            { type: "location", text: item.locationName },
-            { type: "text", text: " by " },
-            {
-              type: "player",
-              text: item.sender.alias,
-              selfPlayer: item.sender.slot === item.receiver.slot,
-            },
-          ];
-        },
-      ),
+      command: [
+        [
+          {
+            type: "text",
+            text: `${client.items.received.length} received items, sorted by time:`,
+          },
+        ],
+        ...client.items.received.map(
+          (
+            item,
+          ): {
+            type: string;
+            text: string;
+            selfPlayer?: boolean;
+            itemType?: number;
+            color?: ValidJSONColorType;
+          }[] => {
+            return [
+              {
+                type: "item",
+                text: item.name,
+                itemType: item.flags,
+              },
+              { type: "text", text: " from " },
+              { type: "location", text: item.locationName },
+              { type: "text", text: " by " },
+              {
+                type: "player",
+                text: item.sender.alias,
+                selfPlayer: item.sender.slot === item.receiver.slot,
+              },
+            ];
+          },
+        ),
+      ],
       description: "List all received items",
     },
     "/help": {
@@ -178,7 +186,6 @@ export default function Chat({
     return Object.entries(commands).map(([key, command]) => {
       return [{ type: "text", text: key + "\n" + command.description }];
     });
-    //const [name, command] = Object.entries(commands).map();
   };
 
   const sendMessage = () => {
@@ -211,7 +218,7 @@ export default function Chat({
       return;
     }
     try {
-      if (chat !== "") client.messages.say(chat);
+      if (chat !== "") void client.messages.say(chat);
     } catch (e) {
       console.log(e);
     }
@@ -233,6 +240,7 @@ export default function Chat({
                 style={{
                   borderBottomWidth: 0.3,
                 }}
+                key={`message-${index}-border`}
               ></View>
             )}
             <ChatLine
