@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { Table } from "@coligo/react-native-table";
 import { ClientContext } from "../components/ClientContext";
 import { Hint, NetworkHint } from "archipelago.js";
@@ -198,7 +198,7 @@ export default function HintsScreen() {
           paddingHorizontal: 5,
           paddingVertical: 5,
         }}
-        style={{ marginVertical: 5, height: "99%" }}
+        style={{ marginTop: 5, height: "97%" }}
         estimatedItemSize={100}
         stickyHeader
       />

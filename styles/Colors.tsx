@@ -23,10 +23,10 @@ const Colors = false //TODO: Add logic to check light or dark mode
       playerOther: "#b8860b", // typically other slots/players
       blue: "#6495ED", // typically extra info (such as entrance)
       playerSelf: "#EE00EE", // typically your slot/player
-      filler: "#00BDBD", // typically regular item
+      filler: "#07A0A0", // typically regular item
       useful: "#6D8BE8", // typically useful item
-      progression: "#AF99EF", // typically progression item
-      trap: "#FA8072", // typically trap item
+      progression: "#9477E6", // typically progression item
+      trap: "#D46154", // typically trap item
       white: "#FFFFFF", // not used, if you want to change the generic text color change color in Label
       progUseful: "#dfca37",
       progTrap: "#FFAC1C",
