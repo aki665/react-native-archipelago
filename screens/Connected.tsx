@@ -30,11 +30,11 @@ export default function Connected({
   navigation,
 }: Readonly<{
   route: {
-    params: { sessionName: string; replacedInfo: boolean };
+    params: { sessionName: string };
   };
   navigation: MaterialTopTabBarProps["navigation"];
 }>) {
-  const { sessionName, replacedInfo } = route.params;
+  const { sessionName } = route.params;
   const { client, connectionInfoRef } = useContext(ClientContext);
 
   const { getSetting } = useContext(SettingsContext);
@@ -51,6 +51,7 @@ export default function Connected({
   const [allowedLocation, setAllowedLocation] = useState(false);
   const retryCountRef = useRef<number>(0);
   const backHandler = useRef<NativeEventSubscription | undefined>(undefined);
+  const isDisconnecting = useRef(false);
   const [disconnected, setDisconnected] = useState<boolean>(false);
   const [reconnecting, setReconnecting] = useState<boolean>(false);
 
@@ -168,6 +169,7 @@ export default function Connected({
 
   const handleDisconnect = async () => {
     backHandler.current?.remove();
+    isDisconnecting.current = true;
     client.socket.off("disconnected", onDisconnect);
     client.socket.off("printJSON", handleMessages);
     console.log("disconnecting...");
@@ -323,7 +325,11 @@ export default function Connected({
   }, []);
 
   return (
-    <Tab.Navigator initialRouteName="Chat" style={{ paddingTop: insets.top }}>
+    <Tab.Navigator
+      initialRouteName="Chat"
+      style={{ paddingTop: insets.top }}
+      screenOptions={{ swipeEnabled: false }}
+    >
       <Tab.Screen name="Chat">
         {(props) => (
           <ScrollView
@@ -358,7 +364,7 @@ export default function Connected({
             <MapScreen
               {...props}
               sessionName={sessionName}
-              replacedInfo={replacedInfo}
+              isDisconnecting={isDisconnecting}
             />
           )}
         </Tab.Screen>

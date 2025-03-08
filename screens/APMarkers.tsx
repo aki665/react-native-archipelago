@@ -44,7 +44,7 @@ const MemoizedMarker = memo(function APMarker({
     setTracksViewChanges(true);
     setTimeout(() => {
       setTracksViewChanges(false);
-    }, 200);
+    }, 1000);
   }, [receivedKeys, trip]);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const MemoizedMarker = memo(function APMarker({
         setTracksViewChanges(true);
         setTimeout(() => {
           setTracksViewChanges(false);
-        }, 200);
+        }, 1000);
         firstRenderDone.current = true;
         unsubscribe();
       }

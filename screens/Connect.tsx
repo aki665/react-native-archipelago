@@ -32,10 +32,9 @@ export default function Connect({
   const [sessionName, setSessionName] = useState("");
   const [infoToSave, setInfoToSave] = useState<APInfo | object>({});
 
-  const connect = (replacedInfo = false) => {
+  const connect = () => {
     navigation.navigate("connected", {
       sessionName,
-      replacedInfo,
     });
     setModalVisible(false);
   };
@@ -44,7 +43,7 @@ export default function Connect({
       remove(sessionName + data.name);
     });
     await save(infoToSave, sessionName, STORAGE_TYPES.OBJECT);
-    connect(true);
+    connect();
   };
 
   const handleSaveConnectionInfo = async () => {

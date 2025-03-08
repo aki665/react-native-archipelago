@@ -9,6 +9,7 @@ import {
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import React, {
+  MutableRefObject,
   ReactNode,
   memo,
   useContext,
@@ -241,10 +242,10 @@ export type trip = {
 
 export default function MapScreen({
   sessionName,
-  replacedInfo,
+  isDisconnecting,
 }: Readonly<{
   sessionName: string;
-  replacedInfo: boolean;
+  isDisconnecting: MutableRefObject<boolean>;
 }>) {
   const { client } = useContext(ClientContext);
   const { getSetting } = useContext(SettingsContext);
@@ -442,7 +443,7 @@ export default function MapScreen({
         let coords = { lat: 0, lon: 0, osmID: "0", duplicate: false };
         let loopCount = 0;
 
-        while (generatingCoords) {
+        while (generatingCoords && !isDisconnecting.current) {
           if (!client.socket.connected) generatingCoords = false;
           coords = await getLocations(
             location.coords,
@@ -475,6 +476,24 @@ export default function MapScreen({
         client.room.checkedLocations,
       );
     }
+    filteredTrips.forEach(async (trip) => {
+      if (trip.coords.osmID === "0") {
+        const newCoords = await getLocations(
+          location.coords,
+          parseInt(JSON.stringify(data.maximum_distance), 10),
+          parseInt(JSON.stringify(data.minimum_distance), 10),
+          parseInt(JSON.stringify(data.speed_requirement), 10),
+          trip.trip,
+          NEAR_ZOOM,
+        );
+        newCoords.duplicate = filteredTrips.some(
+          (value) =>
+            value.coords.lat === newCoords.lat &&
+            value.coords.lon === newCoords.lon,
+        );
+        trip.coords = newCoords;
+      }
+    });
     const keyAmount = client.items.received.map(
       (item) => item.id === MAP_ID_TO_ITEM.KEY,
     ).length;
@@ -489,12 +508,6 @@ export default function MapScreen({
     );
     if (sessionName && sessionName !== "")
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
-    filteredTrips.forEach((trip) => {
-      if (trip.coords.osmID === "0") {
-        rerollSelectedLocation(trip.id, trip.name, -10);
-        rerollAllowedRef.current = true;
-      }
-    });
   };
 
   const roomUpdateListener = (packet: RoomUpdatePacket) => {
