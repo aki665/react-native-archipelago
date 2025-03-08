@@ -26,7 +26,7 @@ const getOSMTypeAndIdAPI = (
   longitude: number,
   zoom: number,
 ) => {
-  return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&zoom=${zoom}&format=json`;
+  return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&zoom=${zoom}&addressdetails=1&extratags=1&format=json`;
 };
 
 /**
@@ -86,30 +86,24 @@ async function generateLocation(
         headers: { "user-agent": "archipela-go/0.2.0" },
       },
     );
-    const OSMInfo = await OSMInfoResponse.json();
-    await wait(1000);
-    const lookupResponse = await fetch(
-      lookupApi(OSMInfo.osm_type[0].toUpperCase(), OSMInfo.osm_id),
-      {
-        method: "GET",
-        referrer: "com.aki665.archipelago",
-        headers: { "user-agent": "archipela-go/0.2.0" },
-      },
-    );
-    const lookupInfo = await lookupResponse.json();
+    const lookupInfo = await OSMInfoResponse.json();
+
     console.log("lookupInfo", lookupInfo);
     if (
-      lookupInfo[0].type === "motorway" ||
-      lookupInfo[0]?.extratags?.access === "private"
+      lookupInfo.type === "motorway" ||
+      lookupInfo.type === "construction" ||
+      lookupInfo.class === "railway" ||
+      lookupInfo.addresstype === "railway" ||
+      lookupInfo?.extratags?.access === "private" ||
+      lookupInfo?.extratags?.landuse === "railway"
     )
       throw new Error("Location is in a forbidden area");
-    console.log(newLatitude, "is now", lookupInfo[0].lat);
-    console.log(newLongitude, "is now", lookupInfo[0].lon);
+    console.log(newLatitude, "is now", lookupInfo.lat);
+    console.log(newLongitude, "is now", lookupInfo.lon);
 
-    newLatitude = parseFloat(lookupInfo[0].lat);
-    newLongitude = parseFloat(lookupInfo[0].lon);
-    const osmID =
-      lookupInfo[0].osm_type[0].toUpperCase() + lookupInfo[0].osm_id;
+    newLatitude = parseFloat(lookupInfo.lat);
+    newLongitude = parseFloat(lookupInfo.lon);
+    const osmID = lookupInfo.osm_type.toUpperCase() + lookupInfo.osm_id;
     const distance = getDistanceFromLatLonInKm(
       latitude,
       longitude,
