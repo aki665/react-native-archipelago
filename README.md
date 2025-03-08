@@ -84,6 +84,7 @@ If a location is inaccessible, see [A location is in an inaccessible area](#a-lo
 | Receiving and sending messages| ✔️ |
 | Handling poor connection situations| ❓<sup>1</sup> |
 | Showing hinted items, e.g. Text clients hints tab| ✔️ |
+| Client commands| ✔️ |
 <sub>1. The app has not been tested in low connectivity situations </sub> 
 
 ### Game
