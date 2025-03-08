@@ -612,8 +612,20 @@ export default function MapScreen({
     );
 
     const subscription = AppState.addEventListener("change", (nextAppState) => {
+      console.log("app state changed. Next state is", nextAppState);
       if (nextAppState === "active") {
-        handleReroll(); // Explicitly disconnect the client if the app goes into the background state...
+        handleReroll();
+        const keyAmount = client.items.received.map(
+          (item) => item.id === MAP_ID_TO_ITEM.KEY,
+        ).length;
+        geofenceLocations(
+          trips,
+          client,
+          keyAmount,
+          receivedReductions,
+          MARKER_RADIUS,
+          locationEmitter.current,
+        );
       }
       appState.current = nextAppState;
     });
