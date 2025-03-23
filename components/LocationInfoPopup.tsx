@@ -208,7 +208,11 @@ export default function LocationInfoPopup({
         if (distanceFromLocation < MARKER_RADIUS) {
           setLocationAsFound(locationInfo.id);
           handleClosePopup();
-        }
+        } else
+          Alert.alert(
+            "",
+            `Could not send location. You are not within ${MARKER_RADIUS}m of the location.\nDistance to location: ${Math.ceil(distanceFromLocation)}m`,
+          );
       }
     }
   };
