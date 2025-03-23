@@ -45,7 +45,22 @@ const MemoizedMarker = memo(function APMarker({
     setTimeout(() => {
       setTracksViewChanges(false);
     }, 1000);
-  }, [receivedKeys, trip]);
+  }, [receivedKeys]);
+
+  useEffect(() => {
+    coordinates.current = {
+      latitude: trip.coords.duplicate
+        ? trip.coords.lat + (Math.random() - 0.5) / 8300
+        : trip.coords.lat,
+      longitude: trip.coords.duplicate
+        ? trip.coords.lon + (Math.random() - 0.5) / 8300
+        : trip.coords.lon,
+    };
+    setTracksViewChanges(true);
+    setTimeout(() => {
+      setTracksViewChanges(false);
+    }, 1000);
+  }, [trip]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {

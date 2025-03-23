@@ -67,7 +67,11 @@ export default function LocationInfoPopup({
   const { getSetting } = useContext(SettingsContext);
 
   const handleReroll = () => {
-    if (locationInfo !== null && locationInfo.coords.osmID === "0") {
+    if (
+      locationInfo !== null &&
+      (locationInfo.coords.osmID === "0" ||
+        (locationInfo.coords.lat === 0 && locationInfo.coords.lon === 0))
+    ) {
       Alert.alert(
         "Do you want to reroll this location?",
         "This location seems to be invalid. Reroll will not be on cooldown.",
@@ -87,8 +91,7 @@ export default function LocationInfoPopup({
           },
         ],
       );
-    }
-    if (locationInfo !== null && rerollAllowed.current) {
+    } else if (locationInfo !== null && rerollAllowed.current) {
       Alert.alert(
         "Do you want to reroll this location?",
         `Do you want to reroll the existing one with a new one?\nYou will be unable to reroll locations for the next ${REROLL_TIME} seconds`,
