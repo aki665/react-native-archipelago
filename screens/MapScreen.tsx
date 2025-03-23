@@ -17,7 +17,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, AppState, View } from "react-native";
+import { Alert, AppState, Pressable, View } from "react-native";
 import MapView, { Camera } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
@@ -31,6 +31,7 @@ import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
+import { FontAwesome } from "@expo/vector-icons";
 
 /**
  * This class is used to send location ids from the geofencing to the react code
@@ -675,6 +676,16 @@ export default function MapScreen({
 
   return (
     <View style={mapStyles.container}>
+      <Pressable
+        style={mapStyles.refreshButton}
+        onPress={() => {
+          handleReconnect();
+        }}
+      >
+        <View>
+          <FontAwesome name="refresh" size={24} color="black" />
+        </View>
+      </Pressable>
       <LocationInfoPopup
         visible={showPopup}
         closePopup={closePopup}
@@ -684,6 +695,7 @@ export default function MapScreen({
         rerollSelectedLocation={rerollSelectedLocation}
         rerollAllowed={rerollAllowedRef}
         rerollTime={rerollTime}
+        setLocationAsFound={handleGeofenceEnter}
       />
       <MemoizedMap location={location}>
         <APMarkers
