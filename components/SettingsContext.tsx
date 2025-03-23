@@ -98,7 +98,7 @@ const defaultSettings: Settings[] = [
     displayName: "CHEAT: Allow free location sending",
     description:
       "Allow checks to be sent with a button." +
-      "\nIf set to true, a button in the location info popup can be pressed to send locations regardless of location." +
+      "\nIf set to true, a button in the location info popup can be pressed to always send a location." +
       "\nIf false, the button checks if you are within the marker radius." +
       "\nDefault: false",
     value: false,

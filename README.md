@@ -18,6 +18,9 @@ Settings can be found and changed in the settings screen (duh). Pressing the ? i
 | Reconnect attempt amount | Determines how many times the app will try to reconnect to the archipelago server, if connection is lost. If the amount is reached (or is set to 0), the user is told that they have disconnected and be taken back to the connection screen. <br>Defaults to 5. Can't be less than 0. Recommended range: 3 - 10<br><br>Note: This setting is ignored if automatic reconnection is turned off. |
 | Allow multiple locations on the same road | If enabled, a road can have multiple locations. For example, imagine a road that has three buildings, Building 1, Building 2 and Building 3. If this setting is disabled, only a single location will be on the road, located usually at the middle point of the road. If enabled, all three buildings can be locations separately. <br>Default is off. Should be turned on, if playing in an area with few roads or with many locations to speed up generation.<br><br> Note: The location generation will selectively act like this setting is enabled, if location a single location takes too many attempts.    |
 | Location radius | Determines the distance from which a location can be collected (in meters). Because of the variance in locations, you should determine the best value for your area. Allowed values are 10 - 100. Default is 20.     |
+| Retry location amount | Determines how many times the app should try generating unique trips before continuing. If set to zero, locations are not checked for uniqueness, causing multiple checks to be in the same location. Should be lower if playing in an area with few roads or with many locations. Default is 5. |
+| CHEAT: Allow free location sending | Allow checks to be sent with a button. If set to true, a button in the location info popup can be pressed to always send a location. If false, the button checks if you are within the marker radius. Default is false
+
 
 
 
