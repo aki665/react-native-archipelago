@@ -1,11 +1,14 @@
 import { Client, Hint } from "archipelago.js";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
+import * as Location from "expo-location";
 
 import Button from "./Button";
 import Popup from "./Popup";
 import { trip } from "../screens/MapScreen";
 import { MAP_ID_TO_ITEM } from "../utils/handleItems";
+import { SettingsContext } from "./SettingsContext";
+import { getDistanceFromLatLonInKm } from "../utils/getLocations";
 
 /**Time between location rerolls in seconds */
 export const REROLL_TIME = 120;
@@ -42,6 +45,7 @@ export default function LocationInfoPopup({
   rerollSelectedLocation,
   rerollAllowed,
   rerollTime,
+  setLocationAsFound,
 }: Readonly<{
   visible: boolean;
   closePopup: () => void;
@@ -51,6 +55,7 @@ export default function LocationInfoPopup({
   rerollSelectedLocation: (id: number, name: string) => Promise<void>;
   rerollAllowed: React.MutableRefObject<boolean>;
   rerollTime: React.MutableRefObject<Date>;
+  setLocationAsFound: (id: number) => void;
 }>) {
   const [locationInfo, setLocationInfo] = useState<locationInfo | null>(null);
   const [locationHint, setLocationHint] = useState<locationHintInfo | null>(
@@ -59,6 +64,7 @@ export default function LocationInfoPopup({
   const [loading, setLoading] = useState(false);
   const [canHint, setCanHint] = useState<boolean>(false);
   const [hintedKeys, setHintedKeys] = useState<keyHintInfo[] | []>([]);
+  const { getSetting } = useContext(SettingsContext);
 
   const handleReroll = () => {
     if (locationInfo !== null && locationInfo.coords.osmID === "0") {
@@ -167,6 +173,46 @@ export default function LocationInfoPopup({
     setLoading(false);
   };
 
+  const handleCheckLocation = async () => {
+    if (locationInfo !== null) {
+      const CAN_ALWAYS_SEND_LOCATION = getSetting(
+        "CAN_ALWAYS_SEND_LOCATION",
+        "boolean",
+      );
+      if (CAN_ALWAYS_SEND_LOCATION) {
+        Alert.alert("Do you want send this location?", undefined, [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel",
+          },
+          {
+            text: "Send",
+            onPress: () => {
+              setLocationAsFound(locationInfo.id);
+              handleClosePopup();
+            },
+          },
+        ]);
+      } else {
+        const MARKER_RADIUS = getSetting("MARKER_RADIUS", "number");
+        const currentLocation = await Location.getCurrentPositionAsync();
+        const distanceFromLocation =
+          getDistanceFromLatLonInKm(
+            locationInfo.coords.lat,
+            locationInfo.coords.lon,
+            currentLocation.coords.latitude,
+            currentLocation.coords.longitude,
+          ) * 1000;
+        console.log(distanceFromLocation, " < ", MARKER_RADIUS);
+        if (distanceFromLocation < MARKER_RADIUS) {
+          setLocationAsFound(locationInfo.id);
+          handleClosePopup();
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     if (location !== null) {
       client.items.on("hintReceived", handleHintMessage);
@@ -177,6 +223,7 @@ export default function LocationInfoPopup({
         name: location.name,
         id: location.id,
       });
+      console.log(receivedKeys, location.trip.key_needed);
       handleHintMessage();
       setLoading(false);
     } else {
@@ -228,7 +275,10 @@ export default function LocationInfoPopup({
             )}
           </View>
           <Pressable>
-            <Text style={{ fontSize: 12, color: "gray", textAlign: "right" }}>
+            <Text
+              style={{ fontSize: 12, color: "gray", textAlign: "right" }}
+              selectable
+            >
               osm ID:{locationInfo.coords.osmID}
             </Text>
           </Pressable>
@@ -327,6 +377,14 @@ export default function LocationInfoPopup({
                 </>
               )}
             </>
+          )}
+          {(getSetting("CAN_ALWAYS_SEND_LOCATION", "boolean") ||
+            receivedKeys >= locationInfo.keysNeeded) && (
+            <Button
+              onPress={() => handleCheckLocation()}
+              text="Check location"
+              buttonStyle={{ marginBottom: 10 }}
+            ></Button>
           )}
         </View>
       )}

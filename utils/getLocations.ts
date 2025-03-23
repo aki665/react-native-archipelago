@@ -123,7 +123,7 @@ async function generateLocation(
 }
 
 // See https://stackoverflow.com/a/27943/10975709
-function getDistanceFromLatLonInKm(
+export function getDistanceFromLatLonInKm(
   lat1: number,
   lon1: number,
   lat2: number,
