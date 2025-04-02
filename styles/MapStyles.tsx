@@ -10,14 +10,15 @@ const mapStyles = StyleSheet.create({
   },
   refreshButton: {
     position: "absolute",
-    top: 10,
-    left: 10,
+    top: 60,
+    right: 12,
     zIndex: 9999,
     backgroundColor: "white",
-    padding: 5,
+    padding: 8,
     borderRadius: 1,
     elevation: 10,
     opacity: 0.75,
+    borderBlockColor: "lightgray",
   },
 });
 

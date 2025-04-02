@@ -2,7 +2,7 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
 import { Image, Text, View } from "react-native";
-import { Callout, Circle, Marker } from "react-native-maps";
+import { Callout, Circle, MapMarker, Marker } from "react-native-maps";
 
 import { trip } from "./MapScreen";
 import { SettingsContext } from "../components/SettingsContext";
@@ -20,14 +20,17 @@ const MemoizedMarker = memo(function APMarker({
   handleShowPopup,
   MARKER_RADIUS,
   hinted,
+  refresh,
 }: Readonly<{
   trip: trip;
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
   MARKER_RADIUS: number;
   hinted: boolean;
+  refresh: boolean;
 }>) {
   const navigation = useNavigation();
+  const markerRef = useRef<null | MapMarker>(null);
   const canCheck = receivedKeys >= trip.trip.key_needed;
   const coordinates = useRef({
     latitude: trip.coords.duplicate
@@ -37,15 +40,14 @@ const MemoizedMarker = memo(function APMarker({
       ? trip.coords.lon + (Math.random() - 0.5) / 8300
       : trip.coords.lon,
   });
-  const firstRenderDone = useRef(false);
   //console.log(`${receivedKeys}>=${trip.trip.key_needed}=${canCheck}`);
-  const [tracksViewChanges, setTracksViewChanges] = useState(true);
   useEffect(() => {
-    setTracksViewChanges(true);
-    setTimeout(() => {
-      setTracksViewChanges(false);
-    }, 1000);
+    markerRef.current?.redraw();
   }, [receivedKeys]);
+
+  useEffect(() => {
+    markerRef.current?.redraw();
+  }, [refresh]);
 
   useEffect(() => {
     coordinates.current = {
@@ -56,32 +58,15 @@ const MemoizedMarker = memo(function APMarker({
         ? trip.coords.lon + (Math.random() - 0.5) / 8300
         : trip.coords.lon,
     };
-    setTracksViewChanges(true);
-    setTimeout(() => {
-      setTracksViewChanges(false);
-    }, 1000);
+    markerRef.current?.redraw();
   }, [trip]);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      if (!firstRenderDone.current) {
-        setTracksViewChanges(true);
-        setTimeout(() => {
-          setTracksViewChanges(false);
-        }, 1000);
-        firstRenderDone.current = true;
-        unsubscribe();
-      }
-    });
-
-    return unsubscribe;
+    markerRef.current?.redraw();
   }, [navigation]);
 
   useEffect(() => {
-    setTracksViewChanges(true);
-    setTimeout(() => {
-      setTracksViewChanges(false);
-    }, 200);
+    markerRef.current?.redraw();
   }, [hinted]);
 
   return (
@@ -96,7 +81,8 @@ const MemoizedMarker = memo(function APMarker({
       <Marker
         coordinate={coordinates.current}
         key={`${trip.coords.lat}&${trip.coords.lon}-marker`}
-        tracksViewChanges={tracksViewChanges} //android only
+        tracksViewChanges={false} //android only
+        ref={(ref) => (markerRef.current = ref)}
       >
         <Image
           source={getMarker(canCheck, hinted)}
@@ -129,11 +115,13 @@ export default function APMarkers({
   receivedKeys,
   handleShowPopup,
   hintedProgTrips,
+  refresh,
 }: Readonly<{
   trips: any[] | trip[];
   receivedKeys: number;
   handleShowPopup: (item: trip) => void;
   hintedProgTrips: number[];
+  refresh: boolean;
 }>) {
   const { getSetting } = useContext(SettingsContext);
 
@@ -154,6 +142,7 @@ export default function APMarkers({
               handleShowPopup={handleShowPopup}
               MARKER_RADIUS={MARKER_RADIUS}
               hinted={hintedTrips.includes(t.id)}
+              refresh={refresh}
             />
           );
         }

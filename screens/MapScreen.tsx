@@ -269,6 +269,7 @@ export default function MapScreen({
     useState<string>("Archipela-Go!");
   const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
   const [hintedProgTrips, setHintedProgTrips] = useState<number[]>([0]);
+  const [refresh, setRefresh] = useState<boolean>(false);
   const rerollAllowedRef = useRef<boolean>(true);
   const rerollTime = useRef<Date>(new Date());
   const slotData = useRef<JSONRecord | null>(null);
@@ -556,6 +557,11 @@ export default function MapScreen({
       setHintedProgTrips((prevState) => [...prevState, hint.item.locationId]);
   };
 
+  const handleRefresh = () => {
+    handleReconnect();
+    setRefresh((prevState) => !prevState);
+  };
+
   const handleReconnect = async () => {
     handleReroll();
 
@@ -679,7 +685,7 @@ export default function MapScreen({
       <Pressable
         style={mapStyles.refreshButton}
         onPress={() => {
-          handleReconnect();
+          handleRefresh();
         }}
       >
         <View>
@@ -703,6 +709,7 @@ export default function MapScreen({
           receivedKeys={receivedKeys}
           handleShowPopup={handleShowPopup}
           hintedProgTrips={hintedProgTrips}
+          refresh={refresh}
         />
       </MemoizedMap>
     </View>
