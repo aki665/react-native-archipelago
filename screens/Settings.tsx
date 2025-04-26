@@ -1,14 +1,48 @@
 import { AntDesign } from "@expo/vector-icons";
 import React, { useContext, useState } from "react";
-import { ScrollView, Switch, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import * as Location from "expo-location";
 
 import APLicense from "../components/APLicense";
 import Button from "../components/Button";
 import Popup from "../components/Popup";
 import { Settings, SettingsContext } from "../components/SettingsContext";
 import commonStyles from "../styles/CommonStyles";
-import settingsStyles from "../styles/settingsStyles";
-import { save, STORAGE_TYPES } from "../utils/storageHandler";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
+
+const settingsStyles = StyleSheet.create({
+  settingsContainer: {
+    borderColor: "black",
+  },
+  list: {
+    width: "90%",
+  },
+  item: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    flex: 1,
+    borderRadius: 4,
+    maxHeight: 150,
+    overflow: "hidden",
+    backgroundColor: "white",
+    marginHorizontal: 12,
+    marginVertical: 6,
+  },
+  name: {
+    flex: 10,
+    marginVertical: 10,
+    marginLeft: 10,
+    fontSize: 25,
+  },
+});
 
 /**
  * Renders a single setting from the default settings array in SettingsContext. Input type is determined from the type of the setting's value.
@@ -83,24 +117,35 @@ function SettingItem({
   }
 }
 
-export default function SettingsScreen() {
-  const { settings, setSettings } = useContext(SettingsContext);
+/**
+ * An array containing settings that have unique display
+ */
+const hiddenSettings = [
+  "HOME_LOCATION",
+  "USE_HOME_LOCATION",
+  "MIN_RADIAN",
+  "MAX_RADIAN",
+];
+export default function SettingsScreen({
+  navigation,
+}: Readonly<{
+  navigation: MaterialTopTabBarProps["navigation"];
+}>) {
+  const { settings, handleSettingChange } = useContext(SettingsContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDescription, setSelectedDescription] = useState("");
+  const [loading, setLoading] = useState(false);
   const closePopup = () => {
     setModalVisible(false);
   };
-  const handleSettingChange = async (
-    newValue: Settings["value"],
-    name: string,
-  ) => {
-    const newSettings = settings;
-    const newSettingIndex = newSettings.findIndex(
-      (setting) => setting.name === name,
-    );
-    newSettings[newSettingIndex].value = newValue;
-    await save(newSettings, "__settings", STORAGE_TYPES.OBJECT);
-    setSettings(newSettings);
+
+  const handleBannedLocations = async () => {
+    const fgPermission = await Location.getForegroundPermissionsAsync();
+    const location = await Location.getCurrentPositionAsync();
+    console.log(fgPermission);
+    if (fgPermission.granted)
+      navigation.navigate("bannedLocations", { location });
+    setLoading(false);
   };
   return (
     <>
@@ -113,45 +158,43 @@ export default function SettingsScreen() {
       <ScrollView style={settingsStyles.settingsContainer} nestedScrollEnabled>
         <APLicense />
         <>
-          {settings.map((setting) => {
-            return (
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-around",
-                  flex: 1,
-                  borderRadius: 4,
-                  maxHeight: 150,
-                  overflow: "hidden",
-                  backgroundColor: "white",
-                  marginHorizontal: 12,
-                  marginVertical: 6,
-                }}
-                key={setting.name}
-              >
-                <Text
-                  style={{
-                    flex: 10,
-                    marginVertical: 10,
-                    marginLeft: 10,
-                    fontSize: 25,
-                  }}
-                >
-                  {setting.displayName}{" "}
-                  <AntDesign
-                    onPress={() => {
-                      setSelectedDescription(setting.description);
-                      setModalVisible(true);
-                    }}
-                    name="questioncircleo"
-                    size={15}
-                    color="black"
+          <View style={settingsStyles.item}>
+            <Button
+              onPress={() => {
+                setLoading(true);
+                void handleBannedLocations();
+                setLoading(false);
+              }}
+              text="Manage banned locations"
+              buttonStyle={{ margin: 10, width: "90%" }}
+              buttonProps={{ disabled: loading }}
+            ></Button>
+            {loading && <ActivityIndicator size="large" color="white" />}
+          </View>
+          {settings
+            .filter((setting) => !hiddenSettings.includes(setting.name))
+            .map((setting) => {
+              return (
+                <View style={settingsStyles.item} key={setting.name}>
+                  <Text style={settingsStyles.name}>
+                    {setting.displayName}{" "}
+                    <AntDesign
+                      onPress={() => {
+                        setSelectedDescription(setting.description);
+                        setModalVisible(true);
+                      }}
+                      name="questioncircleo"
+                      size={15}
+                      color="black"
+                    />
+                  </Text>
+                  <SettingItem
+                    setting={setting}
+                    onChange={handleSettingChange}
                   />
-                </Text>
-                <SettingItem setting={setting} onChange={handleSettingChange} />
-              </View>
-            );
-          })}
+                </View>
+              );
+            })}
         </>
       </ScrollView>
     </>

@@ -1,10 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const STORAGE_TYPES = {
-  OBJECT: "object",
-  STRING: "string",
-  NUMBER: "number",
-};
+export enum STORAGE_TYPES {
+  OBJECT = "object",
+  STRING = "string",
+  NUMBER = "number",
+}
 
 /**
  * Save a value into storage. Uses JSON.stringify.
@@ -15,7 +15,7 @@ export const STORAGE_TYPES = {
 export async function save(
   value: object | string | number,
   name: string,
-  type: string,
+  type: `${STORAGE_TYPES}`,
 ) {
   try {
     if (typeof value !== type) {
@@ -30,10 +30,10 @@ export async function save(
         break;
       }
       case STORAGE_TYPES.NUMBER:
-        await AsyncStorage.setItem(name, value.toString());
+        await AsyncStorage.setItem(name, (value as number).toString());
         break;
       case STORAGE_TYPES.STRING:
-        await AsyncStorage.setItem(name, value);
+        await AsyncStorage.setItem(name, value as string);
         break;
       default:
         console.error("Could not save value! Unsupported type!");
@@ -47,10 +47,10 @@ export async function save(
 /**
  * Retrieve an value from storage.
  * @param name name of the saved value
- * @param type type of the saved value. @see STORAGE_TYPES for supported values
+ * @param type type of the saved value
  * @returns the saved value
  */
-export async function load(name: string, type: string) {
+export async function load(name: string, type: `${STORAGE_TYPES}`) {
   try {
     const value = await AsyncStorage.getItem(name);
     if (!value) return null;

@@ -9,11 +9,12 @@ import { trip } from "../screens/MapScreen";
 import { MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { SettingsContext } from "./SettingsContext";
 import { getDistanceFromLatLonInKm } from "../utils/getLocations";
+import { banLocation } from "../screens/BannedLocations";
 
 /**Time between location rerolls in seconds */
 export const REROLL_TIME = 120;
 
-type locationInfo = {
+export type locationInfo = {
   coords: {
     lat: number;
     lon: number;
@@ -66,6 +67,24 @@ export default function LocationInfoPopup({
   const [hintedKeys, setHintedKeys] = useState<keyHintInfo[] | []>([]);
   const { getSetting } = useContext(SettingsContext);
 
+  const handleBan = (location: locationInfo["coords"]) => {
+    Alert.alert(
+      "Do you want to add this location to add this location to banned locations?",
+      undefined,
+      [
+        {
+          text: "No",
+        },
+        {
+          text: "Yes",
+          onPress: () => {
+            void banLocation(location);
+          },
+        },
+      ],
+    );
+  };
+
   const handleReroll = () => {
     if (
       locationInfo !== null &&
@@ -104,6 +123,7 @@ export default function LocationInfoPopup({
           {
             text: "Reroll",
             onPress: () => {
+              handleBan(locationInfo.coords);
               rerollSelectedLocation(locationInfo?.id, locationInfo.name);
               handleClosePopup();
             },
@@ -124,10 +144,17 @@ export default function LocationInfoPopup({
       ? await client.players.self.fetchHints()
       : client.items.hints;
     const locationHint = hints.find((hint) => {
-      return hint.item.locationId === location?.id;
+      return (
+        hint.item.locationId === location?.id &&
+        hint.item.receiver === client.players.self
+      );
     });
 
-    const keyHint = hints.filter((hint) => hint.item.id === MAP_ID_TO_ITEM.KEY);
+    const keyHint = hints.filter(
+      (hint) =>
+        hint.item.id === MAP_ID_TO_ITEM.KEY &&
+        hint.item.receiver === client.players.self,
+    );
 
     handleKeyHints(keyHint);
     handleLocationHint(locationHint);

@@ -17,8 +17,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Alert, AppState, Pressable, View } from "react-native";
-import MapView, { Camera } from "react-native-maps";
+import { Alert, AppState, Dimensions, Pressable, View } from "react-native";
+import MapView, { Camera, LatLng, Marker } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
 import AsyncAlert from "../components/AsyncAlert";
@@ -31,7 +31,10 @@ import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
+import { getBannedLocations } from "./BannedLocations";
+import { CircularSlider } from "@v3ron/react-native-circular-slider";
+import Colors from "../styles/Colors";
 
 /**
  * This class is used to send location ids from the geofencing to the react code
@@ -64,7 +67,7 @@ class LocationsEmitter {
   }
 }
 
-const MemoizedMap = memo(function MemoizedMap({
+function MemoizedMap({
   children,
   location,
 }: {
@@ -101,7 +104,7 @@ const MemoizedMap = memo(function MemoizedMap({
       {children}
     </MapView>
   );
-});
+}
 
 const sendGoal = async (client: Client) => {
   client.updateStatus(clientStatuses.goal);
@@ -253,6 +256,18 @@ export default function MapScreen({
   const NEAR_ZOOM = getSetting("NEAR_ZOOM", "boolean");
   const MARKER_RADIUS = getSetting("MARKER_RADIUS", "number");
   const LOCATION_RETRIES = getSetting("LOCATION_RETRIES", "number");
+  const MAX_RADIAN = getSetting("MAX_RADIAN", "number");
+  const MIN_RADIAN = getSetting("MIN_RADIAN", "number");
+  const HOME_LOCATION = getSetting("HOME_LOCATION", "object") as LatLng;
+  const USE_HOME_LOCATION = getSetting("USE_HOME_LOCATION", "boolean");
+  console.log(
+    "HOME_LOCATION",
+    HOME_LOCATION,
+    "\nUSE_HOME_LOCATION",
+    USE_HOME_LOCATION,
+  );
+
+  console.log("MIN_RADIAN:", MIN_RADIAN, "\nMAX_RADIAN:", MAX_RADIAN);
 
   const [showPopup, setShowPopup] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<null | trip>(null);
@@ -306,17 +321,26 @@ export default function MapScreen({
     loops = 0,
   ) => {
     if (slotData.current?.trips !== null && location !== null) {
+      let loc = location.coords;
+      if (USE_HOME_LOCATION) {
+        loc.latitude = HOME_LOCATION.latitude;
+        loc.longitude = HOME_LOCATION.longitude;
+      }
+      const bannedLocations = await getBannedLocations();
       rerollAllowedRef.current = false;
       const oldTrip: trip = trips.find((trip: trip) => trip.id === id);
       const filteredTrips = removeCheckedLocations(trips, [id]);
       const trip = slotData.current?.trips[name];
       const coords = await getLocations(
-        location.coords,
+        loc,
         parseInt(JSON.stringify(slotData.current?.maximum_distance), 10),
         parseInt(JSON.stringify(slotData.current?.minimum_distance), 10),
         parseInt(JSON.stringify(slotData.current?.speed_requirement), 10),
         trip,
         NEAR_ZOOM,
+        MAX_RADIAN,
+        MIN_RADIAN,
+        bannedLocations,
       );
       const isDuplicate = trips.some(
         (value) =>
@@ -344,6 +368,7 @@ export default function MapScreen({
               style: "default",
             },
           ],
+          { cancelable: false },
         );
       } else rerollSelectedLocation(id, name, loops + 1);
     }
@@ -426,6 +451,13 @@ export default function MapScreen({
     );
     let filteredTrips: trip[];
 
+    let loc = location.coords;
+    if (USE_HOME_LOCATION) {
+      loc.latitude = HOME_LOCATION.latitude;
+      loc.longitude = HOME_LOCATION.longitude;
+    }
+    const bannedLocations = await getBannedLocations();
+
     if (loadedTrips === null && data.trips) {
       const tempTrips: any[] | trip[] = [];
       const tracker = { tripGroup: 0, theta: Math.random() * 2 * Math.PI };
@@ -447,13 +479,17 @@ export default function MapScreen({
 
         while (generatingCoords && !isDisconnecting.current) {
           if (!client.socket.connected) generatingCoords = false;
+
           coords = await getLocations(
-            location.coords,
+            loc,
             parseInt(JSON.stringify(data.maximum_distance), 10),
             parseInt(JSON.stringify(data.minimum_distance), 10),
             parseInt(JSON.stringify(data.speed_requirement), 10),
             trip,
             NEAR_ZOOM,
+            MAX_RADIAN,
+            MIN_RADIAN,
+            bannedLocations,
           );
           generatingCoords = tempTrips.some(
             (value) =>
@@ -478,15 +514,19 @@ export default function MapScreen({
         client.room.checkedLocations,
       );
     }
+
     filteredTrips.forEach(async (trip) => {
       if (trip.coords.osmID === "0") {
         const newCoords = await getLocations(
-          location.coords,
+          loc,
           parseInt(JSON.stringify(data.maximum_distance), 10),
           parseInt(JSON.stringify(data.minimum_distance), 10),
           parseInt(JSON.stringify(data.speed_requirement), 10),
           trip.trip,
           NEAR_ZOOM,
+          MAX_RADIAN,
+          MIN_RADIAN,
+          bannedLocations,
         );
         newCoords.duplicate = filteredTrips.some(
           (value) =>
@@ -711,6 +751,15 @@ export default function MapScreen({
           hintedProgTrips={hintedProgTrips}
           refresh={refresh}
         />
+        {USE_HOME_LOCATION && (
+          <Marker coordinate={HOME_LOCATION} tracksViewChanges={false}>
+            <MaterialCommunityIcons
+              color={Colors.playerSelf}
+              name="map-marker-account"
+              size={50}
+            />
+          </Marker>
+        )}
       </MemoizedMap>
     </View>
   );

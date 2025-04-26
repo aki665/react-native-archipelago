@@ -6,7 +6,8 @@ import React, {
   useState,
 } from "react";
 
-import { load, STORAGE_TYPES } from "../utils/storageHandler";
+import { load, save, STORAGE_TYPES } from "../utils/storageHandler";
+import { locationInfo } from "./LocationInfoPopup";
 
 export type Settings = {
   /**
@@ -24,7 +25,14 @@ export type Settings = {
   /**
    * Value of the setting. Default is set in {@link defaultSettings}
    */
-  value: string | boolean | number;
+  value:
+    | string
+    | boolean
+    | number
+    | object
+    | any[]
+    | null
+    | locationInfo["coords"][];
   /**
    * Only used for numeric values. Maximum allowed value of the setting.
    */
@@ -41,9 +49,14 @@ type getSettingType<T> = T extends "number"
     ? boolean
     : T extends "string"
       ? string
-      : never;
+      : T extends "array"
+        ? any[]
+        : T extends "object"
+          ? object
+          : never;
 
-type getSettingTypeNames = "string" | "number" | "boolean";
+type getSettingTypeNames = "string" | "number" | "boolean" | "array" | "object";
+
 /**
  * Add settings here to make them show up in the settings screen
  */
@@ -94,6 +107,15 @@ const defaultSettings: Settings[] = [
     value: 5,
   },
   {
+    name: "ALWAYS_BAN_REROLL_LOCATION",
+    displayName: "Ban all rerolled locations",
+    description:
+      "Determines if all rerolled locations should be banned added to the list of banned locations." +
+      "\nBanning too many locations can affect location generation times" +
+      "\nDefault: false",
+    value: false,
+  },
+  {
     name: "CAN_ALWAYS_SEND_LOCATION",
     displayName: "CHEAT: Allow free location sending",
     description:
@@ -102,6 +124,33 @@ const defaultSettings: Settings[] = [
       "\nIf false, the button checks if you are within the marker radius." +
       "\nDefault: false",
     value: false,
+  },
+  {
+    name: "HOME_LOCATION",
+    displayName: "Home location",
+    description: "User defined location used in marker generation",
+    value: {
+      lat: null,
+      lon: null,
+    },
+  },
+  {
+    name: "USE_HOME_LOCATION",
+    displayName: "Use home location",
+    description: "",
+    value: false,
+  },
+  {
+    name: "MIN_RADIAN",
+    displayName: "Min allowed radian",
+    description: "",
+    value: 0,
+  },
+  {
+    name: "MAX_RADIAN",
+    displayName: "Max allowed radian",
+    description: "",
+    value: 6.283185,
   },
 ];
 /**
@@ -127,14 +176,14 @@ function getSetting<T extends getSettingTypeNames>(
  */
 export const SettingsContext = createContext<{
   settings: Settings[];
-  setSettings: React.Dispatch<React.SetStateAction<Settings[]>>;
-  getSetting: <T extends "string" | "number" | "boolean">(
+  handleSettingChange: (newValue: Settings["value"], name: string) => void;
+  getSetting: <T extends getSettingTypeNames>(
     name: string,
     type: T,
   ) => getSettingType<T>;
 }>({
   settings: defaultSettings,
-  setSettings: () => {},
+  handleSettingChange: () => {},
   getSetting,
 });
 
@@ -189,15 +238,33 @@ export default function SettingsContextProvider({
     type: T,
   ): getSettingType<T> {
     const res = settings.find((setting) => setting.name === name)?.value;
-    if (res !== undefined && typeof res === type)
-      return res as getSettingType<T>;
+    if (res !== undefined) return res as getSettingType<T>;
     else {
       throw new TypeError("Setting does not exist or is of wrong type!");
     }
   }
 
+  /**
+   * Change a setting both in the context state and local storage
+   * @param newValue new value of the setting
+   * @param name name of the setting
+   */
+  const handleSettingChange = async (
+    newValue: Settings["value"],
+    name: string,
+  ) => {
+    console.log("Saving", newValue, "as new value of", name);
+    const newSettings = settings;
+    const newSettingIndex = newSettings.findIndex(
+      (setting) => setting.name === name,
+    );
+    newSettings[newSettingIndex].value = newValue;
+    await save(newSettings, "__settings", STORAGE_TYPES.OBJECT);
+    setSettings(newSettings);
+  };
+
   const contextValue = useMemo(
-    () => ({ settings, setSettings, getSetting }),
+    () => ({ settings, handleSettingChange, getSetting }),
     [settings],
   );
 

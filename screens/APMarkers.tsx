@@ -1,5 +1,5 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
 import React, { memo, useContext, useEffect, useRef, useState } from "react";
 import { Image, Text, View } from "react-native";
 import { Callout, Circle, MapMarker, Marker } from "react-native-maps";
@@ -29,7 +29,7 @@ const MemoizedMarker = memo(function APMarker({
   hinted: boolean;
   refresh: boolean;
 }>) {
-  const navigation = useNavigation();
+  const navigation = useIsFocused();
   const markerRef = useRef<null | MapMarker>(null);
   const canCheck = receivedKeys >= trip.trip.key_needed;
   const coordinates = useRef({

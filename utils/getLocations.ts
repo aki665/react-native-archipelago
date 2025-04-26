@@ -1,4 +1,5 @@
 import { LocationObjectCoords } from "expo-location";
+import { locationInfo } from "../components/LocationInfoPopup";
 
 const DISTANCE_LENIENCY = 0.1;
 
@@ -44,6 +45,7 @@ async function generateLocation(
   max: number,
   theta: number,
   zoom: number,
+  bannedLocations: locationInfo["coords"][],
   min = 0,
 ) {
   if (min > max) {
@@ -95,7 +97,9 @@ async function generateLocation(
       lookupInfo.class === "railway" ||
       lookupInfo.addresstype === "railway" ||
       lookupInfo?.extratags?.access === "private" ||
-      lookupInfo?.extratags?.landuse === "railway"
+      lookupInfo?.extratags?.landuse === "railway" ||
+      lookupInfo?.extratags?.foot === "no" ||
+      lookupInfo?.extratags?.access === "no"
     )
       throw new Error("Location is in a forbidden area");
     console.log(newLatitude, "is now", lookupInfo.lat);
@@ -104,6 +108,9 @@ async function generateLocation(
     newLatitude = parseFloat(lookupInfo.lat);
     newLongitude = parseFloat(lookupInfo.lon);
     const osmID = lookupInfo.osm_type[0].toUpperCase() + lookupInfo.osm_id;
+    if (bannedLocations.some((item) => item.osmID === osmID)) {
+      throw new Error("Location is a banned location");
+    }
     const distance = getDistanceFromLatLonInKm(
       latitude,
       longitude,
@@ -159,6 +166,9 @@ async function getLocationCoordinates(
   maximum_distance: number,
   distance_tier: number,
   useNearZoom: boolean,
+  minRadian: number,
+  maxRadian: number,
+  bannedLocations: locationInfo["coords"][],
   minimum_distance = 0,
   correction = 0,
   loop_count = 0,
@@ -178,12 +188,16 @@ async function getLocationCoordinates(
   if (minDist > maximum_distance)
     minDist = maximum_distance * (1 - DISTANCE_LENIENCY);
   const zoom = loop_count > 1 || useNearZoom ? 18 : 17;
+
+  const theta =
+    (Math.random() * (maxRadian - minRadian) + minRadian) * 2 * Math.PI;
   let res = await generateLocation(
     latitude,
     longitude,
     maxDist,
-    Math.random() * 2 * Math.PI,
+    theta,
     zoom,
+    bannedLocations,
     minDist,
   );
   const calculatedResult = Math.round(
@@ -214,6 +228,9 @@ async function getLocationCoordinates(
       maximum_distance,
       distance_tier,
       useNearZoom,
+      minRadian,
+      minRadian,
+      bannedLocations,
       minimum_distance,
       cor,
       loop_count + 1,
@@ -233,6 +250,9 @@ export default async function getLocations(
     speed_tier: number;
   },
   useNearZoom: boolean,
+  maxRadian: number,
+  minRadian: number,
+  bannedLocations: locationInfo["coords"][],
 ) {
   const coordinates = await getLocationCoordinates(
     initialCords.latitude,
@@ -240,6 +260,9 @@ export default async function getLocations(
     maximum_distance,
     trip.distance_tier,
     useNearZoom,
+    minRadian,
+    maxRadian,
+    bannedLocations,
     minimum_distance,
   );
   return {
