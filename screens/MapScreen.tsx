@@ -709,6 +709,10 @@ export default function MapScreen({
   }, [receivedKeys, trips]);
 
   useEffect(() => {
+    setRefresh((prevState) => !prevState);
+  }, [trips]);
+
+  useEffect(() => {
     console.log("macguffinString changed to", macguffinString);
     if (!goalAchieved) handleGoal(client, trips, macguffinString);
   }, [macguffinString]);
