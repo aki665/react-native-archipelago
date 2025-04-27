@@ -186,6 +186,18 @@ async function getLocationCoordinates(
     zoom,
     minDist,
   );
+  if (res.osmID === 0) {
+    res = await getLocationCoordinates(
+      latitude,
+      longitude,
+      maximum_distance,
+      distance_tier,
+      useNearZoom,
+      minimum_distance,
+      correction,
+      loop_count,
+    );
+  }
   const calculatedResult = Math.round(
     res.distance * 1000 * 1 + DISTANCE_LENIENCY,
   );
