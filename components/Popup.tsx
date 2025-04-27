@@ -7,16 +7,18 @@ export default function Popup({
   visible,
   closePopup,
   popupStyle,
+  animationType = "slide",
   children,
 }: Readonly<{
   visible: boolean;
   closePopup: () => void;
   popupStyle?: ViewStyle;
+  animationType?: Modal["props"]["animationType"];
   children?: ReactNode | ReactNode[];
 }>) {
   return (
     <Modal
-      animationType="slide"
+      animationType={animationType}
       transparent
       visible={visible}
       onRequestClose={() => {
