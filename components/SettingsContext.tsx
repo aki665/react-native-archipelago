@@ -6,7 +6,7 @@ import React, {
   useState,
 } from "react";
 
-import { load, STORAGE_TYPES } from "../utils/storageHandler";
+import { load, save, STORAGE_TYPES } from "../utils/storageHandler";
 
 export type Settings = {
   /**
@@ -127,14 +127,14 @@ function getSetting<T extends getSettingTypeNames>(
  */
 export const SettingsContext = createContext<{
   settings: Settings[];
-  setSettings: React.Dispatch<React.SetStateAction<Settings[]>>;
-  getSetting: <T extends "string" | "number" | "boolean">(
+  handleSettingChange: (newValue: Settings["value"], name: string) => void;
+  getSetting: <T extends getSettingTypeNames>(
     name: string,
     type: T,
   ) => getSettingType<T>;
 }>({
   settings: defaultSettings,
-  setSettings: () => {},
+  handleSettingChange: () => {},
   getSetting,
 });
 
@@ -189,15 +189,33 @@ export default function SettingsContextProvider({
     type: T,
   ): getSettingType<T> {
     const res = settings.find((setting) => setting.name === name)?.value;
-    if (res !== undefined && typeof res === type)
-      return res as getSettingType<T>;
+    if (res !== undefined) return res as getSettingType<T>;
     else {
       throw new TypeError("Setting does not exist or is of wrong type!");
     }
   }
 
+  /**
+   * Change a setting both in the context state and local storage
+   * @param newValue new value of the setting
+   * @param name name of the setting
+   */
+  const handleSettingChange = async (
+    newValue: Settings["value"],
+    name: string,
+  ) => {
+    console.log("Saving", newValue, "as new value of", name);
+    const newSettings = settings;
+    const newSettingIndex = newSettings.findIndex(
+      (setting) => setting.name === name,
+    );
+    newSettings[newSettingIndex].value = newValue;
+    await save(newSettings, "__settings", STORAGE_TYPES.OBJECT);
+    setSettings(newSettings);
+  };
+
   const contextValue = useMemo(
-    () => ({ settings, setSettings, getSetting }),
+    () => ({ settings, handleSettingChange, getSetting }),
     [settings],
   );
 
