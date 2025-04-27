@@ -124,10 +124,17 @@ export default function LocationInfoPopup({
       ? await client.players.self.fetchHints()
       : client.items.hints;
     const locationHint = hints.find((hint) => {
-      return hint.item.locationId === location?.id;
+      return (
+        hint.item.locationId === location?.id &&
+        hint.item.receiver === client.players.self
+      );
     });
 
-    const keyHint = hints.filter((hint) => hint.item.id === MAP_ID_TO_ITEM.KEY);
+    const keyHint = hints.filter(
+      (hint) =>
+        hint.item.id === MAP_ID_TO_ITEM.KEY &&
+        hint.item.receiver === client.players.self,
+    );
 
     handleKeyHints(keyHint);
     handleLocationHint(locationHint);
