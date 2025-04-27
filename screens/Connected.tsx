@@ -245,6 +245,12 @@ export default function Connected({
               },
               style: "cancel",
             },
+            {
+              text: "Continue offline",
+              onPress: () => {
+                setDisconnected(true);
+              },
+            },
           ],
         );
       } else {
@@ -271,6 +277,12 @@ export default function Connected({
               handleDisconnect();
             },
             style: "cancel",
+          },
+          {
+            text: "Continue offline",
+            onPress: () => {
+              setDisconnected(true);
+            },
           },
         ]);
       } else {
