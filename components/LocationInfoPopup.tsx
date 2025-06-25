@@ -66,23 +66,27 @@ export default function LocationInfoPopup({
   const [canHint, setCanHint] = useState<boolean>(false);
   const [hintedKeys, setHintedKeys] = useState<keyHintInfo[] | []>([]);
   const { getSetting } = useContext(SettingsContext);
+  const alwaysBan = getSetting("ALWAYS_BAN_REROLL_LOCATION", "boolean");
 
   const handleBan = (location: locationInfo["coords"]) => {
-    Alert.alert(
-      "Do you want to add this location to add this location to banned locations?",
-      undefined,
-      [
-        {
-          text: "No",
-        },
-        {
-          text: "Yes",
-          onPress: () => {
-            void banLocation(location);
+    if (alwaysBan) void banLocation(location);
+    else {
+      Alert.alert(
+        "Do you want to add this location to add this location to banned locations?",
+        undefined,
+        [
+          {
+            text: "No",
           },
-        },
-      ],
-    );
+          {
+            text: "Yes",
+            onPress: () => {
+              void banLocation(location);
+            },
+          },
+        ],
+      );
+    }
   };
 
   const handleReroll = () => {
@@ -113,7 +117,10 @@ export default function LocationInfoPopup({
     } else if (locationInfo !== null && rerollAllowed.current) {
       Alert.alert(
         "Do you want to reroll this location?",
-        `Do you want to reroll the existing one with a new one?\nYou will be unable to reroll locations for the next ${REROLL_TIME} seconds`,
+        `Do you want to reroll the existing one with a new one?\nYou will be unable to reroll locations for the next ${REROLL_TIME} seconds` +
+          (alwaysBan
+            ? "\n\nThe location will also be added to the banned locations list."
+            : ""),
         [
           {
             text: "Cancel",
