@@ -99,27 +99,13 @@ async function handleBack(
   handleSettingChange(maxRadian, "MAX_RADIAN");
 }
 
-function handleRemoveBannedLocation(location: locationInfo["coords"]) {
-  Alert.alert(
-    "Do you want to remove this location from the list of banned locations?",
-    undefined,
-    [
-      {
-        text: "Cancel",
-        onPress: () => null,
-        style: "cancel",
-      },
-      {
-        text: "Remove",
-        onPress: () => {
-          removeBannedLocation(location);
-        },
-      },
-    ],
-  );
-}
-
-function BannedLocationMarker({ l }: Readonly<{ l: locationInfo["coords"] }>) {
+function BannedLocationMarker({
+  l,
+  handleRemoveBannedLocation,
+}: Readonly<{
+  l: locationInfo["coords"];
+  handleRemoveBannedLocation: (location: locationInfo["coords"]) => void;
+}>) {
   const markerRef = useRef<null | MapMarker>(null);
   return (
     <Marker
@@ -258,6 +244,28 @@ export default function BannedLocations({
     settingsRef.current.homeMarker = homeMarkerLatLng;
   }, [homeMarkerLatLng]);
 
+  function handleRemoveBannedLocation(location: locationInfo["coords"]) {
+    Alert.alert(
+      "Do you want to remove this location from the list of banned locations?",
+      undefined,
+      [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        {
+          text: "Remove",
+          onPress: () => {
+            setBannedLocations((prevState) => {
+              return prevState.filter((item) => item.osmID !== location.osmID);
+            });
+            removeBannedLocation(location);
+          },
+        },
+      ],
+    );
+  }
   return (
     <SafeAreaView>
       <Popup
@@ -519,7 +527,13 @@ export default function BannedLocations({
           </Marker>
         )}
         {bannedLocations.map((l: locationInfo["coords"]) => {
-          return <BannedLocationMarker l={l} key={l.osmID} />;
+          return (
+            <BannedLocationMarker
+              l={l}
+              key={l.osmID}
+              handleRemoveBannedLocation={handleRemoveBannedLocation}
+            />
+          );
         })}
       </MapView>
       {showAdjuster && (
