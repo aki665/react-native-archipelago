@@ -141,11 +141,22 @@ export default function SettingsScreen({
 
   const handleBannedLocations = async () => {
     const fgPermission = await Location.getForegroundPermissionsAsync();
-    const location = await Location.getCurrentPositionAsync();
     console.log(fgPermission);
-    if (fgPermission.granted)
+    if (fgPermission.granted) {
+      const location = await Location.getCurrentPositionAsync();
       navigation.navigate("bannedLocations", { location });
-    setLoading(false);
+    } else {
+      const foregroundStatus =
+        await Location.requestForegroundPermissionsAsync();
+      if (foregroundStatus.status !== "granted") {
+        navigation.navigate("bannedLocations", {
+          coords: { latitude: 0, longitude: 0 },
+        });
+      } else {
+        const location = await Location.getCurrentPositionAsync();
+        navigation.navigate("bannedLocations", { location });
+      }
+    }
   };
   return (
     <>
@@ -160,16 +171,37 @@ export default function SettingsScreen({
         <>
           <View style={settingsStyles.item}>
             <Button
-              onPress={() => {
-                setLoading(true);
-                void handleBannedLocations();
-                setLoading(false);
+              onPress={async () => {
+                console.log("trying to navigate to banned locations");
+                try {
+                  setLoading(true);
+                  await handleBannedLocations();
+                  setLoading(false);
+                } catch (e) {
+                  console.log(
+                    "failed to navigate to banned locations. reason:",
+                    e,
+                  );
+                }
               }}
               text="Manage banned locations"
-              buttonStyle={{ margin: 10, width: "90%" }}
+              buttonStyle={{
+                margin: 10,
+                width: "90%",
+                alignItems: "center",
+                alignContent: "space-evenly",
+                flexDirection: "row-reverse",
+                flex: 1,
+              }}
               buttonProps={{ disabled: loading }}
-            ></Button>
-            {loading && <ActivityIndicator size="large" color="white" />}
+              textStyle={{ fontSize: 25, lineHeight: 30, marginRight: 5 }}
+            >
+              <ActivityIndicator
+                size="small"
+                color="white"
+                animating={loading}
+              />
+            </Button>
           </View>
           {settings
             .filter((setting) => !hiddenSettings.includes(setting.name))

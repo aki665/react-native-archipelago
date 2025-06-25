@@ -157,6 +157,19 @@ function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
 
+/**Calculates theta and handles max radians being smaller that min radians */
+function calculateTheta(minRadian: number, maxRadian: number) {
+  if (minRadian < maxRadian)
+    return (Math.random() * (maxRadian - minRadian) + minRadian) * 2 * Math.PI;
+  else {
+    const maxCircleRads = 2 * Math.PI;
+    const highRandom = Math.random() * (maxCircleRads - minRadian) + minRadian;
+    const lowRandom = Math.random() * maxRadian;
+    const isLow = Math.random() < 0.5;
+    return isLow ? lowRandom * 2 * Math.PI : highRandom * 2 * Math.PI;
+  }
+}
+
 /**
  * Returns a set of coordinates based on input. If resulting coordinates are farther than maximum_distance or nearer than minimum_distance, coordinates get rolled again
  */
@@ -189,8 +202,7 @@ async function getLocationCoordinates(
     minDist = maximum_distance * (1 - DISTANCE_LENIENCY);
   const zoom = loop_count > 1 || useNearZoom ? 18 : 17;
 
-  const theta =
-    (Math.random() * (maxRadian - minRadian) + minRadian) * 2 * Math.PI;
+  const theta = calculateTheta(minRadian, maxRadian);
   let res = await generateLocation(
     latitude,
     longitude,

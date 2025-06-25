@@ -53,16 +53,49 @@ export async function removeBannedLocation(location: locationInfo["coords"]) {
   await save(newList, "__bannedLocations", "object");
 }
 
+/**Converts angle length to max radians */
+function calculateMaxRadian(minRadian: number, angleLength: number) {
+  console.log(
+    "calculating max radians from minRadian",
+    minRadian,
+    "and angleLength",
+    angleLength,
+  );
+  const maxRadian = minRadian + angleLength;
+  console.log("result:", maxRadian);
+  const circleMaxRadian = 2 * Math.PI;
+  if (maxRadian <= circleMaxRadian) return maxRadian;
+  else return maxRadian - circleMaxRadian;
+}
+
+/**Converts max radians to angle length for the circular slider */
+function calculateAngleLength(minRadian: number, maxRadian: number) {
+  console.log(
+    "calculating angle length from minRadian",
+    minRadian,
+    "and maxRadian",
+    maxRadian,
+  );
+  const angleLength = maxRadian - minRadian;
+  console.log("result:", angleLength);
+
+  const circleMaxRadian = 2 * Math.PI;
+  if (angleLength >= 0) return angleLength;
+  else return angleLength + circleMaxRadian;
+}
+
 async function handleBack(
   homeMarker: LatLng,
   homeMarkerEnabled: boolean,
   minRadian: number,
-  maxRadian: number,
+  angleLength: number,
   handleSettingChange: (newValue: Settings["value"], name: string) => void,
 ) {
   handleSettingChange(homeMarkerEnabled, "USE_HOME_LOCATION");
   if (homeMarkerEnabled) handleSettingChange(homeMarker, "HOME_LOCATION");
   handleSettingChange(minRadian, "MIN_RADIAN");
+  const maxRadian = calculateMaxRadian(minRadian, angleLength);
+  console.log("saving maxRadian as", maxRadian);
   handleSettingChange(maxRadian, "MAX_RADIAN");
 }
 
@@ -121,7 +154,13 @@ export default function BannedLocations({
   route,
 }: Readonly<{
   navigation: MaterialTopTabBarProps["navigation"];
-  route: { params: { location: LocationObject } };
+  route: {
+    params: {
+      location:
+        | LocationObject
+        | { coords: { latitude: number; longitude: number } };
+    };
+  };
 }>) {
   const { getSetting, handleSettingChange } = useContext(SettingsContext);
   const HOME_LOCATION = getSetting("HOME_LOCATION", "object") as LatLng;
@@ -133,9 +172,13 @@ export default function BannedLocations({
   const [largeCircleRadiusString, setLargeCircleRadiusString] =
     useState("5000");
 
-  const [maxRadius, setMaxRadius] = useState(
-    getSetting("MAX_RADIAN", "number"),
+  const [angleLength, setAngleLength] = useState(
+    calculateAngleLength(
+      getSetting("MIN_RADIAN", "number"),
+      getSetting("MAX_RADIAN", "number"),
+    ),
   );
+  console.log("set angleLength state to", angleLength);
   const [minRadius, setMinRadius] = useState(
     getSetting("MIN_RADIAN", "number"),
   );
@@ -155,6 +198,25 @@ export default function BannedLocations({
 
   const backHandler = useRef<NativeEventSubscription | undefined>(undefined);
 
+  const settingsRef = useRef<{
+    homeMarker: LatLng;
+    homeMarkerEnabled: boolean;
+    minRadian: number;
+    angleLength: number;
+  }>({
+    homeMarker: {
+      latitude: HOME_LOCATION.latitude ?? route.params.location.coords.latitude,
+      longitude:
+        HOME_LOCATION.longitude ?? route.params.location.coords.longitude,
+    },
+    homeMarkerEnabled: getSetting("USE_HOME_LOCATION", "boolean"),
+    minRadian: getSetting("MIN_RADIAN", "number"),
+    angleLength: calculateAngleLength(
+      getSetting("MIN_RADIAN", "number"),
+      getSetting("MAX_RADIAN", "number"),
+    ),
+  });
+
   useEffect(() => {
     const loadSettings = async () => {
       const savedBannedLocations = await getBannedLocations();
@@ -166,18 +228,36 @@ export default function BannedLocations({
       "hardwareBackPress",
       () => {
         void handleBack(
-          homeMarkerLatLng,
-          homeMarkerEnabled,
-          minRadius,
-          maxRadius,
+          settingsRef.current.homeMarker,
+          settingsRef.current.homeMarkerEnabled,
+          settingsRef.current.minRadian,
+          settingsRef.current.angleLength,
           handleSettingChange,
         );
+        backHandler.current?.remove();
         navigation.goBack();
         return true;
       },
     );
     void loadSettings();
   }, []);
+
+  useEffect(() => {
+    settingsRef.current.minRadian = minRadius;
+  }, [minRadius]);
+
+  useEffect(() => {
+    settingsRef.current.angleLength = angleLength;
+  }, [angleLength]);
+
+  useEffect(() => {
+    settingsRef.current.homeMarkerEnabled = homeMarkerEnabled;
+  }, [homeMarkerEnabled]);
+
+  useEffect(() => {
+    settingsRef.current.homeMarker = homeMarkerLatLng;
+  }, [homeMarkerLatLng]);
+
   return (
     <SafeAreaView>
       <Popup
@@ -343,9 +423,10 @@ export default function BannedLocations({
               homeMarkerLatLng,
               homeMarkerEnabled,
               minRadius,
-              maxRadius,
+              angleLength,
               handleSettingChange,
             );
+            backHandler.current?.remove();
             navigation.goBack();
           }}
           name="arrowleft"
@@ -444,27 +525,45 @@ export default function BannedLocations({
       {showAdjuster && (
         <View
           style={{
-            zIndex: 1000,
             position: "absolute",
-            left:
-              Dimensions.get("window").width / 2 -
-              Dimensions.get("window").width / 2.5,
-            top:
-              Dimensions.get("window").height / 2 -
-              Dimensions.get("window").width / 2.5,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          <CircularSlider
-            startAngle={minRadius}
-            angleLength={maxRadius}
-            onUpdate={({ startAngle, angleLength }) => {
-              console.log(startAngle);
-              setMaxRadius(angleLength);
-              setMinRadius(startAngle);
+          <View
+            style={{
+              zIndex: 1000,
+              backgroundColor: "#4285F450",
+              borderRadius: Dimensions.get("window").width / 2.5 + 20,
             }}
-            strokeWidth={10}
-            radius={Dimensions.get("window").width / 2.5}
-          />
+          >
+            <CircularSlider
+              startAngle={minRadius}
+              angleLength={angleLength}
+              onUpdate={({ startAngle, angleLength }) => {
+                console.log("startAngle", startAngle);
+                console.log("angleLength", angleLength);
+                setAngleLength(angleLength);
+                setMinRadius(startAngle);
+              }}
+              strokeWidth={10}
+              radius={Dimensions.get("window").width / 2.5}
+            ></CircularSlider>
+          </View>
+          <Button
+            onPress={() => {}}
+            buttonStyle={{
+              position: "absolute",
+              zIndex: 1001,
+              left: Dimensions.get("window").width / 2.4,
+              top: Dimensions.get("window").height / 1.9,
+            }}
+            text="Reset"
+          ></Button>
         </View>
       )}
     </SafeAreaView>
