@@ -159,14 +159,20 @@ function deg2rad(deg: number) {
 
 /**Calculates theta and handles max radians being smaller that min radians */
 function calculateTheta(minRadian: number, maxRadian: number) {
+  console.log(
+    "calculating theta from minRadian",
+    minRadian,
+    "and maxRadian",
+    maxRadian,
+  );
   if (minRadian < maxRadian)
-    return (Math.random() * (maxRadian - minRadian) + minRadian) * 2 * Math.PI;
+    return Math.random() * (maxRadian - minRadian) + minRadian;
   else {
     const maxCircleRads = 2 * Math.PI;
     const highRandom = Math.random() * (maxCircleRads - minRadian) + minRadian;
     const lowRandom = Math.random() * maxRadian;
     const isLow = Math.random() < 0.5;
-    return isLow ? lowRandom * 2 * Math.PI : highRandom * 2 * Math.PI;
+    return isLow ? lowRandom : highRandom;
   }
 }
 
