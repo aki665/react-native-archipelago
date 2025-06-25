@@ -267,14 +267,6 @@ export default function MapScreen({
   const MIN_RADIAN = getSetting("MIN_RADIAN", "number");
   const HOME_LOCATION = getSetting("HOME_LOCATION", "object") as LatLng;
   const USE_HOME_LOCATION = getSetting("USE_HOME_LOCATION", "boolean");
-  console.log(
-    "HOME_LOCATION",
-    HOME_LOCATION,
-    "\nUSE_HOME_LOCATION",
-    USE_HOME_LOCATION,
-  );
-
-  console.log("MIN_RADIAN:", MIN_RADIAN, "\nMAX_RADIAN:", MAX_RADIAN);
 
   const [showPopup, setShowPopup] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<null | trip>(null);

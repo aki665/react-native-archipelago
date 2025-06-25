@@ -45,7 +45,7 @@ function App() {
                   <Stack.Screen
                     name="bannedLocations"
                     component={BannedLocations}
-                  ></Stack.Screen>
+                  />
                 </Stack.Navigator>
               </NavigationContainer>
             </View>
