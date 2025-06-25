@@ -178,23 +178,10 @@ export default function Connected({
     navigation.reset({ routes: [{ name: "connect" }] });
   };
 
-  /**
-   * Client listeners are defined here to remake them on reconnect
-   */
-  const handleAddListeners = () => {
-    try {
-      //client.socket.off("printJSON", handleMessages);
-    } catch {
-      console.log("message listener not initialized yet...");
-    }
-    //client.socket.on("printJSON", handleMessages);
-  };
-
   const connect = async () => {
     const info = connectionInfoRef?.current;
     if (info) {
       await client.login(info.url, info.name, info.game, info.connectionInfo);
-      handleAddListeners();
       setMessages((prevState) => [
         ...prevState,
         [
@@ -302,8 +289,6 @@ export default function Connected({
   };
 
   useEffect(() => {
-    handleAddListeners();
-
     const backAction = () => {
       Alert.alert(
         "Disconnect from AP?",

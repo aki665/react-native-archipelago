@@ -11,13 +11,19 @@ import * as TaskManager from "expo-task-manager";
 import React, {
   MutableRefObject,
   ReactNode,
-  memo,
   useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { Alert, AppState, Dimensions, Pressable, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  AppState,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import MapView, { Camera, LatLng, Marker } from "react-native-maps";
 
 import APMarkers from "./APMarkers";
@@ -33,8 +39,9 @@ import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { getBannedLocations } from "./BannedLocations";
-import { CircularSlider } from "@v3ron/react-native-circular-slider";
 import Colors from "../styles/Colors";
+import Popup from "../components/Popup";
+import { useIsFocused } from "@react-navigation/native";
 
 /**
  * This class is used to send location ids from the geofencing to the react code
@@ -285,6 +292,13 @@ export default function MapScreen({
   const [goalAchieved, setGoalAchieved] = useState<boolean>(false);
   const [hintedProgTrips, setHintedProgTrips] = useState<number[]>([0]);
   const [refresh, setRefresh] = useState<boolean>(false);
+  const [generating, setGenerating] = useState(true);
+  const [generatingStatus, setGeneratingStatus] = useState(
+    "Checking for saved info...",
+  );
+
+  const isFocused = useIsFocused();
+
   const rerollAllowedRef = useRef<boolean>(true);
   const rerollTime = useRef<Date>(new Date());
   const slotData = useRef<JSONRecord | null>(null);
@@ -368,7 +382,7 @@ export default function MapScreen({
               style: "default",
             },
           ],
-          { cancelable: false },
+          { onDismiss: () => (rerollAllowedRef.current = true) },
         );
       } else rerollSelectedLocation(id, name, loops + 1);
     }
@@ -440,6 +454,7 @@ export default function MapScreen({
       console.log("Trips found. Exiting coordinate loading...");
       return;
     }
+    setGenerating(true);
     const location = await Location.getCurrentPositionAsync();
     const data =
       slotData.current ?? (await client.players.self.fetchSlotData());
@@ -459,11 +474,16 @@ export default function MapScreen({
     const bannedLocations = await getBannedLocations();
 
     if (loadedTrips === null && data.trips) {
+      let index = 0;
+      const tripAmount = Object.entries(data?.trips).length;
+      setGeneratingStatus("No saved locations found. Starting generation...");
       const tempTrips: any[] | trip[] = [];
       const tracker = { tripGroup: 0, theta: Math.random() * 2 * Math.PI };
       for (const [name, trip] of Object.entries(data?.trips).sort(
         (a, b) => a[1].key_needed - b[1].key_needed,
       )) {
+        index++;
+        setGeneratingStatus(`Generating location ${index} of ${tripAmount}`);
         //Makes the slot data into an array that is sorted by key_needed...
         const id =
           client.package.findPackage("Archipela-Go!")?.locationTable[name];
@@ -504,11 +524,15 @@ export default function MapScreen({
 
         tempTrips.push({ coords, trip, name, id });
       }
+      setGeneratingStatus(
+        "Locations generated. Filtering checked locations...",
+      );
       filteredTrips = removeCheckedLocations(
         tempTrips,
         client.room.checkedLocations,
       );
     } else {
+      setGeneratingStatus("Locations loaded. Filtering checked locations...");
       filteredTrips = removeCheckedLocations(
         loadedTrips,
         client.room.checkedLocations,
@@ -548,8 +572,12 @@ export default function MapScreen({
       MARKER_RADIUS,
       locationEmitter.current,
     );
-    if (sessionName && sessionName !== "")
+    if (sessionName && sessionName !== "") {
+      setGeneratingStatus("Saving generated locations...");
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
+    }
+    setGenerating(false);
+    setRefresh((prevState) => !prevState);
   };
 
   const roomUpdateListener = (packet: RoomUpdatePacket) => {
@@ -634,7 +662,7 @@ export default function MapScreen({
   };
 
   useEffect(() => {
-    Location.getCurrentPositionAsync({})
+    Location.getCurrentPositionAsync()
       .then((location) => setLocation(location))
       .catch((e) => console.log(e));
 
@@ -716,6 +744,10 @@ export default function MapScreen({
   }, [receivedKeys, trips]);
 
   useEffect(() => {
+    setRefresh((prevState) => !prevState);
+  }, [trips]);
+
+  useEffect(() => {
     console.log("macguffinString changed to", macguffinString);
     if (!goalAchieved) handleGoal(client, trips, macguffinString);
   }, [macguffinString]);
@@ -743,6 +775,14 @@ export default function MapScreen({
         rerollTime={rerollTime}
         setLocationAsFound={handleGeofenceEnter}
       />
+      <Popup
+        closePopup={() => {}}
+        visible={generating && isFocused}
+        animationType="fade"
+      >
+        <ActivityIndicator size="large" />
+        <Text style={{ marginTop: 10 }}>{generatingStatus}</Text>
+      </Popup>
       <MemoizedMap location={location}>
         <APMarkers
           trips={trips}
