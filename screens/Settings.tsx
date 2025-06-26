@@ -184,7 +184,7 @@ export default function SettingsScreen({
                   );
                 }
               }}
-              text="Manage banned locations"
+              text="Manage location settings"
               buttonStyle={{
                 margin: 10,
                 width: "90%",

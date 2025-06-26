@@ -40,8 +40,7 @@ import { STORAGE_TYPES, load, save } from "../utils/storageHandler";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { getBannedLocations } from "./BannedLocations";
 import Colors from "../styles/Colors";
-import Popup from "../components/Popup";
-import { useIsFocused } from "@react-navigation/native";
+import commonStyles from "../styles/CommonStyles";
 
 /**
  * This class is used to send location ids from the geofencing to the react code
@@ -289,10 +288,9 @@ export default function MapScreen({
     "Checking for saved info...",
   );
 
-  const isFocused = useIsFocused();
-
   const rerollAllowedRef = useRef<boolean>(true);
   const rerollTime = useRef<Date>(new Date());
+  const rerollTimer = useRef<NodeJS.Timeout | null>(null);
   const slotData = useRef<JSONRecord | null>(null);
   const appState = useRef(AppState.currentState);
   const locationEmitter = useRef(new LocationsEmitter());
@@ -327,6 +325,8 @@ export default function MapScreen({
     loops = 0,
   ) => {
     if (slotData.current?.trips !== null && location !== null) {
+      if (loops === 0) setGeneratingStatus("Rerolling location");
+      setGenerating(true);
       let loc = location.coords;
       if (USE_HOME_LOCATION) {
         loc.latitude = HOME_LOCATION.latitude;
@@ -359,11 +359,14 @@ export default function MapScreen({
         setTrips(filteredTrips);
         rerollTime.current = new Date();
         await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
-        setTimeout(() => {
+        rerollTimer.current = setTimeout(() => {
           console.log("reroll is allowed again");
           handleReroll();
         }, REROLL_TIME * 1000);
+        setRefresh((prevState) => !prevState);
+        setGenerating(false);
       } else if (loops > 5) {
+        setGenerating(false);
         Alert.alert(
           "Reroll failed",
           "After 5 tries, the location could not be rerolled.\nLocation has not been changed and reroll is not on cooldown.",
@@ -376,7 +379,12 @@ export default function MapScreen({
           ],
           { onDismiss: () => (rerollAllowedRef.current = true) },
         );
-      } else rerollSelectedLocation(id, name, loops + 1);
+      } else {
+        setGeneratingStatus(
+          "Failed to reroll.\nRetrying. Attempt " + loops + " of " + 5,
+        );
+        rerollSelectedLocation(id, name, loops + 1);
+      }
     }
   };
 
@@ -702,6 +710,7 @@ export default function MapScreen({
       client.socket.off("connected", handleReconnect);
       client.socket.off("roomUpdate", roomUpdateListener);
       client.socket.off("receivedItems", receivedItemsListener);
+      if (rerollTimer.current != null) clearTimeout(rerollTimer.current);
     };
   }, []);
 
@@ -751,6 +760,7 @@ export default function MapScreen({
         onPress={() => {
           handleRefresh();
         }}
+        disabled={generating}
       >
         <View>
           <FontAwesome name="refresh" size={24} color="black" />
@@ -767,14 +777,31 @@ export default function MapScreen({
         rerollTime={rerollTime}
         setLocationAsFound={handleGeofenceEnter}
       />
-      <Popup
-        closePopup={() => {}}
-        visible={generating && isFocused}
-        animationType="fade"
-      >
-        <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>{generatingStatus}</Text>
-      </Popup>
+      {generating && (
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+            backgroundColor: "#00000050",
+          }}
+        >
+          <View
+            style={{
+              ...commonStyles.modalView,
+              zIndex: 1000,
+            }}
+          >
+            <ActivityIndicator size="large" />
+            <Text style={{ marginTop: 10 }}>{generatingStatus}</Text>
+          </View>
+        </View>
+      )}
       <MemoizedMap location={location}>
         <APMarkers
           trips={trips}

@@ -55,14 +55,7 @@ export async function removeBannedLocation(location: locationInfo["coords"]) {
 
 /**Converts angle length to max radians */
 function calculateMaxRadian(minRadian: number, angleLength: number) {
-  console.log(
-    "calculating max radians from minRadian",
-    minRadian,
-    "and angleLength",
-    angleLength,
-  );
   const maxRadian = minRadian + angleLength;
-  console.log("result:", maxRadian);
   const circleMaxRadian = 2 * Math.PI;
   if (maxRadian <= circleMaxRadian) return maxRadian;
   else return maxRadian - circleMaxRadian;
@@ -70,15 +63,7 @@ function calculateMaxRadian(minRadian: number, angleLength: number) {
 
 /**Converts max radians to angle length for the circular slider */
 function calculateAngleLength(minRadian: number, maxRadian: number) {
-  console.log(
-    "calculating angle length from minRadian",
-    minRadian,
-    "and maxRadian",
-    maxRadian,
-  );
   const angleLength = maxRadian - minRadian;
-  console.log("result:", angleLength);
-
   const circleMaxRadian = 2 * Math.PI;
   if (angleLength >= 0) return angleLength;
   else return angleLength + circleMaxRadian;
@@ -95,7 +80,6 @@ async function handleBack(
   if (homeMarkerEnabled) handleSettingChange(homeMarker, "HOME_LOCATION");
   handleSettingChange(minRadian, "MIN_RADIAN");
   const maxRadian = calculateMaxRadian(minRadian, angleLength);
-  console.log("saving maxRadian as", maxRadian);
   handleSettingChange(maxRadian, "MAX_RADIAN");
 }
 
@@ -114,7 +98,7 @@ function BannedLocationMarker({
       ref={markerRef}
     >
       <MaterialCommunityIcons
-        color={Colors.playerSelf}
+        color={Colors.trap}
         name="map-marker-remove-variant"
         size={50}
       />
@@ -164,7 +148,6 @@ export default function BannedLocations({
       getSetting("MAX_RADIAN", "number"),
     ),
   );
-  console.log("set angleLength state to", angleLength);
   const [minRadius, setMinRadius] = useState(
     getSetting("MIN_RADIAN", "number"),
   );
@@ -206,7 +189,6 @@ export default function BannedLocations({
   useEffect(() => {
     const loadSettings = async () => {
       const savedBannedLocations = await getBannedLocations();
-      console.log("Banned locations:", savedBannedLocations);
       if (savedBannedLocations.length > 0)
         setBannedLocations(savedBannedLocations);
     };
@@ -559,17 +541,20 @@ export default function BannedLocations({
               startAngle={minRadius}
               angleLength={angleLength}
               onUpdate={({ startAngle, angleLength }) => {
-                console.log("startAngle", startAngle);
-                console.log("angleLength", angleLength);
                 setAngleLength(angleLength);
                 setMinRadius(startAngle);
               }}
               strokeWidth={10}
               radius={Dimensions.get("window").width / 2.5}
+              gradientColorFrom="#EEE391"
+              gradientColorTo="#CA94C2"
             ></CircularSlider>
           </View>
           <Button
-            onPress={() => {}}
+            onPress={() => {
+              setMinRadius(0);
+              setAngleLength(6.283185);
+            }}
             buttonStyle={{
               position: "absolute",
               zIndex: 1001,
