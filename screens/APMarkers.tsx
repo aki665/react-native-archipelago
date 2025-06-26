@@ -74,8 +74,8 @@ const MemoizedMarker = memo(function APMarker({
       <Circle
         center={{ latitude: trip.coords.lat, longitude: trip.coords.lon }}
         radius={MARKER_RADIUS - 1}
-        strokeColor="blue"
-        fillColor="rgba(0,0,0,0)"
+        strokeColor="#4285F4"
+        fillColor="#4285F450"
         key={`${trip.coords.lat}&${trip.coords.lon}-circle`}
       />
       <Marker
