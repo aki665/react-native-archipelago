@@ -20,7 +20,9 @@ export default function ConnectTabs() {
         {(props) => <Connect {...props} />}
       </Tab.Screen>
       <Tab.Screen name="Saved Connections" component={SavedInfo} />
-      <Tab.Screen name="Settings" component={Settings} />
+      <Tab.Screen name="Settings">
+        {(props) => <Settings {...props} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }

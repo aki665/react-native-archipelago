@@ -9,11 +9,12 @@ import { trip } from "../screens/MapScreen";
 import { MAP_ID_TO_ITEM } from "../utils/handleItems";
 import { SettingsContext } from "./SettingsContext";
 import { getDistanceFromLatLonInKm } from "../utils/getLocations";
+import { banLocation } from "../screens/BannedLocations";
 
 /**Time between location rerolls in seconds */
 export const REROLL_TIME = 120;
 
-type locationInfo = {
+export type locationInfo = {
   coords: {
     lat: number;
     lon: number;
@@ -65,6 +66,28 @@ export default function LocationInfoPopup({
   const [canHint, setCanHint] = useState<boolean>(false);
   const [hintedKeys, setHintedKeys] = useState<keyHintInfo[] | []>([]);
   const { getSetting } = useContext(SettingsContext);
+  const alwaysBan = getSetting("ALWAYS_BAN_REROLL_LOCATION", "boolean");
+
+  const handleBan = (location: locationInfo["coords"]) => {
+    if (alwaysBan) void banLocation(location);
+    else {
+      Alert.alert(
+        "Do you want to add this location to add this location to banned locations?",
+        undefined,
+        [
+          {
+            text: "No",
+          },
+          {
+            text: "Yes",
+            onPress: () => {
+              void banLocation(location);
+            },
+          },
+        ],
+      );
+    }
+  };
 
   const handleReroll = () => {
     if (
@@ -94,7 +117,10 @@ export default function LocationInfoPopup({
     } else if (locationInfo !== null && rerollAllowed.current) {
       Alert.alert(
         "Do you want to reroll this location?",
-        `Do you want to reroll the existing one with a new one?\nYou will be unable to reroll locations for the next ${REROLL_TIME} seconds`,
+        `Do you want to reroll the existing one with a new one?\nYou will be unable to reroll locations for the next ${REROLL_TIME} seconds` +
+          (alwaysBan
+            ? "\n\nThe location will also be added to the banned locations list."
+            : ""),
         [
           {
             text: "Cancel",
@@ -104,6 +130,7 @@ export default function LocationInfoPopup({
           {
             text: "Reroll",
             onPress: () => {
+              handleBan(locationInfo.coords);
               rerollSelectedLocation(locationInfo?.id, locationInfo.name);
               handleClosePopup();
             },

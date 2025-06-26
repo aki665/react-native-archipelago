@@ -15,6 +15,7 @@ import SettingsContextProvider from "./components/SettingsContext";
 import ConnectTabs from "./screens/ConnectTabs";
 import Connected from "./screens/Connected";
 import structuredClone from "@ungap/structured-clone";
+import BannedLocations from "./screens/BannedLocations";
 require("react-native-get-random-values");
 
 if (!("structuredClone" in globalThis)) {
@@ -41,6 +42,10 @@ function App() {
                 >
                   <Stack.Screen name="connect" component={ConnectTabs} />
                   <Stack.Screen name="connected" component={Connected} />
+                  <Stack.Screen
+                    name="bannedLocations"
+                    component={BannedLocations}
+                  />
                 </Stack.Navigator>
               </NavigationContainer>
             </View>

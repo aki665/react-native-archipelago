@@ -1,6 +1,7 @@
 import { AntDesign } from "@expo/vector-icons";
 import React, { useContext, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Switch,
@@ -8,6 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import * as Location from "expo-location";
 
 import APLicense from "../components/APLicense";
 import Button from "../components/Button";
@@ -118,7 +120,12 @@ function SettingItem({
 /**
  * An array containing settings that have unique display
  */
-const hiddenSettings = [""];
+const hiddenSettings = [
+  "HOME_LOCATION",
+  "USE_HOME_LOCATION",
+  "MIN_RADIAN",
+  "MAX_RADIAN",
+];
 export default function SettingsScreen({
   navigation,
 }: Readonly<{
@@ -127,8 +134,29 @@ export default function SettingsScreen({
   const { settings, handleSettingChange } = useContext(SettingsContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedDescription, setSelectedDescription] = useState("");
+  const [loading, setLoading] = useState(false);
   const closePopup = () => {
     setModalVisible(false);
+  };
+
+  const handleBannedLocations = async () => {
+    const fgPermission = await Location.getForegroundPermissionsAsync();
+    console.log(fgPermission);
+    if (fgPermission.granted) {
+      const location = await Location.getCurrentPositionAsync();
+      navigation.navigate("bannedLocations", { location });
+    } else {
+      const foregroundStatus =
+        await Location.requestForegroundPermissionsAsync();
+      if (foregroundStatus.status !== "granted") {
+        navigation.navigate("bannedLocations", {
+          coords: { latitude: 0, longitude: 0 },
+        });
+      } else {
+        const location = await Location.getCurrentPositionAsync();
+        navigation.navigate("bannedLocations", { location });
+      }
+    }
   };
   return (
     <>
@@ -141,6 +169,40 @@ export default function SettingsScreen({
       <ScrollView style={settingsStyles.settingsContainer} nestedScrollEnabled>
         <APLicense />
         <>
+          <View style={settingsStyles.item}>
+            <Button
+              onPress={async () => {
+                console.log("trying to navigate to banned locations");
+                try {
+                  setLoading(true);
+                  await handleBannedLocations();
+                  setLoading(false);
+                } catch (e) {
+                  console.log(
+                    "failed to navigate to banned locations. reason:",
+                    e,
+                  );
+                }
+              }}
+              text="Manage location settings"
+              buttonStyle={{
+                margin: 10,
+                width: "90%",
+                alignItems: "center",
+                alignContent: "space-evenly",
+                flexDirection: "row-reverse",
+                flex: 1,
+              }}
+              buttonProps={{ disabled: loading }}
+              textStyle={{ fontSize: 25, lineHeight: 30, marginRight: 5 }}
+            >
+              <ActivityIndicator
+                size="small"
+                color="white"
+                animating={loading}
+              />
+            </Button>
+          </View>
           {settings
             .filter((setting) => !hiddenSettings.includes(setting.name))
             .map((setting) => {

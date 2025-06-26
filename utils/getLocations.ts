@@ -1,4 +1,5 @@
 import { LocationObjectCoords } from "expo-location";
+import { locationInfo } from "../components/LocationInfoPopup";
 
 const DISTANCE_LENIENCY = 0.1;
 
@@ -44,6 +45,7 @@ async function generateLocation(
   max: number,
   theta: number,
   zoom: number,
+  bannedLocations: locationInfo["coords"][],
   min = 0,
 ) {
   if (min > max) {
@@ -95,7 +97,9 @@ async function generateLocation(
       lookupInfo.class === "railway" ||
       lookupInfo.addresstype === "railway" ||
       lookupInfo?.extratags?.access === "private" ||
-      lookupInfo?.extratags?.landuse === "railway"
+      lookupInfo?.extratags?.landuse === "railway" ||
+      lookupInfo?.extratags?.foot === "no" ||
+      lookupInfo?.extratags?.access === "no"
     )
       throw new Error("Location is in a forbidden area");
     console.log(newLatitude, "is now", lookupInfo.lat);
@@ -104,6 +108,9 @@ async function generateLocation(
     newLatitude = parseFloat(lookupInfo.lat);
     newLongitude = parseFloat(lookupInfo.lon);
     const osmID = lookupInfo.osm_type[0].toUpperCase() + lookupInfo.osm_id;
+    if (bannedLocations.some((item) => item.osmID === osmID)) {
+      throw new Error("Location is a banned location");
+    }
     const distance = getDistanceFromLatLonInKm(
       latitude,
       longitude,
@@ -150,6 +157,25 @@ function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
 
+/**Calculates theta and handles max radians being smaller that min radians */
+function calculateTheta(minRadian: number, maxRadian: number) {
+  console.log(
+    "calculating theta from minRadian",
+    minRadian,
+    "and maxRadian",
+    maxRadian,
+  );
+  if (minRadian < maxRadian)
+    return Math.random() * (maxRadian - minRadian) + minRadian;
+  else {
+    const maxCircleRads = 2 * Math.PI;
+    const highRandom = Math.random() * (maxCircleRads - minRadian) + minRadian;
+    const lowRandom = Math.random() * maxRadian;
+    const isLow = Math.random() < 0.5;
+    return isLow ? lowRandom : highRandom;
+  }
+}
+
 /**
  * Returns a set of coordinates based on input. If resulting coordinates are farther than maximum_distance or nearer than minimum_distance, coordinates get rolled again
  */
@@ -159,6 +185,9 @@ async function getLocationCoordinates(
   maximum_distance: number,
   distance_tier: number,
   useNearZoom: boolean,
+  minRadian: number,
+  maxRadian: number,
+  bannedLocations: locationInfo["coords"][],
   minimum_distance = 0,
   correction = 0,
   loop_count = 0,
@@ -178,12 +207,15 @@ async function getLocationCoordinates(
   if (minDist > maximum_distance)
     minDist = maximum_distance * (1 - DISTANCE_LENIENCY);
   const zoom = loop_count > 1 || useNearZoom ? 18 : 17;
+
+  const theta = calculateTheta(minRadian, maxRadian);
   let res = await generateLocation(
     latitude,
     longitude,
     maxDist,
-    Math.random() * 2 * Math.PI,
+    theta,
     zoom,
+    bannedLocations,
     minDist,
   );
   if (res.osmID === 0) {
@@ -193,6 +225,9 @@ async function getLocationCoordinates(
       maximum_distance,
       distance_tier,
       useNearZoom,
+      minRadian,
+      minRadian,
+      bannedLocations,
       minimum_distance,
       correction,
       loop_count,
@@ -226,6 +261,9 @@ async function getLocationCoordinates(
       maximum_distance,
       distance_tier,
       useNearZoom,
+      minRadian,
+      minRadian,
+      bannedLocations,
       minimum_distance,
       cor,
       loop_count + 1,
@@ -245,6 +283,9 @@ export default async function getLocations(
     speed_tier: number;
   },
   useNearZoom: boolean,
+  maxRadian: number,
+  minRadian: number,
+  bannedLocations: locationInfo["coords"][],
 ) {
   const coordinates = await getLocationCoordinates(
     initialCords.latitude,
@@ -252,6 +293,9 @@ export default async function getLocations(
     maximum_distance,
     trip.distance_tier,
     useNearZoom,
+    minRadian,
+    maxRadian,
+    bannedLocations,
     minimum_distance,
   );
   return {
