@@ -20,6 +20,26 @@ const mapStyles = StyleSheet.create({
     opacity: 0.75,
     borderBlockColor: "lightgray",
   },
+  apButton: {
+    position: "absolute",
+    top: 12,
+    right: 60,
+    zIndex: 1000,
+    backgroundColor: "white",
+    padding: 8,
+    paddingTop: 7,
+    borderRadius: 1,
+    elevation: 10,
+    opacity: 0.75,
+    borderBlockColor: "lightgray",
+  },
+  apLogo: {
+    maxWidth: 23,
+    maxHeight: 23,
+    borderRadius: 0,
+    resizeMode: "contain",
+    margin: 0,
+  },
 });
 
 export default mapStyles;

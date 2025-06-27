@@ -20,6 +20,7 @@ import {
   ActivityIndicator,
   Alert,
   AppState,
+  Image,
   Pressable,
   Text,
   View,
@@ -41,6 +42,7 @@ import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { getBannedLocations } from "./BannedLocations";
 import Colors from "../styles/Colors";
 import commonStyles from "../styles/CommonStyles";
+import APInfoPopup from "../components/APInfoPopup";
 
 /**
  * This class is used to send location ids from the geofencing to the react code
@@ -76,7 +78,9 @@ class LocationsEmitter {
 function MemoizedMap({
   children,
   location,
-}: {
+  USE_HOME_LOCATION,
+  HOME_LOCATION,
+}: Readonly<{
   children: ReactNode;
   location: Location.LocationObject | null;
   USE_HOME_LOCATION: boolean;
@@ -282,6 +286,8 @@ export default function MapScreen({
   const USE_HOME_LOCATION = getSetting("USE_HOME_LOCATION", "boolean");
 
   const [showPopup, setShowPopup] = useState(false);
+  const [showAPPopup, setShowAPPopup] = useState(false);
+
   const [selectedLocation, setSelectedLocation] = useState<null | trip>(null);
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null,
@@ -592,7 +598,7 @@ export default function MapScreen({
     }
     setGenerating(false);
     setTimeout(() => {
-    setRefresh((prevState) => !prevState);
+      setRefresh((prevState) => !prevState);
     }, 3000);
   };
 
@@ -782,6 +788,18 @@ export default function MapScreen({
           <FontAwesome name="refresh" size={24} color="black" />
         </View>
       </Pressable>
+      <Pressable
+        style={mapStyles.apButton}
+        onPress={() => {
+          setShowAPPopup(true);
+        }}
+        disabled={generating}
+      >
+        <Image
+          style={mapStyles.apLogo}
+          source={require("../assets/black-icon.png")}
+        ></Image>
+      </Pressable>
       <LocationInfoPopup
         visible={showPopup}
         closePopup={closePopup}
@@ -793,6 +811,15 @@ export default function MapScreen({
         rerollTime={rerollTime}
         setLocationAsFound={handleGeofenceEnter}
       />
+      <APInfoPopup
+        visible={showAPPopup}
+        closePopup={() => setShowAPPopup(false)}
+        goalMode={parseInt(JSON.stringify(slotData.current?.goal), 10)}
+        goalString={macguffinString}
+        amountOfKeys={receivedKeys}
+        remainingTrips={trips.length}
+      />
+
       {generating && (
         <View
           style={{

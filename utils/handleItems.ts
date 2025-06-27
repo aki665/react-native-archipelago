@@ -45,6 +45,9 @@ export const GOAL_MAP = {
   LONG_MACGUFFIN: 3,
 };
 
+export const shortMacguffinString = "Ap-Go!";
+export const longMacguffinString = "Archipela-Go!";
+
 async function handleTrap(item: Item) {}
 
 export default async function handleItems(
@@ -62,8 +65,10 @@ export default async function handleItems(
   let macguffinString = "Archipela-Go";
 
   console.log("goal:", goalNumber);
-  if (goalNumber === GOAL_MAP.SHORT_MACGUFFIN) macguffinString = "Ap-Go!";
-  if (goalNumber === GOAL_MAP.LONG_MACGUFFIN) macguffinString = "Archipela-Go!";
+  if (goalNumber === GOAL_MAP.SHORT_MACGUFFIN)
+    macguffinString = shortMacguffinString;
+  if (goalNumber === GOAL_MAP.LONG_MACGUFFIN)
+    macguffinString = longMacguffinString;
   const newItems: Item[] = [];
 
   items.forEach(async (item, i) => {
