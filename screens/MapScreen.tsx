@@ -79,12 +79,26 @@ function MemoizedMap({
 }: {
   children: ReactNode;
   location: Location.LocationObject | null;
-}) {
+  USE_HOME_LOCATION: boolean;
+  HOME_LOCATION: LatLng;
+}>) {
   const mapRef = useRef<MapView | null>(null);
 
   const onMapReady = () => {
     let camera: Camera | null = null;
-    if (location)
+
+    if (USE_HOME_LOCATION) {
+      camera = {
+        altitude: 3,
+        center: {
+          latitude: HOME_LOCATION.latitude,
+          longitude: HOME_LOCATION.longitude,
+        },
+        heading: 0,
+        pitch: 0,
+        zoom: 15,
+      };
+    } else if (location)
       camera = {
         altitude: 3,
         center: {
@@ -577,7 +591,9 @@ export default function MapScreen({
       await save(filteredTrips, sessionName + "_trips", STORAGE_TYPES.OBJECT);
     }
     setGenerating(false);
+    setTimeout(() => {
     setRefresh((prevState) => !prevState);
+    }, 3000);
   };
 
   const roomUpdateListener = (packet: RoomUpdatePacket) => {
@@ -787,7 +803,7 @@ export default function MapScreen({
             bottom: 0,
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 1000,
+            zIndex: 1100,
             backgroundColor: "#00000050",
           }}
         >
@@ -802,7 +818,11 @@ export default function MapScreen({
           </View>
         </View>
       )}
-      <MemoizedMap location={location}>
+      <MemoizedMap
+        location={location}
+        USE_HOME_LOCATION={USE_HOME_LOCATION}
+        HOME_LOCATION={HOME_LOCATION}
+      >
         <APMarkers
           trips={trips}
           receivedKeys={receivedKeys}

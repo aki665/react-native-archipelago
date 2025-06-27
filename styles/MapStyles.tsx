@@ -12,7 +12,7 @@ const mapStyles = StyleSheet.create({
     position: "absolute",
     top: 60,
     right: 12,
-    zIndex: 9999,
+    zIndex: 1000,
     backgroundColor: "white",
     padding: 8,
     borderRadius: 1,

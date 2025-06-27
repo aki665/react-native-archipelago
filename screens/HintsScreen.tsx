@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Text } from "react-native";
 import { Table } from "@coligo/react-native-table";
 import { ClientContext } from "../components/ClientContext";
 import { Hint, NetworkHint } from "archipelago.js";
