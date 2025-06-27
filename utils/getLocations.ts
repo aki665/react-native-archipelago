@@ -7,7 +7,9 @@ const DISTANCE_LENIENCY = 0.1;
  * Wait provided amount of time (in milliseconds)
  */
 const wait = async (time: number) => {
-  setTimeout(() => {}, time);
+  setTimeout(() => {
+    return;
+  }, time);
 };
 
 /**
@@ -157,7 +159,9 @@ function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
 
-/**Calculates theta and handles max radians being smaller that min radians */
+/**Calculates theta and handles max radians being smaller that min radians
+ * Also has to fix the crimes committed by the circular slider component.
+ */
 function calculateTheta(minRadian: number, maxRadian: number) {
   console.log(
     "calculating theta from minRadian",
@@ -165,13 +169,33 @@ function calculateTheta(minRadian: number, maxRadian: number) {
     "and maxRadian",
     maxRadian,
   );
-  if (minRadian < maxRadian)
-    return Math.random() * (maxRadian - minRadian) + minRadian;
-  else {
+  /** 
+  Transform the radians start at the correct angle (0 rads) instead of 90 degrees (PI/2 rads)
+  and make the circle go in the right direction (counter clockwise instead of clockwise).
+  Also known as "fixing the crimes committed by the circular slider component"
+  */
+  const fixedMax = Math.abs(minRadian - Math.PI * 2) + Math.PI / 2;
+  const fixedMin = Math.abs(maxRadian - Math.PI * 2) + Math.PI / 2;
+  console.log("fixedMin", fixedMin);
+  console.log("fixedMax", fixedMax);
+
+  if (fixedMin < fixedMax) {
+    const theta = Math.random() * (fixedMax - fixedMin) + fixedMin;
+    console.log("generated theta", theta);
+    return theta;
+  } else {
+    console.log("minRadian is higher than maxRadian.");
     const maxCircleRads = 2 * Math.PI;
-    const highRandom = Math.random() * (maxCircleRads - minRadian) + minRadian;
-    const lowRandom = Math.random() * maxRadian;
+    const highRandom = Math.random() * (maxCircleRads - fixedMin) + fixedMin;
+    const lowRandom = Math.random() * fixedMax;
     const isLow = Math.random() < 0.5;
+    console.log(
+      "generated two thetas.",
+      lowRandom,
+      highRandom,
+      "\nReturning",
+      isLow ? lowRandom : highRandom,
+    );
     return isLow ? lowRandom : highRandom;
   }
 }
@@ -226,7 +250,7 @@ async function getLocationCoordinates(
       distance_tier,
       useNearZoom,
       minRadian,
-      minRadian,
+      maxRadian,
       bannedLocations,
       minimum_distance,
       correction,
@@ -262,7 +286,7 @@ async function getLocationCoordinates(
       distance_tier,
       useNearZoom,
       minRadian,
-      minRadian,
+      maxRadian,
       bannedLocations,
       minimum_distance,
       cor,
