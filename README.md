@@ -19,10 +19,48 @@ Settings can be found and changed in the settings screen (duh). Pressing the ? i
 | Allow multiple locations on the same road | If enabled, a road can have multiple locations. For example, imagine a road that has three buildings, Building 1, Building 2 and Building 3. If this setting is disabled, only a single location will be on the road, located usually at the middle point of the road. If enabled, all three buildings can be locations separately. <br>Default is off. Should be turned on, if playing in an area with few roads or with many locations to speed up generation.<br><br> Note: The location generation will selectively act like this setting is enabled, if location a single location takes too many attempts.    |
 | Location radius | Determines the distance from which a location can be collected (in meters). Because of the variance in locations, you should determine the best value for your area. Allowed values are 10 - 100. Default is 20.     |
 | Retry location amount | Determines how many times the app should try generating unique trips before continuing. If set to zero, locations are not checked for uniqueness, causing multiple checks to be in the same location. Should be lower if playing in an area with few roads or with many locations. Default is 5. |
+| Ban all rerolled locations | Determines if all rerolled locations should be added to the list of banned locations. If false, you will be asked if you want to ban a location every time you reroll a location. Banning too many locations can have a negative effect on location generation speed. Default is false
 | CHEAT: Allow free location sending | Allow checks to be sent with a button. If set to true, a button in the location info popup can be pressed to always send a location. If false, the button checks if you are within the marker radius. Default is false
 
+#### Location settings
+
+Settings related to location placement are located in another screen. It can be accessed by pressing the manage location settings button in the settings screen.
 
 
+![Screenshot_1751348617](https://github.com/user-attachments/assets/d5f54b8f-680e-457b-8432-3731102092b0)
+
+By pressing the ? button in the top right of the map, a popup can be opened. 
+
+![Screenshot_1750926080](https://github.com/user-attachments/assets/a3218407-8797-4962-98f6-4ad77ae9721d)
+
+In the popup the home location option can be toggled. The home location is used when the locations are intially generated and when they are re-rolled. As stated in the popup, the marker can be moved by long pressing it and dragging.
+
+The two sliders adjust the circles on the map. They are there to help with yaml settings. **They have no effect on location generation. Actual values are determined by the submitted yaml.**
+
+![Screenshot_1751349646](https://github.com/user-attachments/assets/2522a5f6-df50-4ccb-b35f-e7c366111645)
+Home marker enabled with the sliders set to the minimum possible values.
+
+Tapping the 'Toggle angle adjuster' button at the top of the screen, a circular slider will appear.
+
+![Screenshot_1750926811](https://github.com/user-attachments/assets/e6bffd68-49ac-45c6-8416-cae3c7f3a373)
+
+This slider adjusts the directions that locations will be generated. The angle is not exact, but does have a big influence on the location angles.
+
+**Example of the setting**
+
+![Screenshot_1750927326](https://github.com/user-attachments/assets/15db3b4c-6bbf-4aa4-bf70-35ae05b4be6b)
+![Screenshot_1750927428](https://github.com/user-attachments/assets/70d6bbac-323e-49fb-91de-79521016103c)
+
+Note how a few of the generated locations are slightly outside the allowed angle, but that all of the locations are in the south-west.
+
+If any locations have been added to the banned locations list (done by via rerolling), they will be shown in this screen as well.
+
+
+![Screenshot_1750932966](https://github.com/user-attachments/assets/a015fc31-9f61-4c8d-a33f-d15f8ee262e2)
+
+By tapping on a banned location, it's OSM ID will be shown. By tapping on the popout, the location can be removed from the list of banned locations.
+
+![Screenshot_1750932956](https://github.com/user-attachments/assets/0c923065-898d-4cef-89ce-bf706f278c6b)
 
 ### Connection saving
 When a connection is successfully made to an archipelago server, the app asks if you want to save that connection.
@@ -74,7 +112,15 @@ If keys have been hinted, the hints will be shown. The hint key button will be h
 
 The pop up also contains a button than can be used to re-roll the location. This does have a cooldown, currently set to 2 minutes.
 
-If a location is inaccessible, see [A location is in an inaccessible area](#a-location-is-in-an-inaccessible-area)
+If a location is inaccessible, the popup that follows the re-roll can be used to add the location to the list of banned locations.
+
+### AP info popup
+
+By pressing the Ap button while connected, a popup containing your goal information will be shown. Additionally, the amount of keys you have received will be shown as well.
+
+![Screenshot_1751352138](https://github.com/user-attachments/assets/2d2b3f0c-495c-40ad-8df3-42c535cd667c)
+![Screenshot_1751352123](https://github.com/user-attachments/assets/20fbe9db-3ff3-49fb-8f2c-3dc50313cd19)
+![Screenshot_1751352106](https://github.com/user-attachments/assets/99229e5f-262d-47dc-ba9e-8374b9d4f01c)
 
 ## Feature list
 
@@ -121,12 +167,6 @@ If a location is inaccessible, see [A location is in an inaccessible area](#a-lo
 <sub>5. Traps do nothing functionality, but the player is notified when they are received</sub> 
 
 ## Troubleshooting
-### A location is in an inaccessible area
-If a generated location is inaccessible for some reason, e.g. forbidden area or not walkable, it can be re-rolled from the location info pop up. Before doing this, please make note of the place ID displayed in the pop up. This is the Open Street Map ID of that location. This ID can be used to get the info of that location and may help in preventing some inaccessible locations in the future. 
-
-If you are comfortable with sharing this ID, **which can be used to find the location on a map**, please send it me over discord directly (@aki665) or in the [future-games-design thread](https://discord.com/channels/731205301247803413/1203890996794884126)
-
-If you are not comfortable with sharing info that may reveal your location, you can still help. By going to https://nominatim.openstreetmap.org/ui/details.html and putting the id there, you can find the information I'm looking for by yourself. I'm mainly interested in the type and extra tags fields, as those seem to hold the most relevant information for exclusion. Please send this information to me over discord directly (@aki665) or in the [future-games-design thread](https://discord.com/channels/731205301247803413/1203890996794884126)
 
 ### Locations do not appear
 The location generation is not perfect. If there are only a few location that satisfy the maximum and minimum distance, it might take a few tries to find a suitable location. Additionally, the app tries to make non duplicate locations. If either of these take too many tries, the location will eventually be accepted.
