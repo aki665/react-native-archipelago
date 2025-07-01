@@ -111,7 +111,8 @@ const defaultSettings: Settings[] = [
     displayName: "Ban all rerolled locations",
     description:
       "Determines if all rerolled locations should be banned added to the list of banned locations." +
-      "\nBanning too many locations can affect location generation times" +
+      "\nBanning too many locations can affect location generation times." +
+      "\nIf false, you will be asked if you want to ban a location every time you reroll a location." +
       "\nDefault: false",
     value: false,
   },
