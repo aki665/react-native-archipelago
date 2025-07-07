@@ -9,6 +9,20 @@ import React, {
 import { load, save, STORAGE_TYPES } from "../utils/storageHandler";
 import { locationInfo } from "./LocationInfoPopup";
 
+export async function findSetting(name: string) {
+  const settings: Settings[] | null = await load(
+    "__settings",
+    STORAGE_TYPES.OBJECT,
+  );
+  const defaultSetting = defaultSettings.findIndex(
+    (setting) => setting.name === name,
+  );
+  if (settings == null) return defaultSetting; //return default value if no settings have been saved
+  const settingIndex = settings.findIndex((setting) => setting.name === name);
+  if (settingIndex === -1) return defaultSetting; //if the setting does not exist, return the default value
+  return settings[settingIndex].value;
+}
+
 export type Settings = {
   /**
    * Internal name of the setting.
