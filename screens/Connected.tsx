@@ -12,6 +12,8 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -22,6 +24,8 @@ import { ClientContext } from "../components/ClientContext";
 import { ErrorContext } from "../components/ErrorContext";
 import { SettingsContext } from "../components/SettingsContext";
 import HintsScreen from "./HintsScreen";
+import Colors from "../styles/Colors";
+import playAudio from "../utils/playAudio";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -54,6 +58,7 @@ export default function Connected({
   const isDisconnecting = useRef(false);
   const [disconnected, setDisconnected] = useState<boolean>(false);
   const [reconnecting, setReconnecting] = useState<boolean>(false);
+  const [lostConnection, setLostConnection] = useState<boolean>(false);
 
   /**
    * Parses a received message and puts it into the messages state. Used by chat.tsx to display messages.
@@ -192,6 +197,8 @@ export default function Connected({
       ]);
       setDisconnected(false);
       setReconnecting(false);
+      setLostConnection(false);
+      void playAudio("reconnected");
     }
   };
 
@@ -273,6 +280,8 @@ export default function Connected({
           },
         ]);
       } else {
+        void playAudio("disconnected");
+        setLostConnection(true);
         setMessages((prevState) => [
           ...prevState,
           [{ text: "Connection lost. Retrying..." }],
@@ -358,11 +367,38 @@ export default function Connected({
       {allowedLocation && (
         <Tab.Screen name="Map">
           {(props) => (
-            <MapScreen
-              {...props}
-              sessionName={sessionName}
-              isDisconnecting={isDisconnecting}
-            />
+            <>
+              {lostConnection && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                  }}
+                >
+                  <View
+                    style={{
+                      zIndex: 1000,
+                      backgroundColor: Colors.white,
+                      borderRadius: 5,
+                      marginTop: 5,
+                      padding: 2,
+                    }}
+                  >
+                    <Text>Lost connection.{"\n"}Reconnecting...</Text>
+                  </View>
+                </View>
+              )}
+              <MapScreen
+                {...props}
+                sessionName={sessionName}
+                isDisconnecting={isDisconnecting}
+              />
+            </>
           )}
         </Tab.Screen>
       )}

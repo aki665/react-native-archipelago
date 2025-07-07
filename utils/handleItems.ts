@@ -5,6 +5,7 @@ import {
   JSONSerializable,
 } from "archipelago.js";
 import AsyncAlert from "../components/AsyncAlert";
+import playAudio from "./playAudio";
 
 export const ITEM_ID_OFFSET = 8902301100000;
 export const MAP_ID_TO_ITEM = {
@@ -48,6 +49,22 @@ export const GOAL_MAP = {
 export const shortMacguffinString = "Ap-Go!";
 export const longMacguffinString = "Archipela-Go!";
 
+function getClassString(flag: number) {
+  switch (flag) {
+    case 1:
+      return "prog";
+    case 2:
+      return "useful";
+    case 3:
+      return "progUseful";
+    case 4:
+      return "trap";
+    case 0:
+    default:
+      return "filler";
+  }
+}
+
 async function handleTrap(item: Item) {}
 
 export default async function handleItems(
@@ -70,11 +87,11 @@ export default async function handleItems(
   if (goalNumber === GOAL_MAP.LONG_MACGUFFIN)
     macguffinString = longMacguffinString;
   const newItems: Item[] = [];
+  let highestClass = 0;
 
   items.forEach(async (item, i) => {
     if (item.id === MAP_ID_TO_ITEM.KEY) keyAmount++;
     if (item.id === MAP_ID_TO_ITEM.COLLECTION_DISTANCE) distanceReductions++;
-    console.log("macguffinString =", macguffinString);
     if (macguffinString) {
       switch (item.id) {
         case MAP_ID_TO_ITEM.MACGUFFIN_A:
@@ -141,13 +158,18 @@ export default async function handleItems(
   if (newItems.length > 0) {
     let itemString = "";
     newItems.forEach((item: Item) => {
+      if (item.flags > highestClass) highestClass = item.flags;
       const itemName = itemPackage[item.id] || "";
-      if (item.receiver.slot === client.players.self.slot) {
+      if (item.sender.slot === client.players.self.slot) {
         itemString += `Found your own ${itemName}\n`;
       } else {
         itemString += `Received ${itemName} from ${item.sender.alias}\n`;
       }
     });
+
+    const highestClassString = getClassString(highestClass);
+
+    playAudio(highestClassString);
     await AsyncAlert("Items received!", itemString, [
       {
         text: "OK",

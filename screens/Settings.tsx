@@ -227,6 +227,7 @@ export default function SettingsScreen({
                 </View>
               );
             })}
+          <View style={settingsStyles.item}></View>
         </>
       </ScrollView>
     </>

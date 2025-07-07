@@ -2,7 +2,7 @@
   "expo": {
     "name": "Archipela-Go!",
     "slug": "archipela-go",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "orientation": "portrait",
     "icon": "./assets/archipela-go-logo.png",
     "userInterfaceStyle": "automatic",
@@ -22,6 +22,9 @@
             "usesCleartextTraffic": true 
           } 
         }
+      ],
+      [
+        "expo-audio"
       ]
     ],
     "splash": {

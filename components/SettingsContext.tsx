@@ -92,6 +92,15 @@ const defaultSettings: Settings[] = [
     value: 5,
   },
   {
+    name: "PLAY_AUDIO",
+    displayName: "Play sound effects",
+    description:
+      "Should the app play sounds." +
+      "\nIf true, sounds will play on disconnect, reconnect and when receiving items." +
+      "\nDefault: true",
+    value: true,
+  },
+  {
     name: "NEAR_ZOOM",
     displayName: "Allow multiple locations on the same road",
     description:

@@ -8,6 +8,7 @@ import {
   Image,
   StyleSheet,
   ImageSourcePropType,
+  ScrollView,
 } from "react-native";
 
 const LicenseItem = ({
@@ -59,7 +60,11 @@ const LicenseItem = ({
 
 export default function APLicense() {
   return (
-    <View>
+    <ScrollView
+      style={styles.container}
+      nestedScrollEnabled
+      showsVerticalScrollIndicator={false}
+    >
       <LicenseItem
         MainTextLink="https://www.openstreetmap.org/copyright"
         mainText="Location data provided by OpenStreetMap"
@@ -75,6 +80,12 @@ export default function APLicense() {
         subText="Attribution-NonCommercial 4.0 International"
       />
       <LicenseItem
+        MainTextLink="https://github.com/NewSoupVi/ArchipelagoJingles/"
+        mainText="Archipelago jingles created by NewSoupVi"
+        subTextLink="https://github.com/NewSoupVi/ArchipelagoJingles/blob/main/LICENSE.md"
+        subText="MIT License"
+      />
+      <LicenseItem
         logo={require("../assets/archipela-go-logo_full.png")}
         mainText="The Archipela-Go! Logo created by @combo89 on the Archipelago discord server"
         subText="Based on the Archipelago logo."
@@ -83,10 +94,11 @@ export default function APLicense() {
         logoLink="https://sunny.garden/@linkhs"
         logo={require("../assets/APMarker_blue.png")}
         MainTextLink="https://sunny.garden/@linkhs"
-        mainText="The Archipelago Map Marker created by @linkhs on the Archipelago discord server"
+        mainText="The Archipelago Map Markers created by @linkhs on the Archipelago discord server"
         subText="Based on the Archipelago logo."
       />
-    </View>
+      <View style={styles.cardShadow}></View>
+    </ScrollView>
   );
 }
 
@@ -109,6 +121,15 @@ const Link = ({
 );
 
 const styles = StyleSheet.create({
+  container: {
+    borderWidth: 2,
+    borderColor: "rgba(56, 55, 55, 0.18)",
+    marginHorizontal: 12,
+    borderRadius: 4,
+    marginTop: 6,
+    marginBottom: 6,
+    height: 250,
+  },
   card: {
     borderRadius: 4,
     maxHeight: 150,
@@ -118,7 +139,7 @@ const styles = StyleSheet.create({
     alignItems: "stretch",
   },
   cardShadow: {
-    marginHorizontal: 12,
+    marginHorizontal: 6,
     marginVertical: 6,
     shadowColor: "black",
     shadowOpacity: 0.4,
