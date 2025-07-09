@@ -33,7 +33,7 @@ import { ClientContext } from "../components/ClientContext";
 import LocationInfoPopup, {
   REROLL_TIME,
 } from "../components/LocationInfoPopup";
-import { SettingsContext } from "../components/SettingsContext";
+import { findSetting, SettingsContext } from "../components/SettingsContext";
 import mapStyles from "../styles/MapStyles";
 import getLocations from "../utils/getLocations";
 import handleItems, { GOAL_MAP, MAP_ID_TO_ITEM } from "../utils/handleItems";
@@ -186,6 +186,10 @@ const geofenceLocations = async (
   MARKER_RADIUS: number,
   locationEmitter: LocationsEmitter,
 ) => {
+  const AUTOMATIC_SENDING = (await findSetting("AUTOMATIC_SENDING")) as boolean;
+  if (!AUTOMATIC_SENDING) {
+    return;
+  }
   console.log("MARKER_RADIUS in geofenceLocations", MARKER_RADIUS);
   const geofenceArr = trips.map((trip) => {
     if (receivedKeys >= trip.trip.key_needed) {

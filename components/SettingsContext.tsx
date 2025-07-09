@@ -8,6 +8,7 @@ import React, {
 
 import { load, save, STORAGE_TYPES } from "../utils/storageHandler";
 import { locationInfo } from "./LocationInfoPopup";
+import { handleAutoSendingToggle } from "../utils/settingsHelpers";
 
 export async function findSetting(name: string) {
   const settings: Settings[] | null = await load(
@@ -138,6 +139,14 @@ const defaultSettings: Settings[] = [
       "\nIf false, you will be asked if you want to ban a location every time you reroll a location." +
       "\nDefault: false",
     value: false,
+  },
+  {
+    name: "AUTOMATIC_SENDING",
+    displayName: "Automatic check sending",
+    description:
+      "If set to false, locations are not checked when they are entered. You must manually press the check button." +
+      "\nMight improve battery life, and removes the need for background location permission.",
+    value: true,
   },
   {
     name: "CAN_ALWAYS_SEND_LOCATION",
@@ -285,6 +294,9 @@ export default function SettingsContextProvider({
     newSettings[newSettingIndex].value = newValue;
     await save(newSettings, "__settings", STORAGE_TYPES.OBJECT);
     setSettings(newSettings);
+    if (name === "AUTOMATIC_SENDING") {
+      handleAutoSendingToggle(newValue as boolean);
+    }
   };
 
   const contextValue = useMemo(

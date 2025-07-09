@@ -41,12 +41,13 @@ export default function Connected({
   const { sessionName } = route.params;
   const { client, connectionInfoRef } = useContext(ClientContext);
 
-  const { getSetting } = useContext(SettingsContext);
+  const { getSetting, handleSettingChange } = useContext(SettingsContext);
   const AUTO_RETRY_AMOUNT = getSetting("AUTO_RETRY_AMOUNT", "number");
   const AUTOMATIC_RECONNECTION = getSetting(
     "AUTOMATIC_RECONNECTION",
     "boolean",
   );
+  const AUTOMATIC_SENDING = getSetting("AUTOMATIC_SENDING", "boolean");
 
   const [messages, setMessages] = useState<messages>([]);
 
@@ -136,7 +137,7 @@ export default function Connected({
   const askLocationPermission = async () => {
     const fgPermission = await Location.getForegroundPermissionsAsync();
     const bgPermission = await Location.getBackgroundPermissionsAsync();
-    if (fgPermission.granted && bgPermission.granted) {
+    if (fgPermission.granted && (bgPermission.granted || !AUTOMATIC_SENDING)) {
       setAllowedLocation(true);
     } else {
       const foregroundStatus =
@@ -149,12 +150,13 @@ export default function Connected({
       if (Platform.OS === "android") {
         Alert.alert(
           "Background location permission required!",
-          "Background location permission is required for the app to function. Go to settings and set the location permission to always. Pressing cancel will disconnect you from the current server.",
+          "Background location permission is required for automatic location sending.",
           [
             {
-              text: "Cancel",
+              text: "Disable automatic sending",
               onPress: () => {
-                handleDisconnect();
+                handleSettingChange(false, "AUTOMATIC_SENDING");
+                setAllowedLocation(true);
               },
               style: "cancel",
             },
