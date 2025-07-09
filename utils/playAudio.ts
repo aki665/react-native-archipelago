@@ -13,19 +13,19 @@ type audio =
 function getSource(audio: audio) {
   switch (audio) {
     case "disconnected":
-      return require("../assets/sounds/disconnected.wav");
+      return require("../assets/sounds/disconnected.mp3");
     case "reconnected":
-      return require("../assets/sounds/connected.wav");
+      return require("../assets/sounds/connected.mp3");
     case "filler":
-      return require("../assets/sounds/Filler.wav");
+      return require("../assets/sounds/Filler.mp3");
     case "prog":
-      return require("../assets/sounds/Progression.wav");
+      return require("../assets/sounds/Progression.mp3");
     case "useful":
-      return require("../assets/sounds/Useful.wav");
+      return require("../assets/sounds/Useful.mp3");
     case "trap":
-      return require("../assets/sounds/Trap.wav");
+      return require("../assets/sounds/Trap.mp3");
     case "progUseful":
-      return require("../assets/sounds/ProgUseful.wav");
+      return require("../assets/sounds/ProgUseful.mp3");
   }
 }
 
