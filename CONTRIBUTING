@@ -1,0 +1,18 @@
+## Requirements
+
+Archipela-Go! is created using React Native and Expo. See [Expo's setup guide](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&platform=android&device=simulated) for further instructions on setting up the dev environment. 
+Additionally [pnpm](https://pnpm.io/installation) is used for package management.
+
+Visual Studio Code (or codium) is recommended for making contributions. Make sure to install the recommended extensions.
+
+## Code style
+
+Both [Prettier](https://prettier.io/) and [ESLint](https://eslint.org/) with the [expo plugin](https://docs.expo.dev/guides/using-eslint/) are used. Additionally using SonarQube is recommended, but it should not be followed religiously (I'm looking at you, [typescript:S107](https://next.sonarqube.com/sonarqube/coding_rules?open=typescript%3AS107&rule_key=typescript%3AS107)).
+
+## Branch policy
+
+If you are making changes to the underlying client, i.e. not game specific changes, please base your branch off of the `text-client` branch and target your pull request back into it. An example of a generic feature would be a chat command like /missing or /items. 
+
+If you are making game specific changes, make your brach off of `archipela-go` and target your pull request back into it. An example of a game specific feature would be a new location provider or location scouting.
+
+If you are creating a generic feature that requires game specific features, please make two separate pull requests. One targeting `text-client` with the generic feature and another targeting `archipela-go` with the game specific changes. An example of such a feature would be a theme changer or a swappable app icon.
