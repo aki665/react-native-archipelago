@@ -1,10 +1,5 @@
-# archipela-go
+**If you are looking for Archipela-Go!, see the [releases](https://github.com/aki665/react-native-archipelago/releases/latest) and it's [readme](https://github.com/aki665/react-native-archipelago/blob/archipela-go/README.md). This readme is for the generic AP react native client.**
 
-Currently this is extremely barebones and is just a glorified text client.
+## About this project
 
-## How to run 
-1. Install [Node.Js](https://nodejs.org/en)
-2. Install Expo Go on [Android](https://play.google.com/store/apps/details?id=host.exp.exponent) or [iOS](https://apps.apple.com/us/app/expo-go/id982107779)
-3. Run the command `corepack enable` as admin
-4. Clone the repository and run the command `yarn` in the project root
-5. Run the command `yarn start` in the project root and scan the QR code with the app.
+This project is a barebones implementation of the Archipelago.js library for react native. It is created using Expo. If you are interested in creating your own application or contributing to this project, see [Expo's enviroment setup guide](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&platform=android&device=simulated). For Archipela-Go!, the development build is required. This project uses [pnpm](https://pnpm.io/installation) for package management.
