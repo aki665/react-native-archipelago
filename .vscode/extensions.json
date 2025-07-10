@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "sonarsource.sonarlint-vscode",
+        "streetsidesoftware.code-spell-checker",
+        "dbaeumer.vscode-eslint",
+        "eamodio.gitlens",
+        "yoavbls.pretty-ts-errors"
+    ]
+}
