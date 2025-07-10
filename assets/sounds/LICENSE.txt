@@ -3,6 +3,7 @@ Connected (https://freesound.org/people/rhodesmas/sounds/322896) and Disconnecte
 ========================================================================================================================
 
 Progression, ProgUseful, Trap & Useful sound effects licensed under MIT License
+The sounds are available at https://github.com/NewSoupVi/ArchipelagoJingles/tree/main/Examples/Quiet%20(Glockenspiel)
 
 Copyright (c) 2024 NewSoupVi
 

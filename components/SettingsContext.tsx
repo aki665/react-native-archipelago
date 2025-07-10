@@ -96,7 +96,7 @@ const defaultSettings: Settings[] = [
     name: "PLAY_AUDIO",
     displayName: "Play sound effects",
     description:
-      "Should the app play sounds." +
+      "Determines if the app should play sounds." +
       "\nIf true, sounds will play on disconnect, reconnect and when receiving items." +
       "\nDefault: true",
     value: true,
@@ -142,10 +142,11 @@ const defaultSettings: Settings[] = [
   },
   {
     name: "AUTOMATIC_SENDING",
-    displayName: "Automatic check sending",
+    displayName: "Automatic location sending",
     description:
       "If set to false, locations are not checked when they are entered. You must manually press the check button." +
-      "\nMight improve battery life, and removes the need for background location permission.",
+      "\nTurning this off might improve battery life, and removes the need for background location permission." +
+      "\nDefault: true",
     value: true,
   },
   {
