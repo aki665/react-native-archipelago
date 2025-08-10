@@ -1,7 +1,7 @@
 import { ConnectionOptions, Client } from "archipelago.js";
 import React, {
-  MutableRefObject,
   ReactNode,
+  RefObject,
   createContext,
   useMemo,
   useRef,
@@ -22,7 +22,7 @@ export type APInfo = {
  */
 export const ClientContext = createContext<{
   client: Client;
-  connectionInfoRef: MutableRefObject<APInfo | null> | null;
+  connectionInfoRef: RefObject<APInfo | null> | null;
 }>({
   client: new Client(),
   connectionInfoRef: null,
