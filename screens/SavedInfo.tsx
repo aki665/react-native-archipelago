@@ -21,7 +21,7 @@ import {
 import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 
 const EXTERNAL_EXTRA_DATA: string[] = ["__settings"]; // include extra storage keys you want to handle yourself in this array
-export const EXTRA_DATA: { name: string; type: string }[] = [
+export const EXTRA_DATA: { name: string; type: `${STORAGE_TYPES}` }[] = [
   { name: "_trips", type: STORAGE_TYPES.OBJECT },
   { name: "_itemIndex", type: STORAGE_TYPES.NUMBER },
   { name: "_checked", type: STORAGE_TYPES.OBJECT },

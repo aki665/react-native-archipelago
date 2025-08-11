@@ -1,10 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const STORAGE_TYPES = {
-  OBJECT: "object",
-  STRING: "string",
-  NUMBER: "number",
-};
+export enum STORAGE_TYPES {
+  OBJECT = "object",
+  STRING = "string",
+  NUMBER = "number",
+}
 
 /**
  * Save a value into storage. Uses JSON.stringify.
