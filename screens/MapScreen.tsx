@@ -416,7 +416,6 @@ export default function MapScreen({
   const handleCheckedLocation = async (checkedLocations: readonly number[]) => {
     console.log("new checked locations", checkedLocations);
     if (checkedLocations !== null && checkedLocations.length > 0) {
-      console.log("all trips", trips);
       try {
         client.check([...checkedLocations]);
       } catch (e) {
@@ -699,6 +698,15 @@ export default function MapScreen({
     if (!goalAchieved) handleGoal(client, trips, macguffinString);
   };
 
+  const keepAwake = async () => {
+    console.log("activated keep awake");
+    await activateKeepAwakeAsync("generating");
+  };
+
+  const stopKeepAwake = async () => {
+    console.log("deactivating keep awake");
+    await deactivateKeepAwake("generating");
+  };
   useEffect(() => {
     Location.getCurrentPositionAsync()
       .then((location) => setLocation(location))
@@ -792,8 +800,8 @@ export default function MapScreen({
   }, [macguffinString]);
 
   useEffect(() => {
-    if (generating) activateKeepAwakeAsync("generating");
-    else deactivateKeepAwake("generating");
+    if (generating) keepAwake();
+    else stopKeepAwake();
   }, [generating]);
 
   return (
