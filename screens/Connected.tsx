@@ -49,6 +49,7 @@ export default function Connected({
     "boolean",
   );
   const AUTOMATIC_SENDING = getSetting("AUTOMATIC_SENDING", "boolean");
+  const KEEP_AWAKE = getSetting("KEEP_AWAKE", "boolean");
 
   const [messages, setMessages] = useState<messages>([]);
 
@@ -185,6 +186,7 @@ export default function Connected({
     setMessages([]);
     navigation.reset({ routes: [{ name: "connect" }] });
     deactivateKeepAwake("generating");
+    activateKeepAwakeAsync("setting");
   };
 
   const connect = async () => {
@@ -332,6 +334,7 @@ export default function Connected({
     client.socket.on("printJSON", handleMessages);
 
     askLocationPermission();
+    if (KEEP_AWAKE) activateKeepAwakeAsync("setting");
   }, []);
 
   return (
