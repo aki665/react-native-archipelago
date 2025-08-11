@@ -18,6 +18,7 @@ import Button from "../components/Button";
 import { ClientContext } from "../components/ClientContext";
 import { SettingsContext } from "../components/SettingsContext";
 import HintsScreen from "./HintsScreen";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -38,6 +39,7 @@ export default function Connected({
     "AUTOMATIC_RECONNECTION",
     "boolean",
   );
+  const KEEP_AWAKE = getSetting("KEEP_AWAKE", "boolean");
 
   const [messages, setMessages] = useState<messages>([]);
 
@@ -118,6 +120,8 @@ export default function Connected({
     client.socket.disconnect();
     setMessages([]);
     navigation.reset({ routes: [{ name: "connect" }] });
+    deactivateKeepAwake("generating");
+    activateKeepAwakeAsync("setting");
   };
 
   /**
@@ -262,6 +266,7 @@ export default function Connected({
 
     client.socket.on("disconnected", onDisconnect);
     client.socket.on("printJSON", handleMessages);
+    if (KEEP_AWAKE) activateKeepAwakeAsync("setting");
   }, []);
 
   return (

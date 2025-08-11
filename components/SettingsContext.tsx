@@ -63,6 +63,16 @@ const defaultSettings: Settings[] = [
       "notifying the user and disconnecting.\nDefault:5",
     value: 5,
   },
+  {
+    name: "KEEP_AWAKE",
+    displayName: "Keep screen on",
+    description:
+      "Determines if app should keep the screen on" +
+      "\nIf true, the screen will not turn off if you are connected to an Archipelago server." +
+      "\nIf false, the screen will not turn off during location generation." +
+      "\nDefault: false",
+    value: false,
+  },
 ];
 
 /**
