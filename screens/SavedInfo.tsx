@@ -26,6 +26,7 @@ export const EXTRA_DATA: { name: string; type: string }[] = [
   { name: "_trips", type: STORAGE_TYPES.OBJECT },
   { name: "_itemIndex", type: STORAGE_TYPES.NUMBER },
   { name: "_checked", type: STORAGE_TYPES.OBJECT },
+  { name: "_tempTrips", type: STORAGE_TYPES.OBJECT },
 ]; // include any extra storage keys in this array
 const hiddenData: any[] = [...EXTERNAL_EXTRA_DATA, ...EXTRA_DATA]; // these values are hidden from the loadable list of connections
 

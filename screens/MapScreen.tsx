@@ -9,8 +9,8 @@ import {
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import React, {
-  MutableRefObject,
   ReactNode,
+  RefObject,
   useContext,
   useEffect,
   useRef,
@@ -43,6 +43,7 @@ import { getBannedLocations } from "./BannedLocations";
 import Colors from "../styles/Colors";
 import commonStyles from "../styles/CommonStyles";
 import APInfoPopup from "../components/APInfoPopup";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
 /**
  * This class is used to send location ids from the geofencing to the react code
@@ -277,7 +278,7 @@ export default function MapScreen({
   isDisconnecting,
 }: Readonly<{
   sessionName: string;
-  isDisconnecting: MutableRefObject<boolean>;
+  isDisconnecting: RefObject<boolean>;
 }>) {
   const { client } = useContext(ClientContext);
   const { getSetting } = useContext(SettingsContext);
@@ -496,12 +497,15 @@ export default function MapScreen({
       loc.longitude = HOME_LOCATION.longitude;
     }
     const bannedLocations = await getBannedLocations();
-
-    if (loadedTrips === null && data.trips) {
+    if (loadedTrips === null && data.trips != null) {
       let index = 0;
-      const tripAmount = Object.entries(data?.trips).length;
+      const tripAmount = Object.entries(data.trips).length;
       setGeneratingStatus("No saved locations found. Starting generation...");
-      const tempTrips: any[] | trip[] = [];
+      const partialGeneration: trip[] = await load(
+        sessionName + "_tempTrips",
+        STORAGE_TYPES.OBJECT,
+      );
+      const tempTrips: trip[] = partialGeneration ?? [];
       const tracker = { tripGroup: 0, theta: Math.random() * 2 * Math.PI };
       for (const [name, trip] of Object.entries(data?.trips).sort(
         (a, b) => a[1].key_needed - b[1].key_needed,
@@ -511,8 +515,13 @@ export default function MapScreen({
         //Makes the slot data into an array that is sorted by key_needed...
         const id =
           client.package.findPackage("Archipela-Go!")?.locationTable[name];
-        if (!id) return;
+        if (!id) continue;
         if (client.room.checkedLocations.includes(id)) continue;
+        if (
+          partialGeneration !== null &&
+          partialGeneration.findIndex((trip) => trip.id === id) !== -1
+        )
+          continue;
         if (trip.key_needed !== tracker.tripGroup) {
           tracker.tripGroup = trip.key_needed;
           tracker.theta = Math.random() * 2 * Math.PI; // .. so the theta can be changed when key_needed changes.
@@ -547,6 +556,8 @@ export default function MapScreen({
         }
 
         tempTrips.push({ coords, trip, name, id });
+        await save(tempTrips, sessionName + "_tempTrips", STORAGE_TYPES.OBJECT);
+        if (isDisconnecting.current) break;
       }
       setGeneratingStatus(
         "Locations generated. Filtering checked locations...",
@@ -562,6 +573,7 @@ export default function MapScreen({
         client.room.checkedLocations,
       );
     }
+    if (isDisconnecting.current) return;
 
     filteredTrips.forEach(async (trip) => {
       if (trip.coords.osmID === "0") {
@@ -778,6 +790,11 @@ export default function MapScreen({
     console.log("macguffinString changed to", macguffinString);
     if (!goalAchieved) handleGoal(client, trips, macguffinString);
   }, [macguffinString]);
+
+  useEffect(() => {
+    if (generating) activateKeepAwakeAsync("generating");
+    else deactivateKeepAwake("generating");
+  }, [generating]);
 
   return (
     <View style={mapStyles.container}>

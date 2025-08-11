@@ -26,6 +26,7 @@ import { SettingsContext } from "../components/SettingsContext";
 import HintsScreen from "./HintsScreen";
 import Colors from "../styles/Colors";
 import playAudio from "../utils/playAudio";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -183,6 +184,7 @@ export default function Connected({
     client.socket.disconnect();
     setMessages([]);
     navigation.reset({ routes: [{ name: "connect" }] });
+    deactivateKeepAwake("generating");
   };
 
   const connect = async () => {
