@@ -358,6 +358,11 @@ export default function MapScreen({
         loc.longitude = HOME_LOCATION.longitude;
       }
       const bannedLocations = await getBannedLocations();
+      let bannedLocationString = "";
+      for (const location of bannedLocations) {
+        if (location.osmID.startsWith("N"))
+          bannedLocationString += `way.a["id"!="${location.osmID.replace("N", "")}"];\n`;
+      }
       rerollAllowedRef.current = false;
       const oldTrip: trip = trips.find((trip: trip) => trip.id === id);
       const filteredTrips = removeCheckedLocations(trips, [id]);
@@ -371,7 +376,7 @@ export default function MapScreen({
         NEAR_ZOOM,
         MAX_RADIAN,
         MIN_RADIAN,
-        bannedLocations,
+        bannedLocationString,
       );
       const isDuplicate = trips.some(
         (value) =>
@@ -496,6 +501,11 @@ export default function MapScreen({
       loc.longitude = HOME_LOCATION.longitude;
     }
     const bannedLocations = await getBannedLocations();
+    let bannedLocationString = "";
+    for (const location of bannedLocations) {
+      if (location.osmID.startsWith("N"))
+        bannedLocationString += `way.a["id"!="${location.osmID.replace("N", "")}"];\n`;
+    }
     if (loadedTrips === null && data.trips != null) {
       let index = 0;
       const tripAmount = Object.entries(data.trips).length;
@@ -541,7 +551,7 @@ export default function MapScreen({
             NEAR_ZOOM,
             MAX_RADIAN,
             MIN_RADIAN,
-            bannedLocations,
+            bannedLocationString,
           );
           generatingCoords = tempTrips.some(
             (value) =>
@@ -585,7 +595,7 @@ export default function MapScreen({
           NEAR_ZOOM,
           MAX_RADIAN,
           MIN_RADIAN,
-          bannedLocations,
+          bannedLocationString,
         );
         newCoords.duplicate = filteredTrips.some(
           (value) =>
