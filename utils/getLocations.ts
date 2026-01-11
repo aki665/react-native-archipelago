@@ -32,6 +32,49 @@ const getOSMTypeAndIdAPI = (
   return `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&zoom=${zoom}&addressdetails=1&extratags=1&format=json`;
 };
 
+const fetchOverpassInfo = async (
+  latitude: number,
+  longitude: number,
+  bannedLocationString: string,
+) => {
+  console.log("getting overpass info from lat lon:", latitude, longitude);
+  const query = `[out:json];
+  way(around:200, ${latitude},${longitude})->.a;
+  (
+    way.a["tracktype"="grade1"];
+    way.a["tracktype"="grade2"];
+    way.a["tracktype"="grade3"];
+    way.a["highway"="residential"];
+    way.a["highway"="living_street"];
+    way.a["highway"="pedestrian"];
+    way.a["highway"="track"];
+    way.a["highway"="footway"];
+    way.a["highway"="bridleway"];
+    way.a["highway"="steps"];
+    way.a["highway"="cycleway"];
+    way.a["highway"="service"];
+    way.a["highway"="secondary"]["maxspeed:type"~":urban"];
+    way.a["highway"="tertiary"]["maxspeed:type"~":urban"];
+    way.a["highway"="secondary"]["maxspeed"~"^[0-5][0-9]?$"];
+    way.a["highway"="tertiary"]["maxspeed"~"^[0-5][0-9]?$"];
+    way.a["highway"="secondary"]["maxspeed"~"^[0-3][0-9]? mph$"];
+    way.a["highway"="tertiary"]["maxspeed"~"^[0-3][0-9]? mph$"];
+    ${bannedLocationString}
+  );
+  >;
+  out skel;`;
+  const data = await fetch("https://overpass.private.coffee/api/interpreter", {
+    method: "POST",
+    body: "data=" + encodeURIComponent(query),
+    referrer: "com.aki665.archipelago",
+    headers: { "user-agent": "archipela-go/0.7.0" },
+  });
+  const res: {
+    elements: [{ type: string; id: number; lat: number; lon: number }];
+  } = await data.json();
+  return res.elements;
+};
+
 /**
  * Calculates a random latitude and longitude a certain distance away from given coordinates
  * Taken from https://gis.stackexchange.com/questions/334297/generate-coordinates-with-minimum-maximum-distance-from-given-coordinates
@@ -41,18 +84,18 @@ const getOSMTypeAndIdAPI = (
  * @param min minimum distance (in M)
  * @returns Object with new cordinates and distance in KM
  */
-async function generateLocation(
+async function generateLocationOverpass(
   latitude: number,
   longitude: number,
   max: number,
   theta: number,
   zoom: number,
-  bannedLocations: locationInfo["coords"][],
+  bannedLocationString: string,
   min = 0,
 ) {
   if (min > max) {
     console.log("max", max);
-    return { distance: 0, newLatitude: 0, newLongitude: 0, osmID: 0 };
+    return { distance: 0, newLatitude: 0, newLongitude: 0, osmID: "0" };
   }
 
   // earth radius in km
@@ -80,39 +123,24 @@ async function generateLocation(
 
   console.log("generated coordinates:", newLatitude, newLongitude);
   try {
-    await wait(1000);
-    console.log("fetching OSMInfo with zoom", zoom);
-    const OSMInfoResponse = await fetch(
-      getOSMTypeAndIdAPI(newLatitude, newLongitude, zoom),
-      {
-        method: "GET",
-        referrer: "com.aki665.archipelago",
-        headers: { "user-agent": "archipela-go/0.2.0" },
-      },
+    await wait(125);
+    const res = await fetchOverpassInfo(
+      newLatitude,
+      newLongitude,
+      bannedLocationString,
     );
-    const lookupInfo = await OSMInfoResponse.json();
 
-    console.log("lookupInfo", lookupInfo);
-    if (
-      lookupInfo.type === "motorway" ||
-      lookupInfo.type === "construction" ||
-      lookupInfo.class === "railway" ||
-      lookupInfo.addresstype === "railway" ||
-      lookupInfo?.extratags?.access === "private" ||
-      lookupInfo?.extratags?.landuse === "railway" ||
-      lookupInfo?.extratags?.foot === "no" ||
-      lookupInfo?.extratags?.access === "no"
-    )
-      throw new Error("Location is in a forbidden area");
-    console.log(newLatitude, "is now", lookupInfo.lat);
-    console.log(newLongitude, "is now", lookupInfo.lon);
+    const coords = res[0];
+    if (coords == null)
+      return { distance: 0, newLatitude: 0, newLongitude: 0, osmID: "0" };
 
-    newLatitude = parseFloat(lookupInfo.lat);
-    newLongitude = parseFloat(lookupInfo.lon);
-    const osmID = lookupInfo.osm_type[0].toUpperCase() + lookupInfo.osm_id;
-    if (bannedLocations.some((item) => item.osmID === osmID)) {
-      throw new Error("Location is a banned location");
-    }
+    console.log("coords", coords);
+    console.log(newLatitude, "is now", coords.lat);
+    console.log(newLongitude, "is now", coords.lon);
+
+    newLatitude = coords.lat;
+    newLongitude = coords.lon;
+    const osmID = coords.type[0].toUpperCase() + coords.id;
     const distance = getDistanceFromLatLonInKm(
       latitude,
       longitude,
@@ -127,7 +155,7 @@ async function generateLocation(
     };
   } catch (e) {
     console.log(e);
-    return { distance: 0, newLatitude: 0, newLongitude: 0, osmID: 0 };
+    return { distance: 0, newLatitude: 0, newLongitude: 0, osmID: "0" };
   }
 }
 
@@ -211,7 +239,7 @@ async function getLocationCoordinates(
   useNearZoom: boolean,
   minRadian: number,
   maxRadian: number,
-  bannedLocations: locationInfo["coords"][],
+  bannedLocationString: string,
   minimum_distance = 0,
   correction = 0,
   loop_count = 0,
@@ -233,16 +261,16 @@ async function getLocationCoordinates(
   const zoom = loop_count > 1 || useNearZoom ? 18 : 17;
 
   const theta = calculateTheta(minRadian, maxRadian);
-  let res = await generateLocation(
+  let res = await generateLocationOverpass(
     latitude,
     longitude,
     maxDist,
     theta,
     zoom,
-    bannedLocations,
+    bannedLocationString,
     minDist,
   );
-  if (res.osmID === 0) {
+  if (res.osmID === "0") {
     res = await getLocationCoordinates(
       latitude,
       longitude,
@@ -251,7 +279,7 @@ async function getLocationCoordinates(
       useNearZoom,
       minRadian,
       maxRadian,
-      bannedLocations,
+      bannedLocationString,
       minimum_distance,
       correction,
       loop_count,
@@ -287,7 +315,7 @@ async function getLocationCoordinates(
       useNearZoom,
       minRadian,
       maxRadian,
-      bannedLocations,
+      bannedLocationString,
       minimum_distance,
       cor,
       loop_count + 1,
@@ -309,7 +337,7 @@ export default async function getLocations(
   useNearZoom: boolean,
   maxRadian: number,
   minRadian: number,
-  bannedLocations: locationInfo["coords"][],
+  bannedLocationString: string,
 ) {
   const coordinates = await getLocationCoordinates(
     initialCords.latitude,
@@ -319,7 +347,7 @@ export default async function getLocations(
     useNearZoom,
     minRadian,
     maxRadian,
-    bannedLocations,
+    bannedLocationString,
     minimum_distance,
   );
   return {

@@ -51,7 +51,7 @@ function MacguffinHuntTracker({
             </Text>
             <Text
               style={
-                goalString.includes("i")
+                goalString.includes("h")
                   ? styles.letterNotFound
                   : styles.letterFound
               }
